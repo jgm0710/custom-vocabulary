@@ -9,14 +9,18 @@ import project.study.jgm.customvocabulary.members.dto.MemberDetailDto;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
-public class EntityModelCreater extends EntityModel<Errors>{
+public class EntityModelCreator extends EntityModel<Errors>{
 
     public static <T> EntityModel createMemberDetailResponse(MemberDetailDto memberDetailDto, Class<T> controller, Object... slashs) {
         Link selfLink = getSelfLink(controller, slashs);
         return EntityModel.of(memberDetailDto, selfLink);
     }
 
-//    public static <T> EntityModel
+    //    public static <T> EntityModel
+    public static <T> EntityModel createMessageResponse(MessageDto messageDto, Class<T> controller, Object... slashs) {
+        Link selfLink = getSelfLink(controller, slashs);
+        return EntityModel.of(messageDto, selfLink);
+    }
 
     private static Link getSelfLink(Class<?> controller, Object[] slashs) {
         WebMvcLinkBuilder webMvcLinkBuilder = linkTo(controller);

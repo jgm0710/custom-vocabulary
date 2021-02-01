@@ -157,4 +157,8 @@ public class Member {
             this.roles.remove(i);
         }
     }
+
+    public boolean matches(String password, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(password, this.password);
+    }
 }

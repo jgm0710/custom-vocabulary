@@ -235,7 +235,7 @@ class MemberServiceTest {
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
 
-        memberService.modifyMember(joinMember.getId(), memberUpdateDto);
+        memberService.modifyMember(joinMember.getId(), memberCreateDto.getPassword(), memberUpdateDto);
 
         em.flush();
         em.clear();

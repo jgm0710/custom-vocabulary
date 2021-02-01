@@ -1,68 +1,33 @@
 package project.study.jgm.customvocabulary.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.members.Gender;
 import project.study.jgm.customvocabulary.members.Member;
-import project.study.jgm.customvocabulary.members.MemberRepository;
-import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
-import project.study.jgm.customvocabulary.security.JwtTokenProvider;
+import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
 import java.time.LocalDate;
-import java.util.stream.Collectors;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@ExtendWith(value = SpringExtension.class)
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-class MemberApiControllerTest {
+public class MemberApiControllerTest extends BaseControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    ObjectMapper objectMapper;
-
-    @Autowired
-    MemberService memberService;
-
-    @Autowired
-    MemberRepository memberRepository;
-
-    @Autowired
-    JwtTokenProvider jwtTokenProvider;
+    final String X_AUTH_TOKEN = "X-AUTH-TOKEN";
 
     @BeforeEach
-    public void setup(WebApplicationContext webApplicationContext) {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .addFilters(new CharacterEncodingFilter("UTF-8", true))  // 필터 추가
-                .apply(springSecurity())    //springSecurityFilter 를 타기 위해서 허용해줘야함. -> 없으면 filter를 타지 않음
-                .alwaysDo(print())
-                .build();
-
+    public void setup() {
         memberRepository.deleteAll();
     }
 
@@ -70,7 +35,7 @@ class MemberApiControllerTest {
     @DisplayName("회원가입")
     public void join() throws Exception {
         //given
-        MemberCreateDto createDto = createMemberCreateDto();
+        MemberCreateDto createDto = getMemberCreateDto();
 
         //when
         mockMvc.perform(
@@ -102,7 +67,7 @@ class MemberApiControllerTest {
 
     }
 
-    private MemberCreateDto createMemberCreateDto() {
+    private MemberCreateDto getMemberCreateDto() {
         MemberCreateDto createDto = MemberCreateDto.builder()
                 .joinId("testJoinid")
                 .email("test@email.com")
@@ -140,16 +105,17 @@ class MemberApiControllerTest {
     @DisplayName("회원조회")
     public void getMember() throws Exception {
         //given
-        MemberCreateDto createDto = createMemberCreateDto();
+        MemberCreateDto createDto = getMemberCreateDto();
         Member member = memberService.userJoin(createDto);
-        LoginDto loginDto = createLoginDto(createDto);
+        LoginDto loginDto = getLoginDto(createDto);
 
         TokenDto tokenDto = memberService.login(loginDto);
 
         //when
+
         mockMvc.perform(
                 get("/api/members/" + member.getId())
-                        .header("X-AUTH-TOKEN", tokenDto.getAccessToken())
+                        .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
         )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -178,18 +144,20 @@ class MemberApiControllerTest {
     @DisplayName("인증 권한이 없는 회원이 회원을 조회할 경우")
     public void getMember_No_Authentication() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = createMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member member = memberService.userJoin(memberCreateDto);
         //when
 
         //then
         mockMvc.perform(
                 get("/api/members/" + member.getId())
-//                        .header("X-AUTH-TOKEN", tokenDto.getAccessToken())
+//                        .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
         )
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-//                .andExpect(jsonPath())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.refresh.href").exists())
         ;
 
     }
@@ -198,14 +166,180 @@ class MemberApiControllerTest {
     @DisplayName("인증된 사용자와 조회하려는 사용자가 다른 경우")
     public void getMember_Unauthorized() throws Exception {
         //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+        memberCreateDto.setJoinId("jonfdsa");
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        get("/api/members/" + adminMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+
+
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정")
+    public void modifyMember() throws Exception{
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member joinMember = memberService.userJoin(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + joinMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+                .andExpect(jsonPath("_links.get-member.href").exists())
+        ;
+
+        Member findMember = memberService.getMember(joinMember.getId());
+
+        Assertions.assertEquals(findMember.getJoinId(), memberUpdateDto.getJoinId());
+        Assertions.assertEquals(findMember.getEmail(), memberUpdateDto.getEmail());
+        Assertions.assertEquals(findMember.getName(), memberUpdateDto.getName());
+        Assertions.assertEquals(findMember.getNickname(), memberUpdateDto.getNickname());
+        Assertions.assertEquals(findMember.getDateOfBirth(), memberUpdateDto.getDateOfBirth());
+        Assertions.assertEquals(findMember.getGender(), memberUpdateDto.getGender());
+        Assertions.assertEquals(findMember.getSimpleAddress(), memberUpdateDto.getSimpleAddress());
+    }
+
+    private MemberUpdateDto getMemberUpdateDto() {
+        MemberUpdateDto memberUpdateDto = MemberUpdateDto.builder()
+                .joinId("updateId")
+                .email("update@email.com")
+                .name("updateName")
+                .nickname("updateNickname")
+                .dateOfBirth(LocalDate.of(1996, 11, 8))
+                .gender(Gender.FEMALE)
+                .simpleAddress("서울 성북구")
+                .build();
+        return memberUpdateDto;
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 회원 정보를 수정할 경우")
+    public void modify_Unauthorized() throws Exception{
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member joinMember = memberService.userJoin(memberCreateDto);
+
+//        LoginDto loginDto = getLoginDto(memberCreateDto);
+//        TokenDto tokenDto = memberService.login(loginDto);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
 
         //when
 
         //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + joinMember.getId())
+//                                .header(X_AUTH_TOKEN,tokenDto.getAccessToken())
+                                .param("password",memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+                .andExpect(jsonPath("_links.refresh.href").exists())
+        ;
 
     }
 
-    private LoginDto createLoginDto(MemberCreateDto memberCreateDto) {
+    @Test
+    @DisplayName("다른 회원의 정보를 수정할 경우")
+    public void modify_DifferentMember() throws Exception{
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto userLoginDto = getLoginDto(memberCreateDto);
+        TokenDto userTokenDto = memberService.login(userLoginDto);
+
+        memberCreateDto.setJoinId("adminjoinid");
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + adminMember.getId())
+                                .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
+                                .param("password",memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+    }
+
+    @Test
+    @DisplayName("회원 수정 시 비밀번호를 잘못 입력한 경우")
+    public void modifyMember_Password_Mismatch() throws Exception{
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", "fdjasklfdjak")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+    }
+
+    private LoginDto getLoginDto(MemberCreateDto memberCreateDto) {
         LoginDto loginDto = new LoginDto();
         loginDto.setJoinId(memberCreateDto.getJoinId());
         loginDto.setPassword(memberCreateDto.getPassword());

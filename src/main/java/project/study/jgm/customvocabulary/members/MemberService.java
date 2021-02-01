@@ -84,8 +84,11 @@ public class MemberService {
     }
 
     @Transactional
-    public void modifyMember(Long memberId, MemberUpdateDto memberUpdateDto) {
+    public void modifyMember(Long memberId, String password, MemberUpdateDto memberUpdateDto) {
         Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        if (!findMember.matches(password, passwordEncoder)) {
+            throw new PasswordMismatchException();
+        }
         findMember.update(memberUpdateDto);
     }
 

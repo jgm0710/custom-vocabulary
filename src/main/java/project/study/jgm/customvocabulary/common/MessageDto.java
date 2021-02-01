@@ -10,11 +10,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthMessageDto {
+public class MessageDto {
 
     private String message;
-
-    public static EntityModel createEntityModel(String message) {
-        return EntityModel.of(new AuthMessageDto(message));
-    }
 }
