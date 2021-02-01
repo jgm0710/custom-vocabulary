@@ -72,7 +72,7 @@ public class MemberService {
         }
 
         LocalDateTime refreshTokenExpirationPeriodDateTime = findMember.getLoginInfo().getRefreshTokenExpirationPeriodDateTime();
-        if (refreshTokenExpirationPeriodDateTime.isAfter(LocalDateTime.now())) {
+        if (refreshTokenExpirationPeriodDateTime.isBefore(LocalDateTime.now())) {
             throw new RefreshTokenExpirationException();
         }
 
@@ -108,6 +108,11 @@ public class MemberService {
     public List<Member> getMemberList(Pageable pageable) {
         Page<Member> page = memberRepository.findAll(pageable);
         return page.getContent();
+    }
+
+    public void ban(Long memberId) {
+        Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        findMember.ban();
     }
 
 

@@ -9,6 +9,7 @@ import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -47,7 +48,8 @@ public class Member {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    private List<MemberRole> roles;    //회원 상태 [MEMBER, ADMIN, BAN, SECESSION]
+    @Builder.Default
+    private List<MemberRole> roles = new ArrayList<>();    //회원 상태 [MEMBER, ADMIN, BAN, SECESSION]
 
     @Embedded
     private LoginInfo loginInfo;
@@ -71,6 +73,28 @@ public class Member {
 //loginInfo
 //registerDate
 //updateDate
+
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "id=" + id +
+                ", joinId='" + joinId + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", name='" + name + '\'' +
+                ", nickname='" + nickname + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", gender=" + gender +
+                ", simpleAddress='" + simpleAddress + '\'' +
+                ", sharedVocabularyCount=" + sharedVocabularyCount +
+                ", bbsCount=" + bbsCount +
+                ", roles=" + roles +
+                ", loginInfo=" + loginInfo +
+                ", registerDate=" + registerDate +
+                ", updateDate=" + updateDate +
+                '}';
+    }
 
     public static Member createMember(MemberCreateDto memberCreateDto, List<MemberRole> roles, PasswordEncoder passwordEncoder, SecurityProperties securityProperties) {
         String encodedPassword = passwordEncoder.encode(memberCreateDto.getPassword());
@@ -110,9 +134,27 @@ public class Member {
     }
 
     public void secession() {
-        this.roles.clear();
-        this.roles.add(MemberRole.SECESSION);
+//        clearRoles();
+//        this.roles.clear();
+//        this.roles.add(MemberRole.SECESSION);
+
+        this.roles = List.of(MemberRole.SECESSION);
 
         this.loginInfo = LoginInfo.deleteInfo();
+    }
+
+    public void ban() {
+//        clearRoles();
+//        this.roles.clear();
+//        this.roles.add(MemberRole.BAN);
+        this.roles = List.of(MemberRole.BAN);
+
+        this.loginInfo = LoginInfo.deleteInfo();
+    }
+
+    private void clearRoles() {
+        for (int i = 0; i < this.roles.size(); i++) {
+            this.roles.remove(i);
+        }
     }
 }
