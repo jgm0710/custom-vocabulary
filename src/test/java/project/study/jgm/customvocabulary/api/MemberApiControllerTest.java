@@ -10,6 +10,7 @@ import project.study.jgm.customvocabulary.members.Gender;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
+import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
@@ -141,6 +142,17 @@ public class MemberApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("회원 조회 시 조회할 회원이 없는 경우")
+    public void getMember_NotFound() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
     @DisplayName("인증 권한이 없는 회원이 회원을 조회할 경우")
     public void getMember_No_Authentication() throws Exception {
         //given
@@ -158,6 +170,49 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("message").exists())
                 .andExpect(jsonPath("_links.self.href").exists())
                 .andExpect(jsonPath("_links.refresh.href").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("관리자가 다른 사용자를 조회하는 경우")
+    public void admin_Get_Of_DifferentMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto adminLoginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(adminLoginDto);
+
+        memberCreateDto.setJoinId("userjoinId");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        get("/api/members/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(userMember.getId()))
+                .andExpect(jsonPath("joinId").value(memberCreateDto.getJoinId()))
+                .andExpect(jsonPath("email").value(memberCreateDto.getEmail()))
+                .andExpect(jsonPath("name").value(memberCreateDto.getName()))
+                .andExpect(jsonPath("nickname").value(memberCreateDto.getNickname()))
+                .andExpect(jsonPath("dateOfBirth").value(memberCreateDto.getDateOfBirth().toString()))
+                .andExpect(jsonPath("gender").value(memberCreateDto.getGender().name()))
+                .andExpect(jsonPath("simpleAddress").value(memberCreateDto.getSimpleAddress()))
+                .andExpect(jsonPath("sharedVocabularyCount").value(0))
+                .andExpect(jsonPath("bbsCount").value(0))
+                .andExpect(jsonPath("registerDate").exists())
+                .andExpect(jsonPath("updateDate").exists())
+                .andExpect(jsonPath("loginInfo.refreshToken").exists())
+                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
         ;
 
     }
@@ -241,6 +296,17 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .simpleAddress("서울 성북구")
                 .build();
         return memberUpdateDto;
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 수정할 회원이 없는 경우")
+    public void modifyMember_NouFound() throws Exception {
+        //given
+
+        //when
+
+        //then
+
     }
 
     @Test
@@ -346,5 +412,164 @@ public class MemberApiControllerTest extends BaseControllerTest {
         return loginDto;
     }
 
+    @Test
+    @DisplayName("비밀번호 수정")
+    public void updatePassword() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto userTokenDto = memberService.login(loginDto);
+
+        PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
+                .newPassword("newPassword")
+                .oldPassword(memberCreateDto.getPassword())
+                .build();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/password/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
+                                .content(objectMapper.writeValueAsString(passwordUpdateDto))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.login.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+
+        Member findMember = memberService.getMember(userMember.getId());
+
+        Assertions.assertNull(findMember.getLoginInfo());
+
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 시 변경할 회원이 없는 경우")
+    public void updatePassword_NotFound() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 비밀번호를 수정하는 경우")
+    public void updatePassword_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+//        LoginDto loginDto = getLoginDto(memberCreateDto);
+//        TokenDto userTokenDto = memberService.login(loginDto);
+
+        PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
+                .newPassword("newPassword")
+                .oldPassword(memberCreateDto.getPassword())
+                .build();
+
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/password/" + userMember.getId())
+//                                .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
+                                .content(objectMapper.writeValueAsString(passwordUpdateDto))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.refresh.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+
+
+    }
+
+    @Test
+    @DisplayName("다른 회원의 비밀번호를 수정하는 경우")
+    public void update_DifferentMember_Password() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto userTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("different");
+        memberCreateDto.setPassword("di");
+        Member userMember2 = memberService.userJoin(memberCreateDto);
+
+
+        PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
+                .newPassword("newPassword")
+                .oldPassword(memberCreateDto.getPassword())
+                .build();
+
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/password/" + userMember2.getId())
+                                .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
+                                .content(objectMapper.writeValueAsString(passwordUpdateDto))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+
+
+    }
+
+    @Test
+    @DisplayName("비밀번호 수정 시 oldPassword 를 틀린 경우")
+    public void updatePassword_Password_Mismatch() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto userTokenDto = memberService.login(loginDto);
+
+        PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
+                .newPassword("newPassword")
+                .oldPassword("fdasfdasfas")
+                .build();
+
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/password/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
+                                .content(objectMapper.writeValueAsString(passwordUpdateDto))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
+
+
+    }
 
 }

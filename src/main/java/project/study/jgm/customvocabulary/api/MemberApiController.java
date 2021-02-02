@@ -1,6 +1,7 @@
 package project.study.jgm.customvocabulary.api;
 
 import lombok.RequiredArgsConstructor;
+import org.jboss.jandex.Index;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
@@ -118,7 +119,14 @@ public class MemberApiController {
     public ResponseEntity updatePassword(@PathVariable("memberId") Long memberId,
                                          @RequestBody @Valid PasswordUpdateDto passwordUpdateDto) {
 
-        return null;
+        memberService.updatePassword(memberId, passwordUpdateDto.getOldPassword(), passwordUpdateDto.getNewPassword());
+        memberService.getMember(memberId);
+
+        EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("비밀번호가 변경되었습니다."), MemberApiController.class, "password", memberId);
+        messageResponse.add(linkTo(LoginApiController.class).slash("login").withRel("login"));
+        messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
+
+        return ResponseEntity.ok(messageResponse);
     }
 
     @PutMapping("/secession/{memberId}")

@@ -93,6 +93,16 @@ public class MemberService {
     }
 
     @Transactional
+    public void updatePassword(Long memberId, String oldPassword, String newPassword) {
+        Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        if (!findMember.matches(oldPassword, passwordEncoder)) {
+            throw new PasswordMismatchException();
+        }
+
+        findMember.updatePassword(newPassword, passwordEncoder);
+    }
+
+    @Transactional
     public void secession(Long memberId) {
         Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         findMember.secession();

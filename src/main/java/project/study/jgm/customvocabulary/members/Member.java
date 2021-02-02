@@ -152,13 +152,19 @@ public class Member {
         this.loginInfo = LoginInfo.deleteInfo();
     }
 
-    private void clearRoles() {
-        for (int i = 0; i < this.roles.size(); i++) {
-            this.roles.remove(i);
-        }
-    }
+//    private void clearRoles() {
+//        for (int i = 0; i < this.roles.size(); i++) {
+//            this.roles.remove(i);
+//        }
+//    }
 
     public boolean matches(String password, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(password, this.password);
+    }
+
+    public void updatePassword(String newPassword, PasswordEncoder passwordEncoder) {
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        this.password = encodedPassword;
+        this.updateDate = LocalDateTime.now();
     }
 }
