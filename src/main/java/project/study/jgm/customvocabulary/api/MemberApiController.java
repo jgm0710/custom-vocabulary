@@ -1,13 +1,13 @@
 package project.study.jgm.customvocabulary.api;
 
 import lombok.RequiredArgsConstructor;
-import org.jboss.jandex.Index;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import project.study.jgm.customvocabulary.common.LinkToVo;
 import project.study.jgm.customvocabulary.common.MessageDto;
 import project.study.jgm.customvocabulary.common.EntityModelCreator;
 import project.study.jgm.customvocabulary.members.Member;
@@ -17,12 +17,16 @@ import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.MemberDetailDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
+import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.CurrentUser;
 import project.study.jgm.customvocabulary.security.exception.PasswordMismatchException;
 
 import javax.validation.Valid;
 
+import java.awt.print.Pageable;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static project.study.jgm.customvocabulary.common.LinkToVo.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +47,7 @@ public class MemberApiController {
         Member member = memberService.userJoin(memberCreateDto);
         MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(member);
         EntityModel memberDetailEntityModel = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class);
-        Link loginLink = linkTo(LoginApiController.class).slash("/login").withRel("login");
+        Link loginLink = linkToLogin();
         memberDetailEntityModel.add(loginLink);
 
         return ResponseEntity.created(loginLink.toUri()).body(memberDetailEntityModel);
@@ -52,29 +56,36 @@ public class MemberApiController {
     @GetMapping("/{memberId}")
     public ResponseEntity getMember(@PathVariable("memberId") Long memberId, @CurrentUser Member member) {
         if (member == null) {
-            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("access_token이 유효하지 않습니다."), MemberApiController.class, memberId);
-            messageResponse.add(linkTo(LoginApiController.class).slash("/refresh").withRel("refresh"));
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.UN_AUTHENTICATION), MemberApiController.class, memberId);
+            messageResponse.add(linkToRefresh());
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
         }
 
-        Member findMember = memberService.getMember(memberId);
+        try {
+            Member findMember = memberService.getMember(memberId);
+            if (!member.getRoles().contains(MemberRole.ADMIN)) {
+                if (!findMember.equals(member)) {
+                    EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.GET_DIFFERENT_MEMBER_INFO), MemberApiController.class, memberId);
+                    messageResponse.add(linkToIndex());
 
-        if (!member.getRoles().contains(MemberRole.ADMIN)) {
-            if (!findMember.equals(member)) {
-                EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("다른 회원의 정보는 조회가 불가능합니다."), MemberApiController.class, memberId);
-                messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
-
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+                }
             }
+
+            MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
+
+            EntityModel memberDetailResponse = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class, memberId);
+            memberDetailResponse.add(linkToIndex());
+
+            return ResponseEntity.ok(memberDetailResponse);
+
+        } catch (MemberNotFoundException e) {
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
         }
-
-        MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
-
-        EntityModel memberDetailResponse = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class, memberId);
-        memberDetailResponse.add(linkTo(IndexApiController.class).withRel("index"));
-
-        return ResponseEntity.ok(memberDetailResponse);
     }
 
     @PutMapping("/{memberId}")
@@ -85,16 +96,9 @@ public class MemberApiController {
             @CurrentUser Member member) {
 
         if (member == null) {
-            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("access_token이 유효하지 않습니다."), MemberApiController.class, memberId);
-            messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
-            messageResponse.add(linkTo(LoginApiController.class).slash("refresh").withRel("refresh"));
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
-        }
-
-        if (!memberId.equals(member.getId())) {
-            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("다른 회원의 정보는 수정할 수 없습니다."), MemberApiController.class, memberId);
-            messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.UN_AUTHENTICATION), MemberApiController.class, memberId);
+            messageResponse.add(linkToIndex());
+            messageResponse.add(linkToRefresh());
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
         }
@@ -102,14 +106,26 @@ public class MemberApiController {
         try {
             memberService.modifyMember(memberId, password, memberUpdateDto);
 
-            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("회원 정보가 정상적으로 수정되었습니다."), MemberApiController.class, memberId);
-            messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
-            messageResponse.add(linkTo(MemberApiController.class).slash(memberId).withRel("get-member"));
+            if (!memberId.equals(member.getId())) {
+                EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO), MemberApiController.class, memberId);
+                messageResponse.add(linkToIndex());
+
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+            }
+
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFIED_SUCCESSFULLY), MemberApiController.class, memberId);
+            messageResponse.add(linkToIndex());
+            messageResponse.add(linkToGetMember(memberId));
 
             return ResponseEntity.ok(messageResponse);
+        } catch (MemberNotFoundException e) {
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
         } catch (PasswordMismatchException e) {
             EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
-            messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
+            messageResponse.add(linkToIndex());
 
             return ResponseEntity.badRequest().body(messageResponse);
         }
@@ -117,16 +133,42 @@ public class MemberApiController {
 
     @PutMapping("/password/{memberId}")
     public ResponseEntity updatePassword(@PathVariable("memberId") Long memberId,
-                                         @RequestBody @Valid PasswordUpdateDto passwordUpdateDto) {
+                                         @RequestBody @Valid PasswordUpdateDto passwordUpdateDto,
+                                         @CurrentUser Member member) {
 
-        memberService.updatePassword(memberId, passwordUpdateDto.getOldPassword(), passwordUpdateDto.getNewPassword());
-        memberService.getMember(memberId);
+        if (member == null) {
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.UN_AUTHENTICATION), MemberApiController.class, "password", memberId);
+            messageResponse.add(linkToIndex());
+            messageResponse.add(linkToRefresh());
 
-        EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("비밀번호가 변경되었습니다."), MemberApiController.class, "password", memberId);
-        messageResponse.add(linkTo(LoginApiController.class).slash("login").withRel("login"));
-        messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+        }
+        try {
+            memberService.updatePassword(memberId, passwordUpdateDto.getOldPassword(), passwordUpdateDto.getNewPassword());
 
-        return ResponseEntity.ok(messageResponse);
+            if (!memberId.equals(member.getId())) {
+                EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO), MemberApiController.class, "password", memberId);
+                messageResponse.add(linkToIndex());
+
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+            }
+
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.CHANGED_PASSWORD), MemberApiController.class, "password", memberId);
+            messageResponse.add(linkToLogin());
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.ok(messageResponse);
+        } catch (MemberNotFoundException e) {
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "password", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+        } catch (PasswordMismatchException e) {
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "password", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.badRequest().body(messageResponse);
+        }
     }
 
     @PutMapping("/secession/{memberId}")
@@ -134,8 +176,8 @@ public class MemberApiController {
                                     @CurrentUser Member member) {
 
         if (member == null) {
-            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto("access_token이 유효하지 않습니다."), MemberApiController.class, "secession", memberId);
-            messageResponse.add(linkTo(IndexApiController.class).withRel("index"));
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.UN_AUTHENTICATION), MemberApiController.class, "secession", memberId);
+            messageResponse.add(linkToIndex());
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
         }
@@ -145,4 +187,13 @@ public class MemberApiController {
         memberService.secession(memberId);
         return null;
     }
+
+    /**
+     * ADMIN
+     */
+
+    /*@GetMapping
+    public ResponseEntity getMemberList(
+
+    )*/
 }

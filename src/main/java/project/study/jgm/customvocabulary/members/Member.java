@@ -166,5 +166,7 @@ public class Member {
         String encodedPassword = passwordEncoder.encode(newPassword);
         this.password = encodedPassword;
         this.updateDate = LocalDateTime.now();
+
+        this.loginInfo = LoginInfo.deleteInfo();
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.study.jgm.customvocabulary.common.CriteriaDto;
 import project.study.jgm.customvocabulary.common.SecurityProperties;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
@@ -118,9 +119,10 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    public List<Member> getMemberList(Pageable pageable) {
-        Page<Member> page = memberRepository.findAll(pageable);
-        return page.getContent();
+    public List<Member> getMemberList(CriteriaDto criteriaDto) {
+//        Page<Member> page = memberRepository.findAll(pageable);
+//        return page.getContent();
+        return null;
     }
 
     public void ban(Long memberId) {

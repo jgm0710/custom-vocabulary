@@ -365,44 +365,44 @@ class MemberServiceTest {
 
     }
 
-    @Test
-    @DisplayName("회원 목록 조회")
-    void getMemberList() {
-
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
-
-        for (int i = 0; i < 30; i++) {
-            Random random = new Random();
-            memberCreateDto.setJoinId("joinId" + random.nextInt(1000));
-            memberCreateDto.setEmail("email" + random.nextInt(1000));
-            memberCreateDto.setPassword("password" + random.nextInt(1000));
-            memberCreateDto.setName("name" + random.nextInt(1000));
-            memberCreateDto.setNickname("nickname" + random.nextInt(1000));
-            memberCreateDto.setDateOfBirth(LocalDate.now());
-            memberCreateDto.setGender(Gender.MALE);
-            memberCreateDto.setSimpleAddress("simpleAddress" + random.nextInt(1000));
-
-            memberService.userJoin(memberCreateDto);
-        }
-        PageRequest pageRequest = PageRequest.of(0, 10, Sort.Direction.DESC, "name");
-
-        List<Member> memberList = memberService.getMemberList(pageRequest);
-
-
-        String tmp = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
-        boolean sortFlag = true;
-        for (Member member : memberList) {
-            String name = member.getName();
-
-            if (name.compareTo(tmp) <= 0) {
-                tmp = name;
-            } else {
-                sortFlag = false;
-            }
-        }
-
-        assertTrue(sortFlag);
-    }
+//    @Test
+//    @DisplayName("회원 목록 조회")
+//    void getMemberList() {
+//
+//        MemberCreateDto memberCreateDto = getMemberCreateDto();
+//
+//        for (int i = 0; i < 30; i++) {
+//            Random random = new Random();
+//            memberCreateDto.setJoinId("joinId" + random.nextInt(1000));
+//            memberCreateDto.setEmail("email" + random.nextInt(1000));
+//            memberCreateDto.setPassword("password" + random.nextInt(1000));
+//            memberCreateDto.setName("name" + random.nextInt(1000));
+//            memberCreateDto.setNickname("nickname" + random.nextInt(1000));
+//            memberCreateDto.setDateOfBirth(LocalDate.now());
+//            memberCreateDto.setGender(Gender.MALE);
+//            memberCreateDto.setSimpleAddress("simpleAddress" + random.nextInt(1000));
+//
+//            memberService.userJoin(memberCreateDto);
+//        }
+//        PageRequest pageRequest = PageRequest.of(0, 10, Sort.Direction.DESC, "name");
+//
+//        List<Member> memberList = memberService.getMemberList(pageRequest);
+//
+//
+//        String tmp = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
+//        boolean sortFlag = true;
+//        for (Member member : memberList) {
+//            String name = member.getName();
+//
+//            if (name.compareTo(tmp) <= 0) {
+//                tmp = name;
+//            } else {
+//                sortFlag = false;
+//            }
+//        }
+//
+//        assertTrue(sortFlag);
+//    }
 
     @Test
     @DisplayName("회원 활동 금지")

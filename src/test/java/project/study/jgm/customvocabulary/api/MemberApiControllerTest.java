@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -145,10 +146,25 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 조회 시 조회할 회원이 없는 경우")
     public void getMember_NotFound() throws Exception {
         //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
 
         //when
 
         //then
+        mockMvc.perform(
+                get("/api/members/" + 1000L)
+                        .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+        )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
 
     }
 
@@ -302,10 +318,30 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 정보 수정 시 수정할 회원이 없는 경우")
     public void modifyMember_NouFound() throws Exception {
         //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
 
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
         //when
 
         //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + 1000L)
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password",memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
 
     }
 
@@ -454,10 +490,34 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("비밀번호 변경 시 변경할 회원이 없는 경우")
     public void updatePassword_NotFound() throws Exception {
         //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        String newPassword = "newPassword";
+        PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
+                .newPassword(newPassword)
+                .oldPassword(memberCreateDto.getPassword())
+                .build();
 
         //when
 
         //then
+        mockMvc
+                .perform(
+                        put("/api/members/password/" + 1000L)
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(passwordUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").exists())
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").exists())
+        ;
 
     }
 
