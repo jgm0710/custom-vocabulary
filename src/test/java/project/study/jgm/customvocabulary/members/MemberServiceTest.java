@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -12,9 +15,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import project.study.jgm.customvocabulary.common.CriteriaDto;
 import project.study.jgm.customvocabulary.common.SecurityProperties;
-import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
-import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
+import project.study.jgm.customvocabulary.members.dto.*;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
@@ -25,8 +28,10 @@ import project.study.jgm.customvocabulary.security.exception.PasswordMismatchExc
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -365,44 +370,155 @@ class MemberServiceTest {
 
     }
 
-//    @Test
-//    @DisplayName("회원 목록 조회")
-//    void getMemberList() {
-//
-//        MemberCreateDto memberCreateDto = getMemberCreateDto();
-//
-//        for (int i = 0; i < 30; i++) {
-//            Random random = new Random();
-//            memberCreateDto.setJoinId("joinId" + random.nextInt(1000));
-//            memberCreateDto.setEmail("email" + random.nextInt(1000));
-//            memberCreateDto.setPassword("password" + random.nextInt(1000));
-//            memberCreateDto.setName("name" + random.nextInt(1000));
-//            memberCreateDto.setNickname("nickname" + random.nextInt(1000));
-//            memberCreateDto.setDateOfBirth(LocalDate.now());
-//            memberCreateDto.setGender(Gender.MALE);
-//            memberCreateDto.setSimpleAddress("simpleAddress" + random.nextInt(1000));
-//
-//            memberService.userJoin(memberCreateDto);
-//        }
-//        PageRequest pageRequest = PageRequest.of(0, 10, Sort.Direction.DESC, "name");
-//
-//        List<Member> memberList = memberService.getMemberList(pageRequest);
-//
-//
-//        String tmp = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
-//        boolean sortFlag = true;
-//        for (Member member : memberList) {
-//            String name = member.getName();
-//
-//            if (name.compareTo(tmp) <= 0) {
-//                tmp = name;
-//            } else {
-//                sortFlag = false;
-//            }
-//        }
-//
-//        assertTrue(sortFlag);
-//    }
+    @ParameterizedTest
+    @MethodSource("paramsForGetMemberListTest")
+    @DisplayName("회원 목록 조회")
+    void getMemberList(MemberSearchType searchType, String content, MemberSortType sortType) {
+
+        //given
+        createMemberList();
+
+        em.flush();
+        em.clear();
+
+
+        MemberSearchDto memberSearchDto = MemberSearchDto.builder()
+                .criteriaDto(new CriteriaDto(1, 40))
+                .searchContent(content)
+                .searchType(searchType)
+                .sortType(sortType)
+                .build();
+
+        //when
+        List<Member> memberList = memberService.getMemberList(memberSearchDto);
+
+        //then
+        if (searchType == MemberSearchType.JOIN_ID) {
+            memberList.forEach(member -> {
+                assertTrue(member.getJoinId().contains(content));
+            });
+        } else if (searchType == MemberSearchType.EMAIL) {
+            memberList.forEach(member -> {
+                assertTrue( member.getEmail().contains(content));
+            });
+        } else if (searchType == MemberSearchType.NAME) {
+            memberList.forEach(member -> {
+                assertTrue(member.getName().contains(content));
+            });
+        } else {    //searchType == MemberSearchType.NICKNAME
+            memberList.forEach(member -> {
+                assertTrue(member.getNickname().contains(content));
+            });
+        }
+
+        boolean sortFlag = true;
+        if (sortType == MemberSortType.LATEST) {
+            var tmp = 1000000L;
+
+            for (Member member : memberList) {
+                if (member.getId() <= tmp) {
+                    tmp = member.getId();
+                } else {
+                    sortFlag = false;
+                    break;
+                }
+            }
+        }else if (sortType == MemberSortType.OLDEST) {
+            var tmp = 0L;
+
+            for (Member member : memberList) {
+                if (member.getId() >= tmp) {
+                    tmp = member.getId();
+                } else {
+                    sortFlag = false;
+                    break;
+                }
+            }
+        }else if (sortType == MemberSortType.BBS_COUNT_DESC) {
+            var tmp = 10000;
+
+            for (Member member : memberList) {
+                if (member.getBbsCount() <= tmp) {
+                    tmp = member.getBbsCount();
+                } else {
+                    sortFlag = false;
+                    break;
+                }
+            }
+        }else if (sortType == MemberSortType.BBS_COUNT_ASC) {
+            var tmp = 0;
+
+            for (Member member : memberList) {
+                if (member.getBbsCount() >= tmp) {
+                    tmp = member.getBbsCount();
+                } else {
+                    sortFlag = false;
+                    break;
+                }
+            }
+        } else if (sortType == MemberSortType.SHARED_VOCABULARY_COUNT_DESC) {
+            var tmp = 10000;
+
+            for (Member member : memberList) {
+                if (member.getSharedVocabularyCount() <= tmp) {
+                    tmp = member.getSharedVocabularyCount();
+                } else {
+                    sortFlag = false;
+                    break;
+                }
+            }
+        } else {    //sortType == MemberSortType.SHARED_VOCABULARY_COUNT_ASC
+            var tmp = 0;
+
+            for (Member member : memberList) {
+                if (member.getSharedVocabularyCount() >= tmp) {
+                    tmp = member.getSharedVocabularyCount();
+                } else {
+                    sortFlag = false;
+                    break;
+                }
+            }
+        }
+
+        memberList.forEach(member -> System.out.println("member = " + member));
+        assertTrue(sortFlag);
+    }
+
+    private void createMemberList() {
+        for (int i = 0; i < 100; i++) {
+            Random random = new Random();
+
+            Member member = Member.builder()
+                    .joinId("aajoinId" + random.nextInt(1000))
+                    .email("fadsuser" + random.nextInt(1000) + "@email.com")
+                    .password("fadspassword" + random.nextInt(1000))
+                    .name("fdasname" + random.nextInt(1000))
+                    .nickname("fdsanickname" + random.nextInt(1000))
+                    .dateOfBirth(LocalDate.now())
+                    .gender(Gender.MALE)
+                    .simpleAddress("fadsaddress")
+                    .sharedVocabularyCount(random.nextInt(1000))
+                    .bbsCount(random.nextInt(1000))
+                    .roles(List.of(MemberRole.USER))
+                    .loginInfo(LoginInfo.initialize(securityProperties))
+                    .registerDate(LocalDateTime.now())
+                    .updateDate(LocalDateTime.now())
+                    .build();
+
+            memberRepository.save(member);
+        }
+    }
+
+    static Stream<Arguments> paramsForGetMemberListTest() {
+        return Stream.of(
+                Arguments.of(MemberSearchType.JOIN_ID, "joinId7", MemberSortType.LATEST),
+                Arguments.of(MemberSearchType.EMAIL, "user7", MemberSortType.OLDEST),
+                Arguments.of(MemberSearchType.NAME, "name7", MemberSortType.BBS_COUNT_DESC),
+                Arguments.of(MemberSearchType.NICKNAME, "nickname7", MemberSortType.BBS_COUNT_ASC),
+                Arguments.of(MemberSearchType.JOIN_ID, "joinId7", MemberSortType.SHARED_VOCABULARY_COUNT_DESC),
+                Arguments.of(MemberSearchType.JOIN_ID, "joinId7", MemberSortType.SHARED_VOCABULARY_COUNT_ASC)
+        );
+    }
 
     @Test
     @DisplayName("회원 활동 금지")

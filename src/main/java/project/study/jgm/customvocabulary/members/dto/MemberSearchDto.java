@@ -16,7 +16,7 @@ public class MemberSearchDto {
     private MemberSearchType searchType;
 
     @Builder.Default
-    private MemberSortType sortType=MemberSortType.LATEST;
+    private MemberSortType sortType = MemberSortType.LATEST;
 
     private String searchContent;
 

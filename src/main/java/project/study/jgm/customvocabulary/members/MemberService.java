@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.common.CriteriaDto;
 import project.study.jgm.customvocabulary.common.SecurityProperties;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
+import project.study.jgm.customvocabulary.members.dto.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
@@ -119,10 +120,8 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    public List<Member> getMemberList(CriteriaDto criteriaDto) {
-//        Page<Member> page = memberRepository.findAll(pageable);
-//        return page.getContent();
-        return null;
+    public List<Member> getMemberList(MemberSearchDto memberSearchDto) {
+        return memberQueryRepository.findAll(memberSearchDto);
     }
 
     public void ban(Long memberId) {

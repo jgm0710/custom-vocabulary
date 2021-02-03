@@ -14,6 +14,8 @@ public class MessageDto {
 
     private String message;
 
+    public static final String SECESSION_SUCCESSFULLY = "회원 탈퇴가 성공적으로 완료 되었습니다.";
+
     public static final String UN_AUTHENTICATION = "access_token이 유효하지 않습니다.";
 
     public static final String GET_DIFFERENT_MEMBER_INFO = "다른 회원의 정보는 조회가 불가능합니다.";

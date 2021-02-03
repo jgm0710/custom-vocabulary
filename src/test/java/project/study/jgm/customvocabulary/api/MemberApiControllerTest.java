@@ -5,21 +5,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
+import project.study.jgm.customvocabulary.common.LinkToVo;
+import project.study.jgm.customvocabulary.common.MessageDto;
 import project.study.jgm.customvocabulary.members.Gender;
 import project.study.jgm.customvocabulary.members.Member;
+import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
+import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,7 +76,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     }
 
     private MemberCreateDto getMemberCreateDto() {
-        MemberCreateDto createDto = MemberCreateDto.builder()
+        return MemberCreateDto.builder()
                 .joinId("testJoinid")
                 .email("test@email.com")
                 .password("test")
@@ -80,7 +86,6 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .gender(Gender.MALE)
                 .simpleAddress("address")
                 .build();
-        return createDto;
     }
 
     @Test
@@ -147,7 +152,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     public void getMember_NotFound() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member userMember = memberService.userJoin(memberCreateDto);
+        memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -195,7 +200,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     public void admin_Get_Of_DifferentMember() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member adminMember = memberService.adminJoin(memberCreateDto);
+        memberService.adminJoin(memberCreateDto);
 
         LoginDto adminLoginDto = getLoginDto(memberCreateDto);
         TokenDto adminTokenDto = memberService.login(adminLoginDto);
@@ -238,7 +243,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     public void getMember_Unauthorized() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member userMember = memberService.userJoin(memberCreateDto);
+        memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
         memberCreateDto.setJoinId("jonfdsa");
@@ -263,7 +268,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 
     @Test
     @DisplayName("회원 정보 수정")
-    public void modifyMember() throws Exception{
+    public void modifyMember() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member joinMember = memberService.userJoin(memberCreateDto);
@@ -302,7 +307,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     }
 
     private MemberUpdateDto getMemberUpdateDto() {
-        MemberUpdateDto memberUpdateDto = MemberUpdateDto.builder()
+        return MemberUpdateDto.builder()
                 .joinId("updateId")
                 .email("update@email.com")
                 .name("updateName")
@@ -311,7 +316,6 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .gender(Gender.FEMALE)
                 .simpleAddress("서울 성북구")
                 .build();
-        return memberUpdateDto;
     }
 
     @Test
@@ -319,7 +323,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     public void modifyMember_NouFound() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member userMember = memberService.userJoin(memberCreateDto);
+        memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -332,7 +336,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + 1000L)
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password",memberCreateDto.getPassword())
+                                .param("password", memberCreateDto.getPassword())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -347,13 +351,10 @@ public class MemberApiControllerTest extends BaseControllerTest {
 
     @Test
     @DisplayName("인증되지 않은 사용자가 회원 정보를 수정할 경우")
-    public void modify_Unauthorized() throws Exception{
+    public void modify_Unauthorized() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member joinMember = memberService.userJoin(memberCreateDto);
-
-//        LoginDto loginDto = getLoginDto(memberCreateDto);
-//        TokenDto tokenDto = memberService.login(loginDto);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
 
@@ -364,7 +365,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + joinMember.getId())
 //                                .header(X_AUTH_TOKEN,tokenDto.getAccessToken())
-                                .param("password",memberCreateDto.getPassword())
+                                .param("password", memberCreateDto.getPassword())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -380,10 +381,10 @@ public class MemberApiControllerTest extends BaseControllerTest {
 
     @Test
     @DisplayName("다른 회원의 정보를 수정할 경우")
-    public void modify_DifferentMember() throws Exception{
+    public void modify_DifferentMember() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member userMember = memberService.userJoin(memberCreateDto);
+        memberService.userJoin(memberCreateDto);
 
         LoginDto userLoginDto = getLoginDto(memberCreateDto);
         TokenDto userTokenDto = memberService.login(userLoginDto);
@@ -399,7 +400,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + adminMember.getId())
                                 .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
-                                .param("password",memberCreateDto.getPassword())
+                                .param("password", memberCreateDto.getPassword())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -413,7 +414,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 
     @Test
     @DisplayName("회원 수정 시 비밀번호를 잘못 입력한 경우")
-    public void modifyMember_Password_Mismatch() throws Exception{
+    public void modifyMember_Password_Mismatch() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member userMember = memberService.userJoin(memberCreateDto);
@@ -491,7 +492,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     public void updatePassword_NotFound() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member userMember = memberService.userJoin(memberCreateDto);
+        memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -528,9 +529,6 @@ public class MemberApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member userMember = memberService.userJoin(memberCreateDto);
 
-//        LoginDto loginDto = getLoginDto(memberCreateDto);
-//        TokenDto userTokenDto = memberService.login(loginDto);
-
         PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
                 .newPassword("newPassword")
                 .oldPassword(memberCreateDto.getPassword())
@@ -562,7 +560,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     public void update_DifferentMember_Password() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
-        Member userMember = memberService.userJoin(memberCreateDto);
+        memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto userTokenDto = memberService.login(loginDto);
@@ -630,6 +628,128 @@ public class MemberApiControllerTest extends BaseControllerTest {
         ;
 
 
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴")
+    public void secession() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/secession/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                );
+
+        //then
+        perform
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.SECESSION_SUCCESSFULLY))
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+        ;
+
+        Member findMember = memberService.getMember(userMember.getId());
+
+        assertTrue(findMember.getRoles().contains(MemberRole.SECESSION));
+        assertFalse(findMember.getRoles().contains(MemberRole.USER));
+        assertFalse(findMember.getRoles().contains(MemberRole.ADMIN));
+        assertFalse(findMember.getRoles().contains(MemberRole.BAN));
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 회원 탈퇴를 하는 경우")
+    public void secession_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/secession/" + userMember.getId())
+//                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                );
+
+        //then
+        perform
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.UN_AUTHENTICATION))
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("다른 회원을 탈퇴하려고 하는 경우")
+    public void secession_DifferentMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto userMember1TokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("fdasfdjsaiojdioa");
+        memberCreateDto.setPassword("fdafdafdasf");
+        Member userMember2 = memberService.userJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/secession/" + userMember2.getId())
+                                .header(X_AUTH_TOKEN, userMember1TokenDto.getAccessToken())
+                );
+
+        //then
+        perform
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO))
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("탈퇴하려는 회원이 없는 경우")
+    public void secession_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/secession/" + 10000L)
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                );
+
+        //then
+        perform
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new MemberNotFoundException().getMessage()))
+                .andExpect(jsonPath("_links.self.href").exists())
+                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+        ;
     }
 
 }

@@ -182,10 +182,24 @@ public class MemberApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
         }
 
-//        if ()
+        try {
+            memberService.secession(memberId);
+            if (!memberId.equals(member.getId())) {
+                EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO), MemberApiController.class, "secession", memberId);
+                messageResponse.add(linkToIndex());
 
-        memberService.secession(memberId);
-        return null;
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+            }
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.SECESSION_SUCCESSFULLY), MemberApiController.class, "secession", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.ok(messageResponse);
+        } catch (MemberNotFoundException e) {
+            EntityModel messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "secession", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+        }
     }
 
     /**
