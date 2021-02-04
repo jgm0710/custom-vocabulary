@@ -1,6 +1,5 @@
 package project.study.jgm.customvocabulary.members;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,15 +8,15 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import project.study.jgm.customvocabulary.common.CriteriaDto;
+import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.SecurityProperties;
 import project.study.jgm.customvocabulary.members.dto.*;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
@@ -384,7 +383,7 @@ class MemberServiceTest {
 
         MemberSearchDto memberSearchDto = MemberSearchDto.builder()
                 .criteriaDto(new CriteriaDto(1, 40))
-                .searchContent(content)
+                .keyword(content)
                 .searchType(searchType)
                 .sortType(sortType)
                 .build();

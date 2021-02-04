@@ -4,25 +4,35 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.hateoas.Link;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.MultiValueMap;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.LinkToVo;
-import project.study.jgm.customvocabulary.common.MessageDto;
+import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
+import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.members.Gender;
+import project.study.jgm.customvocabulary.members.LoginInfo;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
-import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
-import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
-import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
+import project.study.jgm.customvocabulary.members.dto.*;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -148,6 +158,29 @@ public class MemberApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("탈퇴한 회원이 회원을 조회하는 경우")
+    public void getMember_By_SecessionMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        memberService.secession(userMember.getId());
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        //when
+
+        //then
+        mockMvc.perform(
+                get("/api/members/" + userMember.getId())
+                        .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+        )
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("회원 조회 시 조회할 회원이 없는 경우")
     public void getMember_NotFound() throws Exception {
         //given
@@ -187,10 +220,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 //                        .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
         )
                 .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").exists())
-                .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.refresh.href").exists())
+                .andExpect(status().isForbidden())
         ;
 
     }
@@ -370,11 +400,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
                 .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").exists())
-                .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.index.href").exists())
-                .andExpect(jsonPath("_links.refresh.href").exists())
+                .andExpect(status().isForbidden())
         ;
 
     }
@@ -545,11 +571,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").exists())
-                .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.refresh.href").exists())
-                .andExpect(jsonPath("_links.index.href").exists())
+                .andExpect(status().isForbidden())
         ;
 
 
@@ -685,10 +707,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.UN_AUTHENTICATION))
-                .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+                .andExpect(status().isForbidden())
         ;
 
     }
@@ -750,6 +769,106 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("_links.self.href").exists())
                 .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
         ;
+    }
+
+    @Test
+    @DisplayName("관리자가 회원 목록 조회")
+    public void getMemberList() throws Exception {
+        //given
+        createMemberList();
+
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        get("/api/members")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("criteriaDto.pageNum", "11")
+                                .param("criteriaDto.limit", "4")
+//                                .param("searchType", MemberSearchType.JOIN_ID.name())
+//                                .param("keyword", "joinId7")
+                                .param("sortType", MemberSortType.OLDEST.name())
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 회원 목록을 조회하는 경우")
+    public void getMemberList_UnAuthentication() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("관리자가 아닌 사용자가 회원 목록을 조회하는 경우")
+    public void getMemberList_Unauthorized() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("검색 조건이 없는데 키워드가 있는 경우")
+    public void getMemberList_Wrong() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("검색 조건을 의도적으로 잘못 준 경우")
+    public void getMemberList_Wrong2() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    private void createMemberList() {
+        for (int i = 0; i < 100; i++) {
+            Random random = new Random();
+
+            Member member = Member.builder()
+                    .joinId("aajoinId" + random.nextInt(1000))
+                    .email("fadsuser" + random.nextInt(1000) + "@email.com")
+                    .password("fadspassword" + random.nextInt(1000))
+                    .name("fdasname" + random.nextInt(1000))
+                    .nickname("fdsanickname" + random.nextInt(1000))
+                    .dateOfBirth(LocalDate.now())
+                    .gender(Gender.MALE)
+                    .simpleAddress("fadsaddress")
+                    .sharedVocabularyCount(random.nextInt(1000))
+                    .bbsCount(random.nextInt(1000))
+                    .roles(List.of(MemberRole.USER))
+                    .loginInfo(LoginInfo.initialize(securityProperties))
+                    .registerDate(LocalDateTime.now())
+                    .updateDate(LocalDateTime.now())
+                    .build();
+
+            memberRepository.save(member);
+        }
     }
 
 }

@@ -1,17 +1,17 @@
 package project.study.jgm.customvocabulary.api;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import project.study.jgm.customvocabulary.common.EntityModelCreator;
 import project.study.jgm.customvocabulary.members.MemberService;
-import project.study.jgm.customvocabulary.security.dto.TokenDto;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
+import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
 import javax.validation.Valid;
 
@@ -32,11 +32,10 @@ public class LoginApiController {
 
         TokenDto tokenDto = memberService.login(loginDto);
 
-        EntityModel<TokenDto> tokenDtoEntityModel = EntityModel.of(tokenDto);
-        tokenDtoEntityModel.add(linkTo(LoginApiController.class).slash("login").withSelfRel());
-        tokenDtoEntityModel.add(linkTo(IndexApiController.class).withRel("index"));
+        var tokenResponse = EntityModelCreator.createTokenResponse(tokenDto, LoginApiController.class, "login");
+        tokenResponse.add(linkTo(IndexApiController.class).withRel("index"));
 
-        return ResponseEntity.ok(tokenDtoEntityModel);
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("/refresh")
@@ -47,11 +46,10 @@ public class LoginApiController {
 
         TokenDto tokenDto = memberService.refresh(onlyTokenDto);
 
-        EntityModel<TokenDto> tokenDtoEntityModel = EntityModel.of(tokenDto);
-        tokenDtoEntityModel.add(linkTo(LoginApiController.class).slash("login").withSelfRel());
-        tokenDtoEntityModel.add(linkTo(IndexApiController.class).withRel("index"));
+        var tokenResponse = EntityModelCreator.createTokenResponse(tokenDto, LoginApiController.class, "refresh");
+        tokenResponse.add(linkTo(IndexApiController.class).withRel("index"));
 
-        return ResponseEntity.ok(tokenDtoEntityModel);
+        return ResponseEntity.ok(tokenResponse);
     }
 
 }

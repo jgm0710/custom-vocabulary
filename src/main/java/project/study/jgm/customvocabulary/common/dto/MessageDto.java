@@ -1,11 +1,8 @@
-package project.study.jgm.customvocabulary.common;
+package project.study.jgm.customvocabulary.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.hateoas.EntityModel;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @Data
 @AllArgsConstructor

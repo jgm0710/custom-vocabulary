@@ -4,22 +4,37 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.validation.Errors;
-import project.study.jgm.customvocabulary.members.Member;
+import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
+import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.members.dto.MemberAdminViewDto;
 import project.study.jgm.customvocabulary.members.dto.MemberDetailDto;
+import project.study.jgm.customvocabulary.security.dto.TokenDto;
+
+import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 public class EntityModelCreator extends EntityModel<Errors>{
 
-    public static <T> EntityModel createMemberDetailResponse(MemberDetailDto memberDetailDto, Class<T> controller, Object... slashs) {
+    public static <T> EntityModel<MemberDetailDto> createMemberDetailResponse(MemberDetailDto memberDetailDto, Class<T> controller, Object... slashs) {
         Link selfLink = getSelfLink(controller, slashs);
         return EntityModel.of(memberDetailDto, selfLink);
     }
 
     //    public static <T> EntityModel
-    public static <T> EntityModel createMessageResponse(MessageDto messageDto, Class<T> controller, Object... slashs) {
+    public static <T> EntityModel<MessageDto> createMessageResponse(MessageDto messageDto, Class<T> controller, Object... slashs) {
         Link selfLink = getSelfLink(controller, slashs);
         return EntityModel.of(messageDto, selfLink);
+    }
+
+    public static <T> EntityModel<ListResponseDto> createListResponse(ListResponseDto listResponseDto, Class<T> controller, Object... slashs) {
+        Link selfLink = getSelfLink(controller, slashs);
+        return EntityModel.of(listResponseDto, selfLink);
+    }
+
+    public static <T> EntityModel<TokenDto> createTokenResponse(TokenDto tokenDto, Class<T> controller, Object... slashs) {
+        Link selfLink = getSelfLink(controller, slashs);
+        return EntityModel.of(tokenDto, selfLink);
     }
 
     private static Link getSelfLink(Class<?> controller, Object[] slashs) {

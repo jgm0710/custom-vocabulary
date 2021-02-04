@@ -10,6 +10,8 @@ import project.study.jgm.customvocabulary.members.LoginInfo;
 import project.study.jgm.customvocabulary.members.MemberRole;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,16 +22,21 @@ import java.util.List;
 @NoArgsConstructor
 public class MemberUpdateDto {
 
+    @NotBlank(message = "ID를 입력해주세요.")
     private String joinId;
 
+    @NotBlank(message = "Email을 입력해주세요.")
     private String email;
 
+    @NotBlank(message = "이름을 입력해주세요.")
     private String name;
 
+    @NotBlank(message = "Nickname을 입력해주세요.")
     private String nickname;
 
     private LocalDate dateOfBirth;  //생년월일
 
+    @NotNull(message = "성별을 입력해주세요.")
     private Gender gender;  //성별 [MALE,FEMALE]
 
     private String simpleAddress;

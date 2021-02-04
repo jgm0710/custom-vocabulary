@@ -3,19 +3,16 @@ package project.study.jgm.customvocabulary.common;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.springframework.boot.jackson.JsonComponent;
-import org.springframework.validation.Errors;
+import org.springframework.validation.BindingResult;
 
 import java.io.IOException;
 
-@JsonComponent
-public class ErrorsSerializer extends JsonSerializer<Errors> {
+public class BindingResultSerializer extends JsonSerializer<BindingResult> {
     @Override
-    public void serialize(Errors errors, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(BindingResult bindingResult, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartArray();
 
-        errors.getGlobalErrors().forEach(objectError -> {
+        bindingResult.getGlobalErrors().forEach(objectError -> {
             try {
                 jsonGenerator.writeStartObject();
                 jsonGenerator.writeStringField("objectName", objectError.getObjectName());
@@ -27,7 +24,7 @@ public class ErrorsSerializer extends JsonSerializer<Errors> {
             }
         });
 
-        errors.getFieldErrors().forEach(fieldError -> {
+        bindingResult.getFieldErrors().forEach(fieldError -> {
             try {
                 jsonGenerator.writeStartObject();
                 jsonGenerator.writeStringField("objectName",fieldError.getObjectName());

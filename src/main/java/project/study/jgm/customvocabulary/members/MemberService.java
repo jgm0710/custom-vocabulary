@@ -1,15 +1,12 @@
 package project.study.jgm.customvocabulary.members;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import project.study.jgm.customvocabulary.common.CriteriaDto;
 import project.study.jgm.customvocabulary.common.SecurityProperties;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
-import project.study.jgm.customvocabulary.members.dto.MemberSearchDto;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
@@ -144,5 +141,9 @@ public class MemberService {
                 .refreshToken(findMember.getLoginInfo().getRefreshToken())
                 .refreshTokenExpirationPeriodDateTime(findMember.getLoginInfo().getRefreshTokenExpirationPeriodDateTime())
                 .build();
+    }
+
+    public Long getTotalCount(MemberSearchDto memberSearchDto) {
+        return memberQueryRepository.findTotalCount(memberSearchDto);
     }
 }

@@ -1,5 +1,10 @@
-package project.study.jgm.customvocabulary.members.dto;
+package project.study.jgm.customvocabulary.members.dto.search;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
 public enum MemberSortType {
     LATEST,
     OLDEST,

@@ -1,16 +1,13 @@
 package project.study.jgm.customvocabulary.members;
 
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import project.study.jgm.customvocabulary.common.CriteriaDto;
-import project.study.jgm.customvocabulary.common.exception.SearchContentIsNullException;
-import project.study.jgm.customvocabulary.members.dto.MemberSearchDto;
-import project.study.jgm.customvocabulary.members.dto.MemberSearchType;
-import project.study.jgm.customvocabulary.members.dto.MemberSortType;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
+import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,26 +65,23 @@ public class MemberQueryRepository {
     private BooleanExpression whereFrom(MemberSearchDto searchDto) {
         MemberSearchType searchType = searchDto.getSearchType();
 
-        if (searchDto.getSearchContent() != null) {
-            if (searchType == MemberSearchType.JOIN_ID) {
-                return member.joinId.contains(searchDto.getSearchContent());
-            } else if (searchType == MemberSearchType.EMAIL) {
-                return member.email.contains(searchDto.getSearchContent());
-            } else if (searchType == MemberSearchType.NAME) {
-                return member.name.contains(searchDto.getSearchContent());
-            } else if (searchType == MemberSearchType.NICKNAME) {
-                return member.nickname.contains(searchDto.getSearchContent());
-            } else {
-                return member.id.gt(0);
-            }
+        if (searchType == MemberSearchType.JOIN_ID) {
+            return member.joinId.contains(searchDto.getKeyword());
+        } else if (searchType == MemberSearchType.EMAIL) {
+            return member.email.contains(searchDto.getKeyword());
+        } else if (searchType == MemberSearchType.NAME) {
+            return member.name.contains(searchDto.getKeyword());
+        } else if (searchType == MemberSearchType.NICKNAME) {
+            return member.nickname.contains(searchDto.getKeyword());
         } else {
-            throw new SearchContentIsNullException();
+            return member.id.gt(0);
         }
     }
 
-    public Long findTotalCount() {
+    public Long findTotalCount(MemberSearchDto memberSearchDto) {
         return queryFactory
                 .selectFrom(member)
+                .where(whereFrom(memberSearchDto))
                 .fetchCount();
     }
 

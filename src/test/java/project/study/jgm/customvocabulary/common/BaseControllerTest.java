@@ -42,6 +42,9 @@ public abstract class BaseControllerTest {
     @Autowired
     protected JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    protected SecurityProperties securityProperties;
+
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
