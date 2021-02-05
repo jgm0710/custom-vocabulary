@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -784,20 +788,31 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         //when
-
-        //then
-        mockMvc
+        ResultActions perform = mockMvc
                 .perform(
                         get("/api/members")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", "11")
+                                .param("criteriaDto.pageNum", "12")
                                 .param("criteriaDto.limit", "4")
-//                                .param("searchType", MemberSearchType.JOIN_ID.name())
-//                                .param("keyword", "joinId7")
+                                .param("searchType", MemberSearchType.JOIN_ID.name())
+                                .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())
-                )
+                );
+        //then
+        perform
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("paging.totalCount").exists())
+                .andExpect(jsonPath("paging.criteriaDto.pageNum").value(12))
+                .andExpect(jsonPath("paging.criteriaDto.limit").value(4))
+                .andExpect(jsonPath("paging.startPage").value(11))
+                .andExpect(jsonPath("paging.endPage").value(20))
+                .andExpect(jsonPath("paging.prev").value(true))
+                .andExpect(jsonPath("paging.next").value(true))
+                .andExpect(jsonPath("paging.totalPage").exists())
+                .andExpect(jsonPath("_links.self.href").value("http://localhost/api/members?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=12&criteriaDto.limit=4&sortType=OLDEST"))
+                .andExpect(jsonPath("_links.prev-list.href").value("http://localhost/api/members?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=10&criteriaDto.limit=4&sortType=OLDEST"))
+                .andExpect(jsonPath("_links.next-list.href").value("http://localhost/api/members?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=21&criteriaDto.limit=4&sortType=OLDEST"))
         ;
 
     }
@@ -806,10 +821,29 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("인증되지 않은 사용자가 회원 목록을 조회하는 경우")
     public void getMemberList_UnAuthentication() throws Exception {
         //given
+        createMemberList();
+
+//        MemberCreateDto memberCreateDto = getMemberCreateDto();
+//        Member adminMember = memberService.adminJoin(memberCreateDto);
+//
+//        LoginDto loginDto = getLoginDto(memberCreateDto);
+//        TokenDto adminTokenDto = memberService.login(loginDto);
 
         //when
-
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/members")
+//                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("criteriaDto.pageNum", "12")
+                                .param("criteriaDto.limit", "4")
+                                .param("searchType", MemberSearchType.JOIN_ID.name())
+                                .param("keyword", "joinId7")
+                                .param("sortType", MemberSortType.OLDEST.name())
+                );
         //then
+        perform
+                .andDo(print())
+                .andExpect(status().isForbidden());
 
     }
 
@@ -817,10 +851,29 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("관리자가 아닌 사용자가 회원 목록을 조회하는 경우")
     public void getMemberList_Unauthorized() throws Exception {
         //given
+        createMemberList();
+
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
 
         //when
-
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/members")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("criteriaDto.pageNum", "12")
+                                .param("criteriaDto.limit", "4")
+                                .param("searchType", MemberSearchType.JOIN_ID.name())
+                                .param("keyword", "joinId7")
+                                .param("sortType", MemberSortType.OLDEST.name())
+                );
         //then
+        perform
+                .andDo(print())
+                .andExpect(status().isForbidden());
 
     }
 
@@ -828,26 +881,85 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("검색 조건이 없는데 키워드가 있는 경우")
     public void getMemberList_Wrong() throws Exception {
         //given
+        createMemberList();
+
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
 
         //when
-
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/members")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("criteriaDto.pageNum", "12")
+                                .param("criteriaDto.limit", "4")
+//                                .param("searchType", MemberSearchType.JOIN_ID.name())
+                                .param("keyword", "joinId7")
+                                .param("sortType", MemberSortType.OLDEST.name())
+                );
         //then
+        perform
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+        ;
 
     }
 
-    @Test
-    @DisplayName("검색 조건을 의도적으로 잘못 준 경우")
-    public void getMemberList_Wrong2() throws Exception {
+    @ParameterizedTest(name = "test {index} : {2}")
+    @MethodSource("paramsForGetMemberListTest")
+    @DisplayName("회원 목록 조회 시페이징에 대한 정보를 잘 못 준 경우")
+    public void getMemberList_Wrong2(int pageNum, int limit, String message) throws Exception {
         //given
+        createMemberList();
+
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
 
         //when
-
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/members")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("criteriaDto.pageNum", ""+pageNum)
+                                .param("criteriaDto.limit", ""+limit)
+                                .param("searchType", MemberSearchType.JOIN_ID.name())
+                                .param("keyword", "joinId7")
+                                .param("sortType", MemberSortType.OLDEST.name())
+                );
         //then
+        perform
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+                .andExpect(jsonPath("$[0].rejectedValue").exists())
+        ;
 
+    }
+
+    private static Stream<Arguments> paramsForGetMemberListTest() {
+        return Stream.of(
+                Arguments.of(-1, 10, "음수의 페이지 번호를 인가한 경우 badRequest"),
+                Arguments.of(0, 10, "0의 페이지 번호를 인가한 경우 badRequest"),
+                Arguments.of(1, -1, "음의 개수의 결과를 조회한 경우 badRequest"),
+                Arguments.of(1, 0, "0개의 결과를 조회한 경우 badRequest"),
+                Arguments.of(1, 101, "100개가 넘는 개수의 결과를 조회한 경우 badRequest")
+        );
     }
 
     private void createMemberList() {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             Random random = new Random();
 
             Member member = Member.builder()

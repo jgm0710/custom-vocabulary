@@ -53,4 +53,14 @@ public class PaginationDto {
     public int getNUMBER_OF_PAGES_TO_BE_DISPLAYED() {
         return NUMBER_OF_PAGES_TO_BE_DISPLAYED;
     }
+
+    @JsonIgnore
+    public int getLastPageOfPrevList() {
+        return this.startPage - 1;
+    }
+
+    @JsonIgnore
+    public int getFirstPageOfNextList() {
+        return this.endPage + 1;
+    }
 }

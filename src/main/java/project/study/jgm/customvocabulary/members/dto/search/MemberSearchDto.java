@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
+import project.study.jgm.customvocabulary.common.dto.PaginationDto;
 
 import javax.validation.Valid;
 
@@ -14,16 +15,17 @@ import javax.validation.Valid;
 @NoArgsConstructor
 public class MemberSearchDto {
 
-    @Builder.Default
-    private MemberSearchType searchType=null;
+    private MemberSearchType searchType;
 
-    @Builder.Default
-    private MemberSortType sortType = MemberSortType.LATEST;
+    private MemberSortType sortType;
 
-    @Builder.Default
-    private String keyword=null;
+    private String keyword;
 
     @Valid
     @Builder.Default
     private CriteriaDto criteriaDto = new CriteriaDto();
+
+    public void updatePage(int target) {
+        this.criteriaDto.setPageNum(target);
+    }
 }

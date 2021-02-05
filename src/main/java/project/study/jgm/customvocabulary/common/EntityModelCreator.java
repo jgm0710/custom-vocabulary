@@ -27,9 +27,8 @@ public class EntityModelCreator extends EntityModel<Errors>{
         return EntityModel.of(messageDto, selfLink);
     }
 
-    public static <T> EntityModel<ListResponseDto> createListResponse(ListResponseDto listResponseDto, Class<T> controller, Object... slashs) {
-        Link selfLink = getSelfLink(controller, slashs);
-        return EntityModel.of(listResponseDto, selfLink);
+    public static <T> EntityModel<ListResponseDto> createListResponse(ListResponseDto listResponseDto) {
+        return EntityModel.of(listResponseDto);
     }
 
     public static <T> EntityModel<TokenDto> createTokenResponse(TokenDto tokenDto, Class<T> controller, Object... slashs) {

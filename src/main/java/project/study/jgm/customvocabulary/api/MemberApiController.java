@@ -10,7 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import project.study.jgm.customvocabulary.common.EntityModelCreator;
-import project.study.jgm.customvocabulary.common.LinkToVo;
+import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.common.dto.PaginationDto;
@@ -28,6 +28,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static project.study.jgm.customvocabulary.common.LinkToVo.*;
 
 @RestController
@@ -211,22 +212,57 @@ public class MemberApiController {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
+        List<MemberAdminViewDto> memberAdminViewDtoList = getMemberAdminViewDtos(memberSearchDto);
+        PaginationDto paginationDto = getPaginationDto(memberSearchDto);
+        ListResponseDto<Object> listResponseDto = getListResponseDto(memberAdminViewDtoList, paginationDto);
+
+        EntityModel<ListResponseDto> listResponse = EntityModelCreator.createListResponse(listResponseDto);
+        listResponse.add(linkToGetMemberList(memberSearchDto));     //selfLink 추가
+        addLinkInfoOfPrevAndNextLinkToListResponse(memberSearchDto, paginationDto, listResponse);
+
+        return ResponseEntity.ok(listResponse);
+    }
+
+    private void addLinkInfoOfPrevAndNextLinkToListResponse(MemberSearchDto memberSearchDto, PaginationDto paginationDto, EntityModel<ListResponseDto> listResponse) {
+        MemberSearchDto tempSearchDto = MemberSearchDto.builder()
+                .searchType(memberSearchDto.getSearchType())
+                .keyword(memberSearchDto.getKeyword())
+                .criteriaDto(new CriteriaDto(memberSearchDto.getCriteriaDto().getPageNum(), memberSearchDto.getCriteriaDto().getLimit()))
+                .sortType(memberSearchDto.getSortType())
+                .build();
+
+        if (paginationDto.isPrev()) {
+            tempSearchDto.updatePage(paginationDto.getLastPageOfPrevList());
+            listResponse.add(linkToGetMemberList(tempSearchDto, "prev-list"));
+        }
+        if (paginationDto.isNext()) {
+            tempSearchDto.updatePage(paginationDto.getFirstPageOfNextList());
+            listResponse.add(linkToGetMemberList(tempSearchDto, "next-list"));
+        }
+    }
+
+    private ListResponseDto<Object> getListResponseDto(List<MemberAdminViewDto> memberAdminViewDtoList, PaginationDto paginationDto) {
+        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+                .data(memberAdminViewDtoList)
+                .paging(paginationDto)
+                .build();
+        return listResponseDto;
+    }
+
+    private PaginationDto getPaginationDto(MemberSearchDto memberSearchDto) {
+        Long totalCount = memberService.getTotalCount(memberSearchDto);
+        PaginationDto paginationDto = new PaginationDto(totalCount, memberSearchDto.getCriteriaDto());
+        return paginationDto;
+    }
+
+    private List<MemberAdminViewDto> getMemberAdminViewDtos(MemberSearchDto memberSearchDto) {
         List<MemberAdminViewDto> memberAdminViewDtoList = new ArrayList<>();
         List<Member> findMemberList = memberService.getMemberList(memberSearchDto);
         for (Member findMember : findMemberList) {
             MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
             memberAdminViewDtoList.add(memberAdminViewDto);
         }
-
-        Long totalCount = memberService.getTotalCount(memberSearchDto);
-        PaginationDto paginationDto = new PaginationDto(totalCount, memberSearchDto.getCriteriaDto());
-        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
-                .data(memberAdminViewDtoList)
-                .paging(paginationDto)
-                .build();
-
-        EntityModel<ListResponseDto> listResponse = EntityModelCreator.createListResponse(listResponseDto, MemberApiController.class, memberSearchDto.getCriteriaDto().getPageNum());
-
-        return ResponseEntity.ok(listResponse);
+        return memberAdminViewDtoList;
     }
+
 }
