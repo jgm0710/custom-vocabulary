@@ -9,7 +9,7 @@ import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
-public class LinkToVo {
+public class LinkToCreator {
     public static Link linkToRefresh() {
         return linkTo(LoginApiController.class).slash("/refresh").withRel("refresh");
     }

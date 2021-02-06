@@ -41,4 +41,8 @@ public class LoginInfo {
                 .refreshTokenExpirationPeriodDateTime(null)
                 .build();
     }
+
+    public void setRefreshTokenExpirationPeriodDateTime(LocalDateTime refreshTokenExpirationPeriodDateTime) {
+        this.refreshTokenExpirationPeriodDateTime = refreshTokenExpirationPeriodDateTime;
+    }
 }

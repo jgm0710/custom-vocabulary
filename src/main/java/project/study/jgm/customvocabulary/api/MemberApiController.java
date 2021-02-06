@@ -20,6 +20,7 @@ import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.members.dto.*;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchValidator;
+import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.CurrentUser;
 import project.study.jgm.customvocabulary.security.exception.PasswordMismatchException;
@@ -28,8 +29,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static project.study.jgm.customvocabulary.common.LinkToVo.*;
+import static project.study.jgm.customvocabulary.common.LinkToCreator.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,21 +67,27 @@ public class MemberApiController {
 
         try {
             Member findMember = memberService.getMember(memberId);
-            if (!member.getRoles().contains(MemberRole.ADMIN)) {
+            if (member.getRoles().contains(MemberRole.ADMIN)) {
+                MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
+
+                EntityModel<MemberAdminViewDto> memberAdminViewResponse = EntityModelCreator.createMemberAdminViewResponse(memberAdminViewDto, MemberApiController.class, memberId);
+                memberAdminViewResponse.add(linkToIndex());
+
+                return ResponseEntity.ok(memberAdminViewResponse);
+            } else {
                 if (!findMember.equals(member)) {
                     var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.GET_DIFFERENT_MEMBER_INFO), MemberApiController.class, memberId);
                     messageResponse.add(linkToIndex());
 
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
                 }
+                MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
+
+                var memberDetailResponse = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class, memberId);
+                memberDetailResponse.add(linkToIndex());
+
+                return ResponseEntity.ok(memberDetailResponse);
             }
-
-            MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
-
-            var memberDetailResponse = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class, memberId);
-            memberDetailResponse.add(linkToIndex());
-
-            return ResponseEntity.ok(memberDetailResponse);
 
         } catch (MemberNotFoundException e) {
             var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
@@ -222,6 +228,61 @@ public class MemberApiController {
 
         return ResponseEntity.ok(listResponse);
     }
+
+    @PutMapping("/ban/{memberId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity ban(@PathVariable("memberId") Long memberId) {
+
+        try {
+            memberService.ban(memberId);
+        } catch (MemberNotFoundException e) {
+            EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "ban", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+        }
+
+        EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.BAN_SUCCESSFULLY), MemberApiController.class, "ban", memberId);
+        messageResponse.add(linkToGetMember(memberId));
+        messageResponse.add(linkToIndex());
+
+        return ResponseEntity.ok(messageResponse);
+    }
+
+    @PutMapping("/changeToUser/{memberId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity changeMemberRoleToUser(
+            @PathVariable("memberId") Long memberId
+    ) {
+
+        try {
+            memberService.changeMemberRoleToUser(memberId);
+        } catch (MemberNotFoundException e) {
+            EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "changeToUser", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+        } catch (MemberAlreadyHasAuthorityException e) {
+            EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "changeToUser", memberId);
+            messageResponse.add(linkToIndex());
+
+            return ResponseEntity.badRequest().body(messageResponse);
+        }
+
+        EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(
+                new MessageDto(MessageDto.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY),
+                MemberApiController.class,
+                "changeToUser", memberId
+        );
+        messageResponse.add(linkToGetMember(memberId));
+        messageResponse.add(linkToIndex());
+
+        return ResponseEntity.ok(messageResponse);
+    }
+
+    /**
+     * PRIVATE
+     */
 
     private void addLinkInfoOfPrevAndNextLinkToListResponse(MemberSearchDto memberSearchDto, PaginationDto paginationDto, EntityModel<ListResponseDto> listResponse) {
         MemberSearchDto tempSearchDto = MemberSearchDto.builder()

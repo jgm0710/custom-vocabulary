@@ -134,29 +134,16 @@ public class Member {
     }
 
     public void secession() {
-//        clearRoles();
-//        this.roles.clear();
-//        this.roles.add(MemberRole.SECESSION);
-
         this.roles = List.of(MemberRole.SECESSION);
 
         this.loginInfo = LoginInfo.deleteInfo();
     }
 
     public void ban() {
-//        clearRoles();
-//        this.roles.clear();
-//        this.roles.add(MemberRole.BAN);
         this.roles = List.of(MemberRole.BAN);
 
         this.loginInfo = LoginInfo.deleteInfo();
     }
-
-//    private void clearRoles() {
-//        for (int i = 0; i < this.roles.size(); i++) {
-//            this.roles.remove(i);
-//        }
-//    }
 
     public boolean matches(String password, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(password, this.password);
@@ -168,5 +155,29 @@ public class Member {
         this.updateDate = LocalDateTime.now();
 
         this.loginInfo = LoginInfo.deleteInfo();
+    }
+
+    public void changeMemberRoleToUser() {
+        this.roles = List.of(MemberRole.USER);
+    }
+
+    public void logout() {
+        this.loginInfo = LoginInfo.deleteInfo();
+    }
+
+    public void addSharedVocabulary() {
+        this.sharedVocabularyCount++;
+    }
+
+    public void deleteSharedVocabulary() {
+        this.sharedVocabularyCount--;
+    }
+
+    public void addBbs() {
+        this.bbsCount++;
+    }
+
+    public void deleteBbs() {
+        this.bbsCount--;
     }
 }

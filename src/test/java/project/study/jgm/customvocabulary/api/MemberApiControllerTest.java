@@ -7,23 +7,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.hateoas.Link;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.util.MultiValueMap;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
-import project.study.jgm.customvocabulary.common.LinkToVo;
-import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.members.Gender;
 import project.study.jgm.customvocabulary.members.LoginInfo;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
-import project.study.jgm.customvocabulary.members.dto.*;
+import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
+import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
+import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
+import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
@@ -36,17 +33,16 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static project.study.jgm.customvocabulary.common.LinkToCreator.linkToGetMember;
+import static project.study.jgm.customvocabulary.common.LinkToCreator.linkToIndex;
 
 public class MemberApiControllerTest extends BaseControllerTest {
-
-    final String X_AUTH_TOKEN = "X-AUTH-TOKEN";
 
     @BeforeEach
     public void setup() {
@@ -79,27 +75,14 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("bbsCount").value(0))
                 .andExpect(jsonPath("registerDate").exists())
                 .andExpect(jsonPath("updateDate").exists())
-                .andExpect(jsonPath("loginInfo.refreshToken").exists())
-                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
+//                .andExpect(jsonPath("loginInfo.refreshToken").exists())
+//                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
                 .andExpect(jsonPath("_links.self.href").exists())
                 .andExpect(jsonPath("_links.login.href").exists())
         ;
 
         //then
 
-    }
-
-    private MemberCreateDto getMemberCreateDto() {
-        return MemberCreateDto.builder()
-                .joinId("testJoinid")
-                .email("test@email.com")
-                .password("test")
-                .name("정구민")
-                .nickname("test")
-                .dateOfBirth(LocalDate.now())
-                .gender(Gender.MALE)
-                .simpleAddress("address")
-                .build();
     }
 
     @Test
@@ -152,8 +135,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("bbsCount").value(0))
                 .andExpect(jsonPath("registerDate").exists())
                 .andExpect(jsonPath("updateDate").exists())
-                .andExpect(jsonPath("loginInfo.refreshToken").exists())
-                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
+//                .andExpect(jsonPath("loginInfo.refreshToken").exists())
+//                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
                 .andExpect(jsonPath("_links.self.href").exists())
                 .andExpect(jsonPath("_links.index.href").exists())
         ;
@@ -264,8 +247,9 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("bbsCount").value(0))
                 .andExpect(jsonPath("registerDate").exists())
                 .andExpect(jsonPath("updateDate").exists())
-                .andExpect(jsonPath("loginInfo.refreshToken").exists())
-                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
+                .andExpect(jsonPath("roles.[0]").value(MemberRole.USER.name()))
+//                .andExpect(jsonPath("loginInfo.refreshToken").exists())
+//                .andExpect(jsonPath("loginInfo.refreshTokenExpirationPeriodDateTime").exists())
                 .andExpect(jsonPath("_links.self.href").exists())
                 .andExpect(jsonPath("_links.index.href").exists())
         ;
@@ -472,12 +456,6 @@ public class MemberApiControllerTest extends BaseControllerTest {
         ;
     }
 
-    private LoginDto getLoginDto(MemberCreateDto memberCreateDto) {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setJoinId(memberCreateDto.getJoinId());
-        loginDto.setPassword(memberCreateDto.getPassword());
-        return loginDto;
-    }
 
     @Test
     @DisplayName("비밀번호 수정")
@@ -679,7 +657,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageDto.SECESSION_SUCCESSFULLY))
                 .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
         ;
 
         Member findMember = memberService.getMember(userMember.getId());
@@ -743,7 +721,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("message").value(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO))
                 .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
         ;
 
     }
@@ -771,7 +749,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("message").value(new MemberNotFoundException().getMessage()))
                 .andExpect(jsonPath("_links.self.href").exists())
-                .andExpect(jsonPath("_links.index.href").value(LinkToVo.linkToIndex().toUri().toString()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
         ;
     }
 
@@ -810,7 +788,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("paging.prev").value(true))
                 .andExpect(jsonPath("paging.next").value(true))
                 .andExpect(jsonPath("paging.totalPage").exists())
-                .andExpect(jsonPath("_links.self.href").value("http://localhost/api/members?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=12&criteriaDto.limit=4&sortType=OLDEST"))
+                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE+"?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=12&criteriaDto.limit=4&sortType=OLDEST"))
                 .andExpect(jsonPath("_links.prev-list.href").value("http://localhost/api/members?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=10&criteriaDto.limit=4&sortType=OLDEST"))
                 .andExpect(jsonPath("_links.next-list.href").value("http://localhost/api/members?searchType=JOIN_ID&keyword=joinId7&criteriaDto.pageNum=21&criteriaDto.limit=4&sortType=OLDEST"))
         ;
@@ -958,29 +936,321 @@ public class MemberApiControllerTest extends BaseControllerTest {
         );
     }
 
-    private void createMemberList() {
-        for (int i = 0; i < 1000; i++) {
-            Random random = new Random();
+    @Test
+    @DisplayName("관리자가 회원의 활동을 정지")
+    public void ban() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
 
-            Member member = Member.builder()
-                    .joinId("aajoinId" + random.nextInt(1000))
-                    .email("fadsuser" + random.nextInt(1000) + "@email.com")
-                    .password("fadspassword" + random.nextInt(1000))
-                    .name("fdasname" + random.nextInt(1000))
-                    .nickname("fdsanickname" + random.nextInt(1000))
-                    .dateOfBirth(LocalDate.now())
-                    .gender(Gender.MALE)
-                    .simpleAddress("fadsaddress")
-                    .sharedVocabularyCount(random.nextInt(1000))
-                    .bbsCount(random.nextInt(1000))
-                    .roles(List.of(MemberRole.USER))
-                    .loginInfo(LoginInfo.initialize(securityProperties))
-                    .registerDate(LocalDateTime.now())
-                    .updateDate(LocalDateTime.now())
-                    .build();
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
 
-            memberRepository.save(member);
-        }
+        memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setPassword("testPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/ban/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.BAN_SUCCESSFULLY))
+                .andExpect(jsonPath("_links.self.href").value("http://localhost/api/members/ban/"+userMember.getId()))
+                .andExpect(jsonPath("_links.get-member.href").value(linkToGetMember(userMember.getId()).toUri().toString()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+        ;
+
+        Member findMember = memberService.getMember(userMember.getId());
+        assertTrue(findMember.getRoles().contains(MemberRole.BAN));
+        assertFalse(findMember.getRoles().contains(MemberRole.USER));
+        assertFalse(findMember.getRoles().contains(MemberRole.ADMIN));
+        assertFalse(findMember.getRoles().contains(MemberRole.SECESSION));
+
+    }
+
+    @Test
+    @DisplayName("회원이 회원의 활동을 정지 시키는 경우")
+    public void ban_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember1 = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto user1TokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setPassword("testPassword");
+        Member userMember2 = memberService.userJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/ban/" + userMember2.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않는 사용자가 회원의 활동을 정지 시키는 경우")
+    public void ban_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setPassword("testPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/ban/" + userMember.getId())
+//                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("활동 정지 시킬 회원이 없는 경우")
+    public void ban_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setPassword("testPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/ban/" + 10000L)
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new MemberNotFoundException().getMessage()))
+                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/ban/" + 10000L))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("탈퇴한 회원의 권한을 USER로 변환")
+    public void changeMemberRoleToUser_Of_SecessionMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setPassword("testUserPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        memberService.secession(userMember.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/changeToUser/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY))
+                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + userMember.getId()))
+                .andExpect(jsonPath("_links.get-member.href").value(linkToGetMember(userMember.getId()).toUri().toString()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("활동이 금지된 회원의 권한을 USER로 변환")
+    public void changeMemberRoleToUser_Of_BanedMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setPassword("testUserPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        memberService.ban(userMember.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/changeToUser/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY))
+                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + userMember.getId()))
+                .andExpect(jsonPath("_links.get-member.href").value(linkToGetMember(userMember.getId()).toUri().toString()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("회원이 회원의 권한을 USER로 변화 시키는 경우")
+    public void changeMemberRoleToUser_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember1 = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto userMember1TokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setPassword("testUserPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        memberService.ban(userMember.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/changeToUser/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, userMember1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 회원의 권한을 USER로 변환 시키는 경우")
+    public void changeMemberRoleToUser_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setPassword("testUserPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        memberService.ban(userMember.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/changeToUser/" + userMember.getId())
+//                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("관리자의 권한을 USER로 변화 시키는 경우")
+    public void changeMemberRoleToUser_BadRequest1() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setPassword("testUserPassword");
+        Member adminMember2 = memberService.adminJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/changeToUser/" + adminMember2.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new MemberAlreadyHasAuthorityException().getMessage()))
+                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + adminMember2.getId()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+        ;
+    }
+
+    @Test
+    @DisplayName("이미 USER 권한이 있는 사용자를 USER로 변화 시키는 경우")
+    public void changeMemberRoleToUser_BadRequest2() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member adminMember = memberService.adminJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto adminTokenDto = memberService.login(loginDto);
+
+        memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setPassword("testUserPassword");
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/changeToUser/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new MemberAlreadyHasAuthorityException().getMessage()))
+                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + userMember.getId()))
+                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+        ;
     }
 
 }

@@ -8,6 +8,7 @@ import project.study.jgm.customvocabulary.common.SecurityProperties;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
+import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
@@ -78,6 +79,12 @@ public class MemberService {
         return createToken(findMember);
     }
 
+    @Transactional
+    public void logout(Long memberId) {
+        Member findMember = memberRepository.findById(memberId).get();
+        findMember.logout();
+    }
+
     public Member getMember(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(() -> new MemberNotFoundException());
     }
@@ -121,11 +128,27 @@ public class MemberService {
         return memberQueryRepository.findAll(memberSearchDto);
     }
 
+    public Long getTotalCount(MemberSearchDto memberSearchDto) {
+        return memberQueryRepository.findTotalCount(memberSearchDto);
+    }
+
+    @Transactional
     public void ban(Long memberId) {
         Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         findMember.ban();
     }
 
+
+    @Transactional
+    public void changeMemberRoleToUser(Long memberId) {
+        Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+
+        if (!findMember.getRoles().contains(MemberRole.SECESSION) && !findMember.getRoles().contains(MemberRole.BAN)) {
+            throw new MemberAlreadyHasAuthorityException();
+        }
+
+        findMember.changeMemberRoleToUser();
+    }
 
 
     /**
@@ -141,9 +164,5 @@ public class MemberService {
                 .refreshToken(findMember.getLoginInfo().getRefreshToken())
                 .refreshTokenExpirationPeriodDateTime(findMember.getLoginInfo().getRefreshTokenExpirationPeriodDateTime())
                 .build();
-    }
-
-    public Long getTotalCount(MemberSearchDto memberSearchDto) {
-        return memberQueryRepository.findTotalCount(memberSearchDto);
     }
 }

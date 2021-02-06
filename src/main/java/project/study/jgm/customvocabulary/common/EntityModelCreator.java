@@ -4,6 +4,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.validation.Errors;
+import project.study.jgm.customvocabulary.api.MemberApiController;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.members.dto.MemberAdminViewDto;
@@ -21,7 +22,11 @@ public class EntityModelCreator extends EntityModel<Errors>{
         return EntityModel.of(memberDetailDto, selfLink);
     }
 
-    //    public static <T> EntityModel
+    public static <T> EntityModel<MemberAdminViewDto> createMemberAdminViewResponse(MemberAdminViewDto memberAdminViewDto, Class<T> controller, Object... slashs) {
+        Link selfLink = getSelfLink(controller, slashs);
+        return EntityModel.of(memberAdminViewDto, selfLink);
+    }
+
     public static <T> EntityModel<MessageDto> createMessageResponse(MessageDto messageDto, Class<T> controller, Object... slashs) {
         Link selfLink = getSelfLink(controller, slashs);
         return EntityModel.of(messageDto, selfLink);
@@ -40,13 +45,13 @@ public class EntityModelCreator extends EntityModel<Errors>{
         WebMvcLinkBuilder webMvcLinkBuilder = linkTo(controller);
         for (Object o :
                 slashs) {
-            webMvcLinkBuilder.slash(o);
+            webMvcLinkBuilder = addSlash(webMvcLinkBuilder, o);
         }
         Link link = webMvcLinkBuilder.withSelfRel();
         return link;
     }
 
-    private static WebMvcLinkBuilder addSlash(WebMvcLinkBuilder webMvcLinkBuilder, Object[] slash) {
+    private static WebMvcLinkBuilder addSlash(WebMvcLinkBuilder webMvcLinkBuilder, Object slash) {
         return webMvcLinkBuilder.slash(slash);
     }
 }
