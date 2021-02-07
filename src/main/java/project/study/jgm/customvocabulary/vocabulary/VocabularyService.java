@@ -1,5 +1,6 @@
 package project.study.jgm.customvocabulary.vocabulary;
 
+import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,31 +54,6 @@ public class VocabularyService {
 
         return personalVocabulary;
 
-    }
-
-   /* public List<Vocabulary> getPersonalVocabularyList(Long memberId, CriteriaDto criteriaDto) {
-        return vocabularyQueryRepository.findTotalPersonalVocabularyList(criteriaDto, memberId);
-    }
-
-    public List<Vocabulary> getPersonalVocabularyListByCategory(Long memberId, Long categoryId, CriteriaDto criteriaDto) {
-        return vocabularyQueryRepository.findPersonalVocabularyListByCategory(criteriaDto, memberId, categoryId);
-    }
-
-    public List<Vocabulary> getCopiedVocabularyList(Long memberId, CriteriaDto criteriaDto) {
-        return vocabularyQueryRepository.findCopiedVocabularyList(criteriaDto, memberId);
-    }
-
-    public List<Vocabulary> getCopiedVocabularyListByCategory(Long memberId, Long categoryId, CriteriaDto criteriaDto) {
-        return vocabularyQueryRepository.findCopiedVocabularyListByCategory(criteriaDto, memberId, categoryId);
-    }*/
-
-    public Vocabulary getVocabulary(Long vocabularyId) {
-        Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-        if (vocabulary.getDivision() == VocabularyDivision.SHARED) {
-            vocabulary.increaseViews();
-        }
-
-        return vocabulary;
     }
 
     @Transactional
@@ -135,10 +111,31 @@ public class VocabularyService {
         vocabulary.modify(updateDto);
     }
 
+    @Transactional
+    public Vocabulary share(Long vocabularyId, Long sharedCategoryId) {
+        Vocabulary personalVocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+        Category sharedCategory = categoryRepository.findById(sharedCategoryId).orElseThrow(CategoryNotFoundException::new);
+        Vocabulary sharedVocabulary = personalVocabulary.personalToShared(sharedCategory);
+
+        if (personalVocabulary.getDivision() != VocabularyDivision.PERSONAL) {
+            throw new BadRequestByDivision();
+        }
+
+        if (sharedCategory.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
+            throw new DivisionMismatchException();
+        }
+
+        return vocabularyRepository.save(sharedVocabulary);
+    }
+
     public void deletePersonalVocabulary(Long vocabularyId) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
         vocabulary.delete();
     }
+
+    /**
+     * Common
+     */
 
     @Transactional
     public void moveCategory(Long vocabularyId, Long newCategoryId) {
@@ -172,57 +169,26 @@ public class VocabularyService {
         vocabulary.moveCategory(newCategory);
     }
 
-    @Transactional
-    public Vocabulary share(Long vocabularyId, Long sharedCategoryId) {
-        Vocabulary personalVocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-        Category sharedCategory = categoryRepository.findById(sharedCategoryId).orElseThrow(CategoryNotFoundException::new);
-        Vocabulary sharedVocabulary = personalVocabulary.personalToShared(sharedCategory);
-
-        if (personalVocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision();
-        }
-
-        if (sharedCategory.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
-            throw new DivisionMismatchException();
-        }
-
-        return vocabularyRepository.save(sharedVocabulary);
-    }
-
-  /*  public List<Vocabulary> getSharedVocabularyListByMember(Long memberId, CriteriaDto criteriaDto) {
-        return vocabularyQueryRepository.findSharedVocabularyListByMember(criteriaDto, memberId);
-    }*/
-
-    public List<Vocabulary> getVocabularyListByMember(CriteriaDto criteriaDto, VocabularyDivision division, Long memberId, Long categoryId) {
-        return vocabularyQueryRepository.findAllByPersonal(criteriaDto, division, memberId, categoryId);
-    }
-
-    public List<Vocabulary> getVocabularyListByShared(CriteriaDto criteriaDto, Long categoryId, String title, VocabularySortCondition sortCondition) {
-        return vocabularyQueryRepository.findAllByShared(criteriaDto, categoryId, title, sortCondition);
-    }
-
-    @Transactional
-    public void sharedVocabularyToUnshared(Long vocabularyId) {
+    public Vocabulary getVocabulary(Long vocabularyId) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-
-        if (vocabulary.getDivision() != VocabularyDivision.SHARED) {
-            throw new BadRequestByDivision();
+        if (vocabulary.getDivision() == VocabularyDivision.SHARED) {
+            vocabulary.increaseViews();
         }
 
-        vocabulary.unshared();
+        return vocabulary;
+    }
+
+    public QueryResults<Vocabulary> getVocabularyListByMember(CriteriaDto criteriaDto, VocabularyDivision division, Long memberId, Long categoryId) {
+        return vocabularyQueryRepository.findAllByPersonal(criteriaDto, division, memberId, categoryId);
     }
 
     /**
      * shared
      */
 
-   /* public List<Vocabulary> getTotalSharedVocabularyList(CriteriaDto criteriaDto, VocabularySortCondition sortCondition) {
-        return vocabularyQueryRepository.findTotalSharedVocabularyList(criteriaDto, sortCondition);
+    public QueryResults<Vocabulary> getVocabularyListByShared(CriteriaDto criteriaDto, Long categoryId, String title, VocabularySortCondition sortCondition) {
+        return vocabularyQueryRepository.findAllByShared(criteriaDto, categoryId, title, sortCondition);
     }
-
-    public List<Vocabulary> getSharedVocabularyListByCategory(Long categoryId, CriteriaDto criteriaDto, VocabularySortCondition sortCondition) {
-        return vocabularyQueryRepository.findTotalSharedVocabularyListByCategory(criteriaDto, categoryId, sortCondition);
-    }*/
 
     public Vocabulary download(Long vocabularyId, Long memberId, Long categoryId) {
         Vocabulary sharedVocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
@@ -239,6 +205,17 @@ public class VocabularyService {
         }
 
         return vocabularyRepository.save(personalVocabulary);
+    }
+
+    @Transactional
+    public void sharedVocabularyToUnshared(Long vocabularyId) {
+        Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+
+        if (vocabulary.getDivision() != VocabularyDivision.SHARED) {
+            throw new BadRequestByDivision();
+        }
+
+        vocabulary.unshared();
     }
 
 }

@@ -110,6 +110,12 @@
             <artifactId>querydsl-jpa</artifactId>
         </dependency>
 
+<!--     Spring Boot DataSource Decorator   -->
+        <dependency>
+            <groupId>com.github.gavlyukovskiy</groupId>
+            <artifactId>p6spy-spring-boot-starter</artifactId>
+            <version>1.6.3</version>
+        </dependency>
 
     </dependencies>
 

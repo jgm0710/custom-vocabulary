@@ -1,6 +1,6 @@
-package project.study.jgm.customvocabulary.bbs;
+package project.study.jgm.customvocabulary.bbs.dto;
 
-public enum BbsSortCondition {
+public enum BbsSortType {
     LATEST_ASC,
     LATEST_DESC,
     VIEWS_ASC,

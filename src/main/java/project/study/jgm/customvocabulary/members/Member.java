@@ -74,28 +74,6 @@ public class Member {
 //registerDate
 //updateDate
 
-
-    @Override
-    public String toString() {
-        return "Member{" +
-                "id=" + id +
-                ", joinId='" + joinId + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", name='" + name + '\'' +
-                ", nickname='" + nickname + '\'' +
-                ", dateOfBirth=" + dateOfBirth +
-                ", gender=" + gender +
-                ", simpleAddress='" + simpleAddress + '\'' +
-                ", sharedVocabularyCount=" + sharedVocabularyCount +
-                ", bbsCount=" + bbsCount +
-                ", roles=" + roles +
-                ", loginInfo=" + loginInfo +
-                ", registerDate=" + registerDate +
-                ", updateDate=" + updateDate +
-                '}';
-    }
-
     public static Member createMember(MemberCreateDto memberCreateDto, List<MemberRole> roles, PasswordEncoder passwordEncoder, SecurityProperties securityProperties) {
         String encodedPassword = passwordEncoder.encode(memberCreateDto.getPassword());
 

@@ -2,9 +2,13 @@ package project.study.jgm.customvocabulary.bbs;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import project.study.jgm.customvocabulary.bbs.dto.BbsSearchDto;
+import project.study.jgm.customvocabulary.bbs.dto.BbsSearchType;
+import project.study.jgm.customvocabulary.bbs.dto.BbsSortType;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 
 import javax.persistence.EntityManager;
@@ -21,42 +25,60 @@ public class BbsQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public QueryResults<Bbs> findAll(CriteriaDto criteriaDto, BbsSortCondition sortCondition) {
+    public QueryResults<Bbs> findAll(BbsSearchDto bbsSearchDto) {
         return queryFactory
                 .select(bbs)
                 .from(bbs)
-                .where(bbs.status.eq(BbsStatus.REGISTER))
-                .orderBy(sortConditionEq(sortCondition).toArray(OrderSpecifier[]::new))
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .where(whereFrom(bbsSearchDto))
+                .orderBy(sortConditionEq(bbsSearchDto.getBbsSortType()).toArray(OrderSpecifier[]::new))
+                .offset(bbsSearchDto.getCriteriaDto().getOffset())
+                .limit(bbsSearchDto.getCriteriaDto().getLimit())
                 .fetchResults();
     }
 
-    private List<OrderSpecifier<?>> sortConditionEq(BbsSortCondition sortCondition) {
+    private BooleanExpression whereFrom(BbsSearchDto bbsSearchDto) {
+        return searchBy(bbsSearchDto).and(bbs.status.eq(BbsStatus.REGISTER));
+    }
+
+    private BooleanExpression searchBy(BbsSearchDto bbsSearchDto) {
+        if (bbsSearchDto.getSearchType() == BbsSearchType.TITLE) {
+            return bbs.title.contains(bbsSearchDto.getKeyword());
+        } else if (bbsSearchDto.getSearchType() == BbsSearchType.CONTENT) {
+            return bbs.content.contains(bbsSearchDto.getKeyword());
+        }else if (bbsSearchDto.getSearchType() == BbsSearchType.TITLE_OR_CONTENT) {
+            return bbs.title.contains(bbsSearchDto.getKeyword()).or(bbs.content.contains(bbsSearchDto.getKeyword()));
+        } else if (bbsSearchDto.getSearchType() == BbsSearchType.WRITER) {
+            return bbs.member.nickname.contains(bbsSearchDto.getKeyword());
+        } else {
+            return bbs.id.gt(0);
+        }
+    }
+
+    private List<OrderSpecifier<?>> sortConditionEq(BbsSortType sortType) {
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
-        if (sortCondition == BbsSortCondition.LATEST_ASC) {
+        if (sortType == BbsSortType.LATEST_ASC) {
             orderSpecifiers.add(bbs.registerDate.asc());
             orderSpecifiers.add(bbs.id.asc());
-        } else if (sortCondition == BbsSortCondition.LATEST_DESC) {
+        } else if (sortType == BbsSortType.LATEST_DESC) {
             orderSpecifiers.add(bbs.registerDate.desc());
             orderSpecifiers.add(bbs.id.desc());
-        } else if (sortCondition == BbsSortCondition.VIEWS_ASC) {
+        } else if (sortType == BbsSortType.VIEWS_ASC) {
             orderSpecifiers.add(bbs.views.asc());
             orderSpecifiers.add(bbs.id.desc());
-        } else if (sortCondition == BbsSortCondition.VIEWS_DESC) {
+        } else if (sortType == BbsSortType.VIEWS_DESC) {
             orderSpecifiers.add(bbs.views.desc());
             orderSpecifiers.add(bbs.id.desc());
-        } else if (sortCondition == BbsSortCondition.LIKE_ASC) {
+        } else if (sortType == BbsSortType.LIKE_ASC) {
             orderSpecifiers.add(bbs.likeCount.asc());
             orderSpecifiers.add(bbs.id.desc());
-        } else if (sortCondition == BbsSortCondition.LIKE_DESC) {
+        } else if (sortType == BbsSortType.LIKE_DESC) {
             orderSpecifiers.add(bbs.likeCount.desc());
             orderSpecifiers.add(bbs.id.desc());
-        } else if (sortCondition == BbsSortCondition.REPLY_COUNT_ASC) {
+        } else if (sortType == BbsSortType.REPLY_COUNT_ASC) {
             orderSpecifiers.add(bbs.replyCount.asc());
             orderSpecifiers.add(bbs.id.desc());
-        } else if (sortCondition == BbsSortCondition.REPLY_COUNT_DESC) {
+        } else if (sortType == BbsSortType.REPLY_COUNT_DESC) {
             orderSpecifiers.add(bbs.replyCount.desc());
             orderSpecifiers.add(bbs.id.desc());
         } else {

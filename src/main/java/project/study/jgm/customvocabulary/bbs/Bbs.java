@@ -21,7 +21,7 @@ import static javax.persistence.FetchType.LAZY;
 public class Bbs {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bbs_id")
     private Long id;
 
@@ -44,7 +44,7 @@ public class Bbs {
 
     private LocalDateTime updateDate;
 
-    @Enumerated
+    @Enumerated(value = EnumType.STRING)
     private BbsStatus status;   //Bbs 저장 상태 표시 [REGISTER, DELETE]
 
     @Override

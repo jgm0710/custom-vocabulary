@@ -1,5 +1,6 @@
 package project.study.jgm.customvocabulary.vocabulary;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,7 +26,7 @@ public class VocabularyQueryRepository {
     /**
      * personal
      */
-    public List<Vocabulary> findAllByPersonal(CriteriaDto criteriaDto, VocabularyDivision division, Long memberId, Long categoryId) {
+    public QueryResults<Vocabulary> findAllByPersonal(CriteriaDto criteriaDto, VocabularyDivision division, Long memberId, Long categoryId) {
         return queryFactory
                 .select(vocabulary)
                 .from(vocabulary)
@@ -37,7 +38,7 @@ public class VocabularyQueryRepository {
                 .orderBy(vocabulary.id.desc())
                 .offset(criteriaDto.getOffset())
                 .limit(criteriaDto.getLimit())
-                .fetch();
+                .fetchResults();
     }
 
     private BooleanExpression categoryIdEq(Long categoryId) {
@@ -64,7 +65,7 @@ public class VocabularyQueryRepository {
     /**
      * shared
      */
-    public List<Vocabulary> findAllByShared(CriteriaDto criteriaDto, Long categoryId, String title, VocabularySortCondition sortCondition) {
+    public QueryResults<Vocabulary> findAllByShared(CriteriaDto criteriaDto, Long categoryId, String title, VocabularySortCondition sortCondition) {
         return queryFactory
                 .select(vocabulary)
                 .from(vocabulary)
@@ -76,7 +77,7 @@ public class VocabularyQueryRepository {
                 .orderBy(sortConditionEq(sortCondition).toArray(OrderSpecifier[]::new))
                 .offset(criteriaDto.getOffset())
                 .limit(criteriaDto.getLimit())
-                .fetch();
+                .fetchResults();
     }
 
     private List<OrderSpecifier<?>> sortConditionEq(VocabularySortCondition sortCondition) {

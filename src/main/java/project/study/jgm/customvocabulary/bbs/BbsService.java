@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.bbs.dto.BbsCreateDto;
+import project.study.jgm.customvocabulary.bbs.dto.BbsSearchDto;
 import project.study.jgm.customvocabulary.bbs.dto.BbsUpdateDto;
 import project.study.jgm.customvocabulary.bbs.exception.BbsNotFoundException;
 import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
@@ -12,8 +13,6 @@ import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRepository;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +25,7 @@ public class BbsService {
 
     private final BbsQueryRepository bbsQueryRepository;
 
+    @Transactional
     public Bbs addBbs(Long memberId, BbsCreateDto createDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Bbs bbs = Bbs.createBbs(member, createDto);
@@ -33,8 +33,8 @@ public class BbsService {
         return bbsRepository.save(bbs);
     }
 
-    public QueryResults<Bbs> getBbsList(CriteriaDto criteriaDto, BbsSortCondition sortCondition) {
-        return bbsQueryRepository.findAll(criteriaDto, sortCondition);
+    public QueryResults<Bbs> getBbsList(BbsSearchDto bbsSearchDto) {
+        return bbsQueryRepository.findAll(bbsSearchDto);
     }
 
     public QueryResults<Bbs> getBbsListByMember(Long memberId, CriteriaDto criteriaDto) {
@@ -53,6 +53,7 @@ public class BbsService {
         return bbs;
     }
 
+    @Transactional
     public void modifyBbs(Long bbsId, BbsUpdateDto updateDto) {
         Bbs bbs = bbsRepository.findById(bbsId).orElseThrow(BbsNotFoundException::new);
 
@@ -63,6 +64,7 @@ public class BbsService {
         bbs.modify(updateDto);
     }
 
+    @Transactional
     public void deleteBbs(Long bbsId) {
         Bbs bbs = bbsRepository.findById(bbsId).orElseThrow(BbsNotFoundException::new);
 
