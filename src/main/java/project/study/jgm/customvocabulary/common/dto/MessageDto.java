@@ -11,6 +11,10 @@ public class MessageDto {
 
     private String message;
 
+    /**
+     * Member
+     */
+
     public static final String CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY = "회원의 권한이 정상적으로 복구 되었습니다.";
 
     public static final String BAN_SUCCESSFULLY = "회원의 활동이 정상적으로 금지되었습니다.";
@@ -29,4 +33,10 @@ public class MessageDto {
 
     public static final String LOGOUT_SUCCESSFULLY = "logout 이 정상적으로 완료되었습니다.";
 
+
+    /**
+     * Bbs
+     */
+
+    public static final String BBS_REGISTERED_SUCCESSFULLY = "게시글이 성공적으로 등록되었습니다.";
 }

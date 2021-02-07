@@ -225,20 +225,6 @@ class BbsServiceTest {
     }
 
     @Test
-    @DisplayName("삭제된 게시글을 조회하는 경우")
-    public void get_DeletedBbs() throws Exception {
-        //given
-        Member member = getMember("fdas");
-        Bbs bbsSample = getBbsSample(member, BbsStatus.DELETE);
-
-        //when
-
-        //then
-        assertThrows(DeletedBbsException.class, () -> bbsService.getBbs(bbsSample.getId()));
-
-    }
-
-    @Test
     void modifyBbs() {
         Member member = getMember("fdafad");
         Bbs bbsSample = getBbsSample(member, BbsStatus.REGISTER);

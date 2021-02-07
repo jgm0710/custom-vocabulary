@@ -37,7 +37,7 @@ public class BbsQueryRepository {
     }
 
     private BooleanExpression whereFrom(BbsSearchDto bbsSearchDto) {
-        return searchBy(bbsSearchDto).and(bbs.status.eq(BbsStatus.REGISTER));
+        return searchBy(bbsSearchDto).and(bbs.status.eq(bbsSearchDto.getBbsStatus()));
     }
 
     private BooleanExpression searchBy(BbsSearchDto bbsSearchDto) {

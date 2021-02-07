@@ -43,11 +43,6 @@ public class BbsService {
 
     public Bbs getBbs(Long bbsId) {
         Bbs bbs = bbsRepository.findById(bbsId).orElseThrow(BbsNotFoundException::new);
-
-        if (bbs.getStatus() == BbsStatus.DELETE) {
-            throw new DeletedBbsException("삭제된 게시글은 조회가 불가능합니다.");
-        }
-
         bbs.increaseViews();
 
         return bbs;
