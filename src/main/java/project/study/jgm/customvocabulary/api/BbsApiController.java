@@ -25,12 +25,14 @@ import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.common.dto.PaginationDto;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.security.CurrentUser;
 
+import javax.imageio.plugins.jpeg.JPEGImageReadParam;
 import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import java.net.URI;
@@ -240,5 +242,21 @@ public class BbsApiController {
         }
 
         return ResponseEntity.ok(new MessageDto(MessageDto.ADD_LIKE_TO_BBS_SUCCESSFULLY));
+    }
+
+    @GetMapping("/unlike/{bbsId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity unLikeBbs(
+            @PathVariable("bbsId") Long bbsId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+            bbsLikeService.unLike(member.getId(), bbsId);
+        } catch (NoExistLikeException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(new MessageDto(MessageDto.UNLIKE_BBS_SUCCESSFULLY));
     }
 }

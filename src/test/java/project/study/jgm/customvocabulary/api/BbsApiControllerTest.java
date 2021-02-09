@@ -14,10 +14,12 @@ import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
+import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
 import java.time.LocalDateTime;
@@ -1097,6 +1099,69 @@ class BbsApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").value("삭제된 게시글 입니다. : 삭제된 게시글에는 좋아요를 누를 수 없습니다."));
+
+    }
+
+    @Test
+    @DisplayName("게시글 좋아요 해제")
+    public void unLikeBbs() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("user2");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        bbsLikeService.like(user2.getId(), bbsSample.getId());
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/unlike/" + bbsSample.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.UNLIKE_BBS_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("게시글에 좋아요를 등록하지 않았는데 좋아요를 해제하는 경우")
+    public void unLike_NoExistLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("user2");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+//        bbsLikeService.like(user2.getId(), bbsSample.getId());
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/unlike/" + bbsSample.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new NoExistLikeException().getMessage()));
 
     }
 
