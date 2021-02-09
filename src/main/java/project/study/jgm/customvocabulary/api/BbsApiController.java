@@ -24,6 +24,8 @@ import project.study.jgm.customvocabulary.bbs.like.BbsLikeService;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.common.dto.PaginationDto;
+import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.MemberService;
@@ -216,5 +218,27 @@ public class BbsApiController {
         }
 
         return ResponseEntity.ok(new MessageDto(MessageDto.DELETE_BBS_SUCCESSFULLY));
+    }
+
+    @GetMapping("/like/{bbsId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity addLikeToBbs(
+            @PathVariable("bbsId") Long bbsId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+            bbsLikeService.like(member.getId(), bbsId);
+        } catch (ExistLikeException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        } catch (BbsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageDto(e.getMessage()));
+        } catch (SelfLikeException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        } catch (DeletedBbsException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(new MessageDto(MessageDto.ADD_LIKE_TO_BBS_SUCCESSFULLY));
     }
 }

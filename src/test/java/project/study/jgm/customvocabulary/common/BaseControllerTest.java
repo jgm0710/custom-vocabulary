@@ -15,6 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import project.study.jgm.customvocabulary.bbs.BbsRepository;
 import project.study.jgm.customvocabulary.bbs.BbsService;
+import project.study.jgm.customvocabulary.bbs.like.BbsLikeRepository;
 import project.study.jgm.customvocabulary.bbs.like.BbsLikeService;
 import project.study.jgm.customvocabulary.members.*;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
@@ -66,6 +67,9 @@ public abstract class BaseControllerTest {
 
     @Autowired
     protected BbsLikeService bbsLikeService;
+
+    @Autowired
+    protected BbsLikeRepository bbsLikeRepository;
 
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {

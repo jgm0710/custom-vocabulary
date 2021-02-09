@@ -13,6 +13,8 @@ import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
@@ -32,6 +34,7 @@ class BbsApiControllerTest extends BaseControllerTest {
 
     @BeforeEach
     public void setUp() {
+        bbsLikeRepository.deleteAll();
         bbsRepository.deleteAll();
         memberRepository.deleteAll();
     }
@@ -940,6 +943,160 @@ class BbsApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").exists());
+
+    }
+
+    @Test
+    @DisplayName("게시글에 좋아요 등록")
+    public void addLikeToBbs() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto user2TokenDto = memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/like/" + bbsSample.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.ADD_LIKE_TO_BBS_SUCCESSFULLY))
+        ;
+
+        boolean existLike = bbsLikeService.getExistLike(user2.getId(), bbsSample.getId());
+        assertTrue(existLike);
+    }
+
+    @Test
+    @DisplayName("게시글에 좋아요 등록 시 이미 좋아요가 등록된 게시글일 경우")
+    public void addLikeToBbs_ExistLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto user2TokenDto = memberService.login(loginDto);
+
+        bbsLikeService.like(user2.getId(), bbsSample.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/like/" + bbsSample.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new ExistLikeException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("좋아요를 등록할 게시글을 찾을 수 없는 경우")
+    public void addLikeToBbs_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto user2TokenDto = memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/like/" + 1000000L)
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new BbsNotFoundException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("자기 자신의 게시글에 좋아요를 누르는 경우")
+    public void addLikeToBbs_SelfLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto user1TokenDto = memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/like/" + bbsSample.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new SelfLikeException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("삭제된 게시글에 좋아요를 누른 경우")
+    public void addLikeToBbs_DeletedBbs() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto user2TokenDto = memberService.login(loginDto);
+
+        bbsService.deleteBbs(bbsSample.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/like/" + bbsSample.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value("삭제된 게시글 입니다. : 삭제된 게시글에는 좋아요를 누를 수 없습니다."));
 
     }
 

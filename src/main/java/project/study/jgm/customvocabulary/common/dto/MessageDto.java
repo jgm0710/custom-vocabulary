@@ -50,4 +50,6 @@ public class MessageDto {
 
     public static final String DELETE_BBS_SUCCESSFULLY = "게시글 삭제가 정상적으로 완료되었습니다.";
 
+    public static final String ADD_LIKE_TO_BBS_SUCCESSFULLY = "게시글에 좋아요가 정상적으로 등록되었습니다.";
+
 }
