@@ -324,6 +324,37 @@ public class MemberApiControllerTest extends BaseControllerTest {
         Assertions.assertEquals(findMember.getSimpleAddress(), memberUpdateDto.getSimpleAddress());
     }
 
+    @Test
+    @DisplayName("회원 수정 시 수정 정보가 비어 있는 경우")
+    public void modifyMember_Empty() throws Exception {
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member joinMember = memberService.userJoin(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        MemberUpdateDto memberUpdateDto = MemberUpdateDto.builder().build();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + joinMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+        ;
+        //then
+
+    }
+
     private MemberUpdateDto getMemberUpdateDto() {
         return MemberUpdateDto.builder()
                 .joinId("updateId")
@@ -492,6 +523,41 @@ public class MemberApiControllerTest extends BaseControllerTest {
         Member findMember = memberService.getMember(userMember.getId());
 
         Assertions.assertNull(findMember.getLoginInfo());
+
+    }
+
+    @Test
+    @DisplayName("비밀번호 수정 시 수정 정보가 없는 경우")
+    public void updatePassword_Empty() throws Exception {
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto userTokenDto = memberService.login(loginDto);
+
+        PasswordUpdateDto passwordUpdateDto = PasswordUpdateDto.builder()
+//                .newPassword("newPassword")
+//                .oldPassword(memberCreateDto.getPassword())
+                .build();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/password/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
+                                .content(objectMapper.writeValueAsString(passwordUpdateDto))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+        ;
+
+        //then
 
     }
 

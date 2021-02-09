@@ -103,8 +103,9 @@ public class MemberApiController {
             @PathVariable("memberId") Long memberId,
             @RequestParam String password,
             @RequestBody @Valid MemberUpdateDto memberUpdateDto,
-            @CurrentUser Member member,
-            Errors errors) {
+            Errors errors,
+            @CurrentUser Member member
+    ) {
 
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
@@ -120,7 +121,7 @@ public class MemberApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
             }
 
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFIED_SUCCESSFULLY), MemberApiController.class, memberId);
+            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFIED_MEMBER_INFO_SUCCESSFULLY), MemberApiController.class, memberId);
             messageResponse.add(linkToIndex());
             messageResponse.add(linkToGetMember(memberId));
 
@@ -142,8 +143,13 @@ public class MemberApiController {
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity updatePassword(@PathVariable("memberId") Long memberId,
                                          @RequestBody @Valid PasswordUpdateDto passwordUpdateDto,
-                                         @CurrentUser Member member,
-                                         Errors errors) {
+                                         Errors errors,
+                                         @CurrentUser Member member
+    ) {
+
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
 
         try {
             memberService.updatePassword(memberId, passwordUpdateDto.getOldPassword(), passwordUpdateDto.getNewPassword());

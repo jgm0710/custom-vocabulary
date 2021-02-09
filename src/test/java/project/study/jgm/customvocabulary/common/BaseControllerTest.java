@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
+import project.study.jgm.customvocabulary.bbs.BbsRepository;
+import project.study.jgm.customvocabulary.bbs.BbsService;
+import project.study.jgm.customvocabulary.bbs.like.BbsLikeService;
 import project.study.jgm.customvocabulary.members.*;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.JwtTokenProvider;
@@ -54,6 +57,15 @@ public abstract class BaseControllerTest {
 
     @Autowired
     protected EntityManager em;
+
+    @Autowired
+    protected BbsRepository bbsRepository;
+
+    @Autowired
+    protected BbsService bbsService;
+
+    @Autowired
+    protected BbsLikeService bbsLikeService;
 
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {

@@ -1,9 +1,8 @@
-package project.study.jgm.customvocabulary.bbs.dto;
+package project.study.jgm.customvocabulary.bbs.dto.admin;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.bbs.Bbs;
 import project.study.jgm.customvocabulary.bbs.BbsStatus;
 import project.study.jgm.customvocabulary.members.Member;
@@ -16,8 +15,7 @@ import static javax.persistence.FetchType.LAZY;
 @Data
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
-public class BbsDetailDto {
+public class BbsDetailAdminViewDto {
     private Long id;
 
     private String writer;
@@ -36,22 +34,21 @@ public class BbsDetailDto {
 
     private LocalDateTime updateDate;
 
-    private boolean like;
+    private BbsStatus status;   //Bbs 저장 상태 표시 [REGISTER, DELETE]
 
-    private boolean viewLike;
+//.id
+//.member
+//.title
+//.content
+//.views
+//.likeCount
+//.replyCount
+//.registerDate
+//.updateDate
+//.status
 
-//id
-//writer
-//title
-//content
-//views
-//likeCount
-//replyCount
-//registerDate
-//updateDate
-
-    public static BbsDetailDto bbsToDetail(Bbs bbs) {
-        return BbsDetailDto.builder()
+    public static BbsDetailAdminViewDto bbsToDetailAdminView(Bbs bbs) {
+        return BbsDetailAdminViewDto.builder()
                 .id(bbs.getId())
                 .writer(bbs.getMember().getNickname())
                 .title(bbs.getTitle())
@@ -61,7 +58,7 @@ public class BbsDetailDto {
                 .replyCount(bbs.getReplyCount())
                 .registerDate(bbs.getRegisterDate())
                 .updateDate(bbs.getUpdateDate())
+                .status(bbs.getStatus())
                 .build();
     }
-
 }

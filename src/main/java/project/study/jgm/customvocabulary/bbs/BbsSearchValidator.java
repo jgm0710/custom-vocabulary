@@ -1,11 +1,13 @@
 package project.study.jgm.customvocabulary.bbs;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import project.study.jgm.customvocabulary.bbs.dto.BbsSearchDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 
+@Component
 public class BbsSearchValidator {
     public void validate(BbsSearchDto searchDto, Member member, BindingResult bindingResult) {
         //검색 조건이 없는데 검색 내용이 있는 경우
@@ -25,8 +27,6 @@ public class BbsSearchValidator {
                 }
             }
         }
-
-
     }
 
     private void addWrongSearchToBindingResult(BindingResult bindingResult) {
@@ -34,6 +34,6 @@ public class BbsSearchValidator {
     }
 
     private void addUnauthorizedSearchToBindingResult(BindingResult bindingResult) {
-        bindingResult.rejectValue("UnauthorizedSearch", "Users cannot view the list of deleted posts.");
+        bindingResult.rejectValue("bbsStatus","UnauthorizedSearch", "Users cannot view the list of deleted posts.");
     }
 }

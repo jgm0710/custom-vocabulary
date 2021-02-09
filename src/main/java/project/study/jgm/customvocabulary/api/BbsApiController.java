@@ -2,6 +2,8 @@ package project.study.jgm.customvocabulary.api;
 
 import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,18 +13,23 @@ import org.springframework.web.bind.annotation.*;
 import project.study.jgm.customvocabulary.bbs.Bbs;
 import project.study.jgm.customvocabulary.bbs.BbsSearchValidator;
 import project.study.jgm.customvocabulary.bbs.BbsService;
-import project.study.jgm.customvocabulary.bbs.dto.BbsCreateDto;
-import project.study.jgm.customvocabulary.bbs.dto.BbsDetailDto;
-import project.study.jgm.customvocabulary.bbs.dto.BbsSearchDto;
+import project.study.jgm.customvocabulary.bbs.BbsStatus;
+import project.study.jgm.customvocabulary.bbs.dto.*;
+import project.study.jgm.customvocabulary.bbs.dto.admin.BbsDetailAdminViewDto;
+import project.study.jgm.customvocabulary.bbs.dto.admin.BbsSimpleAdminViewDto;
 import project.study.jgm.customvocabulary.bbs.exception.BbsNotFoundException;
+import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
 import project.study.jgm.customvocabulary.bbs.like.BbsLike;
+import project.study.jgm.customvocabulary.bbs.like.BbsLikeService;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.common.dto.PaginationDto;
 import project.study.jgm.customvocabulary.members.Member;
+import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.security.CurrentUser;
 
+import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -38,17 +45,19 @@ public class BbsApiController {
 
     private final BbsService bbsService;
 
-    private final BbsLike bbsLike;
-
     private final BbsSearchValidator bbsSearchValidator;
+
+    private final ModelMapper modelMapper;
+
+    private final BbsLikeService bbsLikeService;
 
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity addBbs(
             @RequestBody @Valid BbsCreateDto bbsCreateDto,
-            @CurrentUser Member member,
-            Errors errors
+            Errors errors,
+            @CurrentUser Member member
     ) {
 
         if (errors.hasErrors()) {
@@ -71,7 +80,7 @@ public class BbsApiController {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
-        bbsSearchValidator.validate(bbsSearchDto,member,bindingResult);
+        bbsSearchValidator.validate(bbsSearchDto, member, bindingResult);
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult);
         }
@@ -82,8 +91,21 @@ public class BbsApiController {
 
         PaginationDto paginationDto = new PaginationDto(total, bbsSearchDto.getCriteriaDto());
 
+        if (member != null) {
+            if (member.getRoles().contains(MemberRole.ADMIN)) {
+                List<BbsSimpleAdminViewDto> bbsSimpleAdminViewDtoList = BbsSimpleAdminViewDto.bbsListToSimpleAdminViewList(findBbsList);
+                ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+                        .data(bbsSimpleAdminViewDtoList)
+                        .paging(paginationDto)
+                        .build();
+
+                return ResponseEntity.ok(listResponseDto);
+            }
+        }
+
+        List<BbsSimpleDto> bbsSimpleDtoList = BbsSimpleDto.bbsListToSimpleList(findBbsList);
         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
-                .data(findBbsList)
+                .data(bbsSimpleDtoList)
                 .paging(paginationDto)
                 .build();
 
@@ -98,13 +120,101 @@ public class BbsApiController {
 
         try {
             Bbs findBbs = bbsService.getBbs(bbsId);
-            BbsDetailDto.builder()
+            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs);
 
-                    .build();
+            if (member != null) {
+                if (member.getRoles().contains(MemberRole.ADMIN)) {
+                    BbsDetailAdminViewDto bbsDetailAdminViewDto = BbsDetailAdminViewDto.bbsToDetailAdminView(findBbs);
+                    EntityModel<BbsDetailAdminViewDto> entityModel = EntityModel.of(bbsDetailAdminViewDto);
+                    entityModel.add(linkTo(BbsApiController.class).slash(bbsId).withRel("update-bbs"));
 
-            return ResponseEntity.ok(findBbs);
+                    return ResponseEntity.ok(entityModel);
+                } else {
+                    if (findBbs.getStatus() == BbsStatus.DELETE) {
+                        return ResponseEntity.badRequest().body(new MessageDto(MessageDto.UNAUTHORIZED_USERS_VIEW_DELETED_POSTS));
+                    }
+                    if (findBbs.getMember().getId().equals(member.getId())) {
+                        bbsDetailDto.setViewLike(false);
+                        EntityModel<BbsDetailDto> entityModel = EntityModel.of(bbsDetailDto);
+                        entityModel.add(linkTo(BbsApiController.class).slash(bbsId).withRel("update-bbs"));
+
+                        return ResponseEntity.ok(entityModel);
+                    } else {
+                        boolean existLike = bbsLikeService.getExistLike(member.getId(), bbsId);
+                        bbsDetailDto.setLike(existLike);
+                        bbsDetailDto.setViewLike(true);
+                    }
+                }
+            }
+
+            return ResponseEntity.ok(bbsDetailDto);
+
         } catch (BbsNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageDto(e.getMessage()));
         }
+    }
+
+    @PutMapping("/{bbsId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity modifyBbs(
+            @PathVariable("bbsId") Long bbsId,
+            @RequestBody @Valid BbsUpdateDto bbsUpdateDto,
+            Errors errors,
+            @CurrentUser Member member
+    ) {
+
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            Bbs findBbs = bbsService.getBbs(bbsId);
+            if (!findBbs.getMember().getId().equals(member.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageDto(MessageDto.MODIFY_BBS_OF_DIFFERENT_MEMBER));
+            }
+        } catch (BbsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageDto(e.getMessage()));
+        }
+
+
+        try {
+            bbsService.modifyBbs(bbsId, bbsUpdateDto);
+        } catch (DeletedBbsException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        EntityModel<MessageDto> entityModel = EntityModel.of(new MessageDto(MessageDto.MODIFIED_BBS_SUCCESSFULLY));
+        entityModel.add(linkTo(BbsApiController.class).slash(bbsId).withRel("get-bbs"));
+
+        return ResponseEntity.ok(entityModel);
+    }
+
+    @DeleteMapping("/{bbsId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity deleteBbs(
+            @PathVariable("bbsId") Long bbsId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+            Bbs findBbs = bbsService.getBbs(bbsId);
+
+            if (!member.getRoles().contains(MemberRole.ADMIN)) {
+                if (!findBbs.getMember().getId().equals(member.getId())) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageDto(MessageDto.DELETE_BBS_OF_DIFFERENT_MEMBER));
+                }
+            }
+
+        }catch (BbsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageDto(e.getMessage()));
+        }
+
+        try {
+            bbsService.deleteBbs(bbsId);
+        } catch (DeletedBbsException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(new MessageDto(MessageDto.DELETE_BBS_SUCCESSFULLY));
     }
 }
