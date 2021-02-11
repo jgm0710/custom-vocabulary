@@ -16,6 +16,7 @@ import project.study.jgm.customvocabulary.bbs.reply.ReplySortType;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyChildResponseDto;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyCreateDto;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyParentResponseDto;
+import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyUpdateDto;
 import project.study.jgm.customvocabulary.bbs.reply.exception.DeletedReplyException;
 import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundException;
 import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeService;
@@ -127,7 +128,7 @@ public class ReplyApiController {
 
         try {
             List<Reply> replyChildList = replyService.getReplyChildList(parentId, criteriaDto);
-            List<ReplyChildResponseDto> replyChildResponseDtoList = ReplyChildResponseDto.replyListToChildList(replyChildList);
+            List<ReplyChildResponseDto> replyChildResponseDtoList = ReplyChildResponseDto.replyListToChildList(replyChildList, member);
 
             return ResponseEntity.ok(replyChildResponseDtoList);
         } catch (ReplyNotFoundException e) {
@@ -135,6 +136,37 @@ public class ReplyApiController {
         } catch (DeletedReplyException e) {
             return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
         }
+    }
+
+    @PutMapping("/{replyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity modifyReply(
+            @PathVariable("replyId") Long replyId,
+            @RequestBody @Valid ReplyUpdateDto replyUpdateDto,
+            Errors errors,
+            @CurrentUser Member member
+    ) {
+
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            Reply findReply = replyService.getReply(replyId);
+            if (!findReply.getMember().getId().equals(member.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageDto(MessageDto.MODIFY_REPLY_OF_DIFFERENT_MEMBER));
+            }
+        } catch (ReplyNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageDto(e.getMessage()));
+        }
+
+        try {
+            replyService.modifyReply(replyId, replyUpdateDto.getContent());
+        } catch (DeletedReplyException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(new MessageDto(MessageDto.MODIFY_REPLY_SUCCESSFULLY));
     }
 
     @DeleteMapping("/{replyId}")

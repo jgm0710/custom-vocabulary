@@ -65,4 +65,8 @@ public class MessageDto {
 
     public static final String DELETE_REPLY_SUCCESSFULLY = "댓글이 정상적으로 삭제되었습니다.";
 
+    public static final String MODIFY_REPLY_OF_DIFFERENT_MEMBER = "다른 회원의 댓글은 수정할 수 없습니다.";
+
+    public static final String MODIFY_REPLY_SUCCESSFULLY = "댓글이 성공적으로 수정되었습니다.";
+
 }

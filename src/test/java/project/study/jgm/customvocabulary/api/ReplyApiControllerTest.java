@@ -14,6 +14,7 @@ import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
 import project.study.jgm.customvocabulary.bbs.reply.Reply;
 import project.study.jgm.customvocabulary.bbs.reply.ReplySortType;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyCreateDto;
+import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyUpdateDto;
 import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundException;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
@@ -90,6 +91,41 @@ class ReplyApiControllerTest extends BaseControllerTest {
             }
         }
         assertTrue(replyContainsFlag);
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 댓글을 등록하는 경우")
+    public void addReply_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("user2");
+        memberCreateDto.setNickname("user2");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        String test_content = "test content";
+        ReplyCreateDto replyCreateDto = new ReplyCreateDto(test_content);
+        //when
+
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/bbs/reply/" + bbsSample.getId())
+//                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyCreateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
 
     }
 
@@ -263,6 +299,44 @@ class ReplyApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("인증되지 않은 사용자가 댓글에 댓글을 등록하는 경우")
+    public void addReplyOfReply_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        memberCreateDto.setJoinId("user2");
+        memberCreateDto.setNickname("user2");
+        Member user2 = memberService.userJoin(memberCreateDto);
+
+        Reply parent = replyService.addReply(user2.getId(), bbsSample.getId(), "test content");
+
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user3", "user3");
+        Member user3 = memberService.userJoin(memberCreateDto2);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        ReplyCreateDto replyCreateDto = new ReplyCreateDto("test reply of reply content");
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/bbs/reply/reply/" + parent.getId())
+//                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyCreateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
     @DisplayName("댓글에 댓글 등록 시 부모 댓글이 없는 경우")
     public void addReplyOfReply_Parent_NotFound() throws Exception {
         //given
@@ -344,6 +418,55 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$[0].registerDate").exists())
                 .andExpect(jsonPath("$[0].like").exists())
                 .andExpect(jsonPath("$[0].viewLike").exists())
+                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 부모 댓글 목록을 조회하는 경우")
+    public void getReplyParentList_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        List<Reply> replyList = createReplyList(user2, bbsSample);
+
+        replyService.addReply(user3.getId(), bbsSample.getId(), "user3 content");
+
+        replyLikeService.like(user3.getId(), replyList.get(3).getId());
+        replyLikeService.like(user3.getId(), replyList.get(5).getId());
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/" + bbsSample.getId())
+//                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                                .param("pageNum", "1")
+                                .param("limit", "15")
+                                .param("sortType", ReplySortType.LATEST_DESC.name())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].writer").exists())
+                .andExpect(jsonPath("$[0].content").exists())
+                .andExpect(jsonPath("$[0].likeCount").exists())
+                .andExpect(jsonPath("$[0].registerDate").exists())
+                .andExpect(jsonPath("$[0].like").exists())
+                .andExpect(jsonPath("$[0].viewLike").exists())
+                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
         ;
 
     }
@@ -471,6 +594,52 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$[0].writer").exists())
                 .andExpect(jsonPath("$[0].content").exists())
                 .andExpect(jsonPath("$[0].registerDate").exists())
+                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("USER 권한의 회원이 댓글에 등록된 댓글 목록을 조회하는 경우")
+    public void getReplyChildList_By_User() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        MemberCreateDto memberCreateDto4 = getMemberCreateDto("user4", "user4");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+        Member user4 = memberService.userJoin(memberCreateDto4);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply parent = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 parent reply");
+
+        createReplyChildList(parent, user3.getId(), "user3 child reply content");
+        createReplyChildList(parent, user4.getId(), "user4 child reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/reply/" + parent.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                                .param("pageNum", "1")
+                                .param("limit", "15")
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].writer").exists())
+                .andExpect(jsonPath("$[0].content").exists())
+                .andExpect(jsonPath("$[0].registerDate").exists())
+                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
         ;
 
     }
@@ -557,6 +726,194 @@ class ReplyApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("댓글 수정")
+    public void modifyReply() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        String user2_update_content = "user2 update content";
+        ReplyUpdateDto replyUpdateDto = new ReplyUpdateDto(user2_update_content);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/bbs/reply/" + reply.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_REPLY_SUCCESSFULLY));
+
+        Reply findReply = replyService.getReply(reply.getId());
+        assertEquals(findReply.getContent(), user2_update_content);
+
+    }
+
+    @Test
+    @DisplayName("다른 회원의 댓글을 수정하는 경우")
+    public void modifyReply_Of_DifferentMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        String user3_update_content = "user3 update content";
+        ReplyUpdateDto replyUpdateDto = new ReplyUpdateDto(user3_update_content);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/bbs/reply/" + reply.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_REPLY_OF_DIFFERENT_MEMBER));
+
+    }
+
+    @Test
+    @DisplayName("댓글 수정 시 수정하려는 댓글을 찾을 수 없는 경우")
+    public void modifyReply_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        String user2_update_content = "user2 update content";
+        ReplyUpdateDto replyUpdateDto = new ReplyUpdateDto(user2_update_content);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/bbs/reply/" + 10000L)
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new ReplyNotFoundException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("삭제된 댓글을 수정하는 경우")
+    public void modify_DeletedReply() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        replyService.deleteReply(reply.getId());
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        String user2_update_content = "user2 update content";
+        ReplyUpdateDto replyUpdateDto = new ReplyUpdateDto(user2_update_content);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/bbs/reply/" + reply.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value("삭제된 댓글 입니다. : 삭제된 댓글은 수정할 수 없습니다."))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 댓글을 수정하는 경우")
+    public void modifyReply_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        String user2_update_content = "user2 update content";
+        ReplyUpdateDto replyUpdateDto = new ReplyUpdateDto(user2_update_content);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/bbs/reply/" + reply.getId())
+//                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(replyUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
     @DisplayName("댓글 삭제")
     public void deleteReply() throws Exception {
         //given
@@ -584,6 +941,36 @@ class ReplyApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageDto.DELETE_REPLY_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 댓글을 삭제하는 경우")
+    public void deleteReply_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/bbs/reply/" + reply.getId())
+//                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
 
     }
 

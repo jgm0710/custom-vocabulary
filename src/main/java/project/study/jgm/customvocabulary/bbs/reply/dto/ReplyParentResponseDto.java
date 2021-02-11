@@ -35,15 +35,23 @@ public class ReplyParentResponseDto {
 
     private boolean viewLike;
 
+    private boolean allowModificationAndDeletion;
+
     public static List<ReplyParentResponseDto> replyListToParentListResponse(List<Reply> replyList, Member member, ReplyLikeService replyLikeService) {
         List<ReplyParentResponseDto> replyParentResponseDtoList = new ArrayList<>();
 
         for (Reply reply : replyList) {
             boolean viewLike = true;
-            if (reply.getMember().getId().equals(member.getId())) {
-                viewLike = false;
+            boolean allowModificationAndDeletion = false;
+            boolean existLike = false;
+
+            if (member != null) {
+                if (reply.getMember().getId().equals(member.getId())) {
+                    viewLike = false;
+                    allowModificationAndDeletion = true;
+                }
+                existLike = replyLikeService.getExistLike(member.getId(), reply.getId());
             }
-            boolean existLike = replyLikeService.getExistLike(member.getId(), reply.getId());
 
             ReplyParentResponseDto replyParentResponseDto = ReplyParentResponseDto.builder()
                     .id(reply.getId())
@@ -54,6 +62,7 @@ public class ReplyParentResponseDto {
                     .registerDate(reply.getRegisterDate())
                     .like(existLike)
                     .viewLike(viewLike)
+                    .allowModificationAndDeletion(allowModificationAndDeletion)
                     .build();
 
             replyParentResponseDtoList.add(replyParentResponseDto);
