@@ -1,6 +1,6 @@
 package project.study.jgm.customvocabulary.bbs.reply;
 
-public enum ReplySortCondition {
+public enum ReplySortType {
     LIKE_ASC,
     LIKE_DESC,
     LATEST_ASC,

@@ -74,9 +74,9 @@ class BbsServiceTest {
         assertEquals(savedBbs.getLikeCount(), 0);
     }
 
-    private Member getMember(String testNickname) {
+    private Member getMember(String joinId, String testNickname) {
         Member member = Member.builder()
-                .joinId("testJoinId")
+                .joinId(joinId)
                 .email("test@email.com")
                 .password("testPassword")
                 .name("testName")
@@ -100,7 +100,7 @@ class BbsServiceTest {
     @MethodSource(value = "paramsForGetBbsListTest")
     void getBbsList(BbsSearchType bbsSearchType, String keyword, BbsSortType bbsSortType) {
         Member member1 = getMember("testNickname1");
-        Member member2 = getMember("testNickname2");
+        Member member2 = getMember("testjoinId","testNickname2");
 
         em.flush();
         em.clear();
@@ -296,5 +296,10 @@ class BbsServiceTest {
         //then
         assertThrows(DeletedBbsException.class, () -> bbsService.deleteBbs(bbsSample.getId()));
 
+    }
+
+    private Member getMember(String nickname) {
+        String joinId = "testJoinId";
+        return getMember(joinId, nickname);
     }
 }

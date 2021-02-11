@@ -8,10 +8,7 @@ import project.study.jgm.customvocabulary.common.SecurityProperties;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
-import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
-import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
-import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
-import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
+import project.study.jgm.customvocabulary.members.exception.*;
 import project.study.jgm.customvocabulary.security.AccountAdapter;
 import project.study.jgm.customvocabulary.security.JwtTokenProvider;
 import project.study.jgm.customvocabulary.security.LoginService;
@@ -22,6 +19,7 @@ import project.study.jgm.customvocabulary.security.exception.PasswordMismatchExc
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +44,13 @@ public class MemberService {
      */
     @Transactional
     public Member userJoin(MemberCreateDto memberCreateDto) {
+        Member duplicatedMember = memberRepository
+                .findByJoinIdOrNickname(memberCreateDto.getJoinId(), memberCreateDto.getNickname()).orElse(null);
+
+        if (duplicatedMember != null) {
+            throw new ExistDuplicatedMemberException();
+        }
+
         List<MemberRole> roles = List.of(MemberRole.USER);
         Member member = Member.createMember(memberCreateDto, roles, passwordEncoder, securityProperties);
         return memberRepository.save(member);
@@ -115,10 +120,29 @@ public class MemberService {
     }
 
     /**
+     * Common
+     */
+    public boolean checkExistJoinId(String joinId) {
+        Member member = memberRepository.findByJoinId(joinId).orElse(null);
+        return member != null;
+    }
+
+    public boolean checkExistNickname(String nickname) {
+        Member member = memberRepository.findByNickname(nickname).orElse(null);
+        return member != null;
+    }
+
+    /**
      * ADMIN
      */
     @Transactional
     public Member adminJoin(MemberCreateDto memberCreateDto) {
+        Member duplicatedMember = memberRepository
+                .findByJoinIdOrNickname(memberCreateDto.getJoinId(), memberCreateDto.getNickname()).orElse(null);
+        if (duplicatedMember != null) {
+            throw new ExistDuplicatedMemberException();
+        }
+
         List<MemberRole> roles = List.of(MemberRole.USER, MemberRole.ADMIN);
         Member member = Member.createMember(memberCreateDto, roles, passwordEncoder, securityProperties);
         return memberRepository.save(member);

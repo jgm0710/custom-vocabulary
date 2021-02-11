@@ -45,7 +45,9 @@ class BbsApiControllerTest extends BaseControllerTest {
     @DisplayName("게시글 추가")
     public void addBbs() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -79,7 +81,9 @@ class BbsApiControllerTest extends BaseControllerTest {
     @DisplayName("게시글 추가 시 제목이나 내용이 비어 있는 경우")
     public void addBbs_TitleOrContent_Null() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -425,13 +429,13 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("fdafdas");
-        Member userMember2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
-        bbsLikeService.like(userMember2.getId(), bbsSample.getId());
+        bbsLikeService.like(user2.getId(), bbsSample.getId());
 
         //when
         ResultActions perform = mockMvc
@@ -676,10 +680,10 @@ class BbsApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        memberCreateDto.setJoinId("differentMember");
-        Member userMember2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
+        Member userMember2 = memberService.userJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
         Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
@@ -811,11 +815,11 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("adminjoinid");
-        Member adminMember = memberService.adminJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminUser", "adminUser");
+        Member adminMember = memberService.adminJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
-        TokenDto adminTokenDto = memberService.login(loginDto);
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(adminMember.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
 
         //when
         ResultActions perform = mockMvc
@@ -869,10 +873,10 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("differentJoinId");
-        Member user2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
         //when
@@ -957,10 +961,10 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("differentMember");
-        Member user2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
         //when
@@ -990,10 +994,10 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("differentMember");
-        Member user2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
         bbsLikeService.like(user2.getId(), bbsSample.getId());
@@ -1022,10 +1026,10 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("differentMember");
-        Member user2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
         //when
@@ -1079,10 +1083,11 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("differentMember");
-        Member user2 = memberService.userJoin(memberCreateDto);
+//        memberCreateDto.setJoinId("differentMember");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("differentMember", "differentMember");
+        Member user2 = memberService.userJoin(memberCreateDto2);
 
-        LoginDto loginDto = getLoginDto(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto2);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
         bbsService.deleteBbs(bbsSample.getId());
@@ -1111,8 +1116,8 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("user2");
-        Member user2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
         bbsLikeService.like(user2.getId(), bbsSample.getId());
 
@@ -1143,8 +1148,8 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
 
-        memberCreateDto.setJoinId("user2");
-        Member user2 = memberService.userJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
 
 //        bbsLikeService.like(user2.getId(), bbsSample.getId());
         OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
@@ -1163,6 +1168,10 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").value(new NoExistLikeException().getMessage()));
 
+    }
+
+    private MemberCreateDto getMemberCreateDto() {
+        return getMemberCreateDto("testJoinid", "test");
     }
 
     private List<Bbs> createBbsList(Member member) {

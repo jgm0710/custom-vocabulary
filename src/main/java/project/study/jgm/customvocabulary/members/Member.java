@@ -25,6 +25,7 @@ public class Member {
     @Column(name = "member_id")
     private Long id;
 
+    @Column(unique = true)
     private String joinId;
 
     private String email;
@@ -33,6 +34,7 @@ public class Member {
 
     private String name;
 
+    @Column(unique = true)
     private String nickname;
 
     private LocalDate dateOfBirth;  //생년월일

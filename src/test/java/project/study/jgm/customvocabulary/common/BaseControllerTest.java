@@ -17,6 +17,10 @@ import project.study.jgm.customvocabulary.bbs.BbsRepository;
 import project.study.jgm.customvocabulary.bbs.BbsService;
 import project.study.jgm.customvocabulary.bbs.like.BbsLikeRepository;
 import project.study.jgm.customvocabulary.bbs.like.BbsLikeService;
+import project.study.jgm.customvocabulary.bbs.reply.ReplyRepository;
+import project.study.jgm.customvocabulary.bbs.reply.ReplyService;
+import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeRepository;
+import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeService;
 import project.study.jgm.customvocabulary.members.*;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.JwtTokenProvider;
@@ -71,6 +75,18 @@ public abstract class BaseControllerTest {
     @Autowired
     protected BbsLikeRepository bbsLikeRepository;
 
+    @Autowired
+    protected ReplyLikeService replyLikeService;
+
+    @Autowired
+    protected ReplyLikeRepository replyLikeRepository;
+
+    @Autowired
+    protected ReplyService replyService;
+
+    @Autowired
+    protected ReplyRepository replyRepository;
+
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
@@ -91,13 +107,13 @@ public abstract class BaseControllerTest {
         return loginDto;
     }
 
-    protected MemberCreateDto getMemberCreateDto() {
+    protected MemberCreateDto getMemberCreateDto(String joinId,String nickname) {
         return MemberCreateDto.builder()
-                .joinId("testJoinid")
+                .joinId(joinId)
                 .email("test@email.com")
                 .password("test")
                 .name("정구민")
-                .nickname("test")
+                .nickname(nickname)
                 .dateOfBirth(LocalDate.now())
                 .gender(Gender.MALE)
                 .simpleAddress("address")
@@ -109,11 +125,11 @@ public abstract class BaseControllerTest {
             Random random = new Random();
 
             Member member = Member.builder()
-                    .joinId("aajoinId" + random.nextInt(1000))
+                    .joinId("aajoinId" + i)
                     .email("fadsuser" + random.nextInt(1000) + "@email.com")
                     .password("fadspassword" + random.nextInt(1000))
                     .name("fdasname" + random.nextInt(1000))
-                    .nickname("fdsanickname" + random.nextInt(1000))
+                    .nickname("fdsanickname" + i)
                     .dateOfBirth(LocalDate.now())
                     .gender(Gender.MALE)
                     .simpleAddress("fadsaddress")
@@ -128,6 +144,7 @@ public abstract class BaseControllerTest {
             memberRepository.save(member);
         }
     }
+
 
 
 }

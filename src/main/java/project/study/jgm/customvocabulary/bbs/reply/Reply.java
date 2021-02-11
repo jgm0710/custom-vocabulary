@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.bbs.Bbs;
-import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyCreateDto;
 import project.study.jgm.customvocabulary.members.Member;
 
 import javax.persistence.*;
@@ -39,31 +38,37 @@ public class Reply {
     @JoinColumn(name = "parent_id")
     private Reply parent;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "parent")
-    private List<Reply> children = new ArrayList<>();
+//    @Builder.Default
+//    @OneToMany(mappedBy = "parent")
+//    private List<Reply> children = new ArrayList<>();
 
     @Column(length = 1200)
     private String content; //최대 1200자
 
     private int likeCount;
 
+    private int childrenCount;
+
     private ReplyStatus status; //저장, 삭제 구분 [REGISTER, DELETE]
 
     private LocalDateTime registerDate;
 
-    public static Reply createReply(Member member, Bbs bbs, ReplyCreateDto createDto) {
+    public static Reply createReply(Member member, Bbs bbs, Reply parent, String content) {
         Reply reply = Reply.builder()
                 .member(member)
                 .bbs(bbs)
-                .parent(createDto.getParent())
-                .content(createDto.getContent())
+                .parent(parent)
+                .content(content)
                 .likeCount(0)
                 .status(ReplyStatus.REGISTER)
                 .registerDate(LocalDateTime.now())
                 .build();
 
         bbs.increaseReplyCount();
+
+        if (parent != null) {
+            parent.increaseChildrenCount();
+        }
 
         return reply;
     }
@@ -75,6 +80,17 @@ public class Reply {
     public void delete() {
         this.status = ReplyStatus.DELETE;
         this.bbs.decreaseReplyCount();
+        if (this.parent != null) {
+            this.parent.decreaseChildrenCount();
+        }
+    }
+
+    public void increaseChildrenCount() {
+        this.childrenCount++;
+    }
+
+    public void decreaseChildrenCount() {
+        this.childrenCount--;
     }
 
     public void increaseLikeCount() {

@@ -488,11 +488,11 @@ class MemberServiceTest {
             Random random = new Random();
 
             Member member = Member.builder()
-                    .joinId("aajoinId" + random.nextInt(1000))
+                    .joinId("aajoinId" + i)
                     .email("fadsuser" + random.nextInt(1000) + "@email.com")
                     .password("fadspassword" + random.nextInt(1000))
                     .name("fdasname" + random.nextInt(1000))
-                    .nickname("fdsanickname" + random.nextInt(1000))
+                    .nickname("fdsanickname" + i)
                     .dateOfBirth(LocalDate.now())
                     .gender(Gender.MALE)
                     .simpleAddress("fadsaddress")

@@ -42,7 +42,9 @@ class LoginApiControllerTest extends BaseControllerTest {
     @DisplayName("로그인")
     public void login() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -71,12 +73,14 @@ class LoginApiControllerTest extends BaseControllerTest {
     @DisplayName("로그인 시 로그인 아이디가 틀린 경우")
     public void login_Wrong_Join_Id() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId,nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
-        String joinId = "fdasfdsajflkdasjlk";
-        loginDto.setJoinId(joinId);
+        String joinId2 = "fdasfdsajflkdasjlk";
+        loginDto.setJoinId(joinId2);
 
         //when
         ResultActions perform = mockMvc
@@ -90,7 +94,7 @@ class LoginApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("message").value(new UsernameNotFoundException("해당 아이디의 사용자가 없습니다. ID : "+joinId).getMessage()));
+                .andExpect(jsonPath("message").value(new UsernameNotFoundException("해당 아이디의 사용자가 없습니다. ID : "+joinId2).getMessage()));
 
     }
 
@@ -99,7 +103,9 @@ class LoginApiControllerTest extends BaseControllerTest {
     public void login_PasswordMismatch() throws Exception {
         //given
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -126,7 +132,9 @@ class LoginApiControllerTest extends BaseControllerTest {
     @DisplayName("refresh token 으로 로그인")
     public void refresh() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId,nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         String refreshToken = userMember.getLoginInfo().getRefreshToken();
@@ -157,7 +165,9 @@ class LoginApiControllerTest extends BaseControllerTest {
     @DisplayName("refresh token 이 틀린 경우")
     public void refresh_Wrong() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         String refreshToken = userMember.getLoginInfo().getRefreshToken();
@@ -184,7 +194,9 @@ class LoginApiControllerTest extends BaseControllerTest {
     @Transactional
     public void refreshTokenPeriodExpired() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         String refreshToken = userMember.getLoginInfo().getRefreshToken();
@@ -216,7 +228,9 @@ class LoginApiControllerTest extends BaseControllerTest {
     @DisplayName("로그아웃")
     public void logout() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);

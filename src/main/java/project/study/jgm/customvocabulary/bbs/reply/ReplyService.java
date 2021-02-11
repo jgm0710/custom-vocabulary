@@ -1,5 +1,6 @@
 package project.study.jgm.customvocabulary.bbs.reply;
 
+import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ public class ReplyService {
     private final ReplyQueryRepository replyQueryRepository;
 
     @Transactional
-    public Reply addReply(Long memberId, Long bbsId, ReplyCreateDto createDto) {
+    public Reply addReply(Long memberId, Long bbsId, String content) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Bbs bbs = bbsRepository.findById(bbsId).orElseThrow(BbsNotFoundException::new);
 
@@ -40,13 +41,39 @@ public class ReplyService {
             throw new DeletedBbsException("삭제된 게시글에는 댓글을 작성할 수 없습니다.");
         }
 
-        Reply reply = Reply.createReply(member, bbs, createDto);
+        Reply reply = Reply.createReply(member, bbs, null, content);
 
         return replyRepository.save(reply);
     }
 
-    public List<Reply> getReplyList(Long bbsId, CriteriaDto criteriaDto, ReplySortCondition sortCondition) {
-        return replyQueryRepository.findAll(criteriaDto, bbsId, sortCondition);
+    @Transactional
+    public Reply addReplyOfReply(Long memberId, Long parentId, String content) {
+        Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        Reply parent = replyRepository.findById(parentId).orElseThrow(ReplyNotFoundException::new);
+        Reply reply = Reply.createReply(member, parent.getBbs(), parent, content);
+
+        return replyRepository.save(reply);
+    }
+
+    public Reply getReply(Long replyId) {
+        return replyRepository.findById(replyId).orElseThrow(ReplyNotFoundException::new);
+    }
+
+    public List<Reply> getReplyParentList(Long bbsId, CriteriaDto criteriaDto, ReplySortType sortType) {
+        Bbs findBbs = bbsRepository.findById(bbsId).orElseThrow(BbsNotFoundException::new);
+        if (findBbs.getStatus() == BbsStatus.DELETE) {
+            throw new DeletedBbsException("삭제된 게시글의 댓글은 조회할 수 없습니다.");
+        }
+        return replyQueryRepository.findParents(criteriaDto, bbsId, sortType);
+    }
+
+    public List<Reply> getReplyChildList(Long parentId, CriteriaDto criteriaDto) {
+        Reply parent = replyRepository.findById(parentId).orElseThrow(ReplyNotFoundException::new);
+        if (parent.getStatus() == ReplyStatus.DELETE) {
+            throw new DeletedReplyException("삭제된 댓글에 등록된 댓글은 조회가 불가능합니다.");
+        }
+
+        return replyQueryRepository.findChildren(criteriaDto, parentId);
     }
 
     @Transactional

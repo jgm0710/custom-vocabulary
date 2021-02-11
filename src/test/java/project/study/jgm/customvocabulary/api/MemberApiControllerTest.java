@@ -46,6 +46,10 @@ public class MemberApiControllerTest extends BaseControllerTest {
 
     @BeforeEach
     public void setup() {
+        replyLikeRepository.deleteAll();
+        replyRepository.deleteAll();
+        bbsLikeRepository.deleteAll();
+        bbsRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
@@ -53,7 +57,9 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원가입")
     public void join() throws Exception {
         //given
-        MemberCreateDto createDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto createDto = getMemberCreateDto(joinId, nickname);
 
         //when
         mockMvc.perform(
@@ -109,7 +115,9 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원조회")
     public void getMember() throws Exception {
         //given
-        MemberCreateDto createDto = getMemberCreateDto();
+        String joinId = "testJoinid";
+        String nickname = "test";
+        MemberCreateDto createDto = getMemberCreateDto(joinId, nickname);
         Member member = memberService.userJoin(createDto);
         LoginDto loginDto = getLoginDto(createDto);
 
@@ -148,7 +156,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("탈퇴한 회원이 회원을 조회하는 경우")
     public void getMember_By_SecessionMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         memberService.secession(userMember.getId());
@@ -171,7 +179,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 조회 시 조회할 회원이 없는 경우")
     public void getMember_NotFound() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -197,7 +205,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("인증 권한이 없는 회원이 회원을 조회할 경우")
     public void getMember_No_Authentication() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member member = memberService.userJoin(memberCreateDto);
         //when
 
@@ -216,13 +224,14 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("관리자가 다른 사용자를 조회하는 경우")
     public void admin_Get_Of_DifferentMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         memberService.adminJoin(memberCreateDto);
 
         LoginDto adminLoginDto = getLoginDto(memberCreateDto);
         TokenDto adminTokenDto = memberService.login(adminLoginDto);
 
         memberCreateDto.setJoinId("userjoinId");
+        memberCreateDto.setNickname("testusernickname");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         //when
@@ -260,11 +269,12 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("인증된 사용자와 조회하려는 사용자가 다른 경우")
     public void getMember_Unauthorized() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
         memberCreateDto.setJoinId("jonfdsa");
+        memberCreateDto.setNickname("testusernickname");
         Member adminMember = memberService.adminJoin(memberCreateDto);
         //when
 
@@ -288,7 +298,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 정보 수정")
     public void modifyMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         Member joinMember = memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -327,7 +337,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("회원 수정 시 수정 정보가 비어 있는 경우")
     public void modifyMember_Empty() throws Exception {
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         Member joinMember = memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -371,7 +381,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 정보 수정 시 수정할 회원이 없는 경우")
     public void modifyMember_NouFound() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -402,7 +412,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("인증되지 않은 사용자가 회원 정보를 수정할 경우")
     public void modify_Unauthorized() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         Member joinMember = memberService.userJoin(memberCreateDto);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
@@ -428,14 +438,14 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("다른 회원의 정보를 수정할 경우")
     public void modify_DifferentMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         memberService.userJoin(memberCreateDto);
 
         LoginDto userLoginDto = getLoginDto(memberCreateDto);
         TokenDto userTokenDto = memberService.login(userLoginDto);
 
-        memberCreateDto.setJoinId("adminjoinid");
-        Member adminMember = memberService.adminJoin(memberCreateDto);
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminuser", "adminuser");
+        Member adminMember = memberService.adminJoin(memberCreateDto1);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
         //when
@@ -461,7 +471,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 수정 시 비밀번호를 잘못 입력한 경우")
     public void modifyMember_Password_Mismatch() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -492,7 +502,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("비밀번호 수정")
     public void updatePassword() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -529,7 +539,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("비밀번호 수정 시 수정 정보가 없는 경우")
     public void updatePassword_Empty() throws Exception {
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -565,7 +575,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("비밀번호 변경 시 변경할 회원이 없는 경우")
     public void updatePassword_NotFound() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
         memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -636,6 +646,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto userTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("different");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("di");
         Member userMember2 = memberService.userJoin(memberCreateDto);
 
@@ -771,6 +782,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto userMember1TokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("fdasfdjsaiojdioa");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("fdafdafdasf");
         Member userMember2 = memberService.userJoin(memberCreateDto);
 
@@ -1013,6 +1025,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1052,6 +1065,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto user1TokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testPassword");
         Member userMember2 = memberService.userJoin(memberCreateDto);
 
@@ -1080,6 +1094,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1108,6 +1123,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUser");
+        memberCreateDto.setNickname("testUser");
         memberCreateDto.setPassword("testPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1140,6 +1156,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testUserPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1175,6 +1192,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testUserPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1210,6 +1228,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto userMember1TokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testUserPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1239,6 +1258,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setNickname("testNickname2");
         memberCreateDto.setPassword("testUserPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1268,6 +1288,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testUserPassword");
         Member adminMember2 = memberService.adminJoin(memberCreateDto);
 
@@ -1299,6 +1320,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto adminTokenDto = memberService.login(loginDto);
 
         memberCreateDto.setJoinId("testUserJOinId");
+        memberCreateDto.setNickname("testusernickname");
         memberCreateDto.setPassword("testUserPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -1319,4 +1341,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         ;
     }
 
+    private MemberCreateDto getMemberCreateDto() {
+        return getMemberCreateDto("testJoinid", "test");
+    }
 }

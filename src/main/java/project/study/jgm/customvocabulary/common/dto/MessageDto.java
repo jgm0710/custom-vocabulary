@@ -54,4 +54,15 @@ public class MessageDto {
 
     public static final String UNLIKE_BBS_SUCCESSFULLY = "좋아요가 성공적으로 해제되었습니다.";
 
+
+    /**
+     * Reply
+     */
+
+    public static final String REPLY_REGISTER_SUCCESSFULLY = "댓글이 정상적으로 등록되었습니다.";
+
+    public static final String DELETE_REPLY_OF_DIFFERENT_MEMBER = "다른 회원의 댓글은 삭제할 수 없습니다.";
+
+    public static final String DELETE_REPLY_SUCCESSFULLY = "댓글이 정상적으로 삭제되었습니다.";
+
 }

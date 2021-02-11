@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.LAZY;
 public class BbsLike {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bbs_like_id")
     private Long id;
 
