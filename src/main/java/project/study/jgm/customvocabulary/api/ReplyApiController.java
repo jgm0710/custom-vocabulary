@@ -20,8 +20,12 @@ import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyUpdateDto;
 import project.study.jgm.customvocabulary.bbs.reply.exception.DeletedReplyException;
 import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundException;
 import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeService;
+import project.study.jgm.customvocabulary.bbs.reply.like.exception.AddLikeToChildReplyException;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
@@ -194,6 +198,48 @@ public class ReplyApiController {
         } catch (DeletedReplyException e) {
             return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
         }
+    }
+
+    @GetMapping("/like/{replyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity addLikeToReply(
+            @PathVariable("replyId") Long replyId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+            replyLikeService.like(member.getId(), replyId);
+        } catch (ReplyNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageDto(e.getMessage()));
+        } catch (AddLikeToChildReplyException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        } catch (ExistLikeException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        } catch (DeletedReplyException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        } catch (SelfLikeException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        } catch (MemberNotFoundException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(new MessageDto(MessageDto.ADD_LIKE_TO_REPLY_SUCCESSFULLY));
+    }
+
+    @GetMapping("/unlike/{replyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity unLikeReply(
+            @PathVariable("replyId") Long replyId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+            replyLikeService.unLike(member.getId(), replyId);
+        } catch (NoExistLikeException e) {
+            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(new MessageDto(MessageDto.UNLIKE_REPLY_SUCCESSFULLY));
     }
 }
 

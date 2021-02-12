@@ -8,6 +8,7 @@ import project.study.jgm.customvocabulary.bbs.reply.ReplyRepository;
 import project.study.jgm.customvocabulary.bbs.reply.ReplyStatus;
 import project.study.jgm.customvocabulary.bbs.reply.exception.DeletedReplyException;
 import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundException;
+import project.study.jgm.customvocabulary.bbs.reply.like.exception.AddLikeToChildReplyException;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
@@ -33,6 +34,9 @@ public class ReplyLikeService {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Reply reply = replyRepository.findById(replyId).orElseThrow(ReplyNotFoundException::new);
 
+        if (reply.getParent() != null) {
+            throw new AddLikeToChildReplyException();
+        }
         if (checkExistLike(memberId, replyId)) {
             throw new ExistLikeException();
         }

@@ -52,7 +52,7 @@ public class MessageDto {
 
     public static final String ADD_LIKE_TO_BBS_SUCCESSFULLY = "게시글에 좋아요가 정상적으로 등록되었습니다.";
 
-    public static final String UNLIKE_BBS_SUCCESSFULLY = "좋아요가 성공적으로 해제되었습니다.";
+    public static final String UNLIKE_BBS_SUCCESSFULLY = "게시글에 등록된 좋아요가 성공적으로 해제되었습니다.";
 
 
     /**
@@ -68,5 +68,9 @@ public class MessageDto {
     public static final String MODIFY_REPLY_OF_DIFFERENT_MEMBER = "다른 회원의 댓글은 수정할 수 없습니다.";
 
     public static final String MODIFY_REPLY_SUCCESSFULLY = "댓글이 성공적으로 수정되었습니다.";
+
+    public static final String ADD_LIKE_TO_REPLY_SUCCESSFULLY = "댓글에 좋아요가 정상적으로 등록되었습니다.";
+
+    public static final String UNLIKE_REPLY_SUCCESSFULLY = "댓글에 등록된 좋아요가 성공적으로 해제되었습니다.";
 
 }

@@ -16,9 +16,13 @@ import project.study.jgm.customvocabulary.bbs.reply.ReplySortType;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyCreateDto;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyUpdateDto;
 import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundException;
+import project.study.jgm.customvocabulary.bbs.reply.like.exception.AddLikeToChildReplyException;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
@@ -1103,6 +1107,284 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(status().isBadRequest())
 //                .andExpect(jsonPath("message").value())
         ;
+
+    }
+
+    @Test
+    @DisplayName("댓글에 좋아요 등록")
+    public void addLikeToReply() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply user2Reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.ADD_LIKE_TO_REPLY_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("댓글에 좋아요 등록 시 댓글이 없는경우")
+    public void addLikeToReply_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply user2Reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/like/" + 10000L)
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new ReplyNotFoundException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("댓글에 등록된 댓글에 좋아요를 등록하는 경우")
+    public void addLikeToChildReply() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply user2Reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        Reply user3ChildReply = replyService.addReplyOfReply(user3.getId(), user2Reply.getId(), "user3 child reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/like/" + user3ChildReply.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new AddLikeToChildReplyException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("이미 좋아요를 등록한 댓글에 다시 좋아요를 등록하는 경우")
+    public void addLikeToReply_ExistLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply user2Reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        replyLikeService.like(user3.getId(), user2Reply.getId());
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new ExistLikeException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("삭제된 댓글에 좋아요를 등록하는 경우")
+    public void addLikeToDeletedReply() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply user2Reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        replyService.deleteReply(user2Reply.getId());
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("message").value("삭제된 댓글 입니다. : 삭제된 댓글에는 좋아요를 누를 수 없습니다."))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("자신이 쓴 댓글에 좋아요를 등록하는 경우")
+    public void addLikeToReply_SelfLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply user2Reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new SelfLikeException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("댓글에 등록된 좋아요 해제")
+    public void unLikeReply() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+        replyLikeService.like(user3.getId(), reply.getId());
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/unlike/" + reply.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.UNLIKE_REPLY_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("좋아요가 등록되지 않은 댓글의 좋아요를 해제하는 경우")
+    public void unLikeReply_NoExistLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user2", "user2");
+        MemberCreateDto memberCreateDto3 = getMemberCreateDto("user3", "user3");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        Member user2 = memberService.userJoin(memberCreateDto2);
+        Member user3 = memberService.userJoin(memberCreateDto3);
+
+        Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
+
+        Reply reply = replyService.addReply(user2.getId(), bbsSample.getId(), "user2 reply content");
+
+//        replyLikeService.like(user3.getId(), reply.getId());
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
+        TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/bbs/reply/unlike/" + reply.getId())
+                                .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new NoExistLikeException().getMessage()));
 
     }
 
