@@ -58,7 +58,6 @@ public class ReplyApiController {
             @CurrentUser Member member
     ) {
 
-        System.out.println("여기 걸리나?");
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
         }

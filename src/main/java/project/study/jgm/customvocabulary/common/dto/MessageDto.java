@@ -73,4 +73,10 @@ public class MessageDto {
 
     public static final String UNLIKE_REPLY_SUCCESSFULLY = "댓글에 등록된 좋아요가 성공적으로 해제되었습니다.";
 
+    /**
+     * Category
+     */
+
+    public static final String ADD_PERSONAL_CATEGORY_SUCCESSFULLY = "개인용 카테고리가 정상적으로 추가되었습니다.";
+
 }

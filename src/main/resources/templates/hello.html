@@ -8,9 +8,31 @@
 <h1 th:text="${hello}">null Hello!</h1>
 <div class="helloDto">
 
+    <input type="button" value="hello button" id="hello-button" onclick="helloData()"/>
+
 </div>
 <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
 <script>
+    function helloData() {
+        var helloDto = {
+            message: "hi hellofdsafdsafdas"
+        }
+        $.ajax({
+            method: "POST",
+            url: "http://localhost:8080/api/hello",
+            contentType: "application/json",
+            // dataType: "json",
+            data: JSON.stringify(helloDto),
+            success: function (data) {
+                alert("message: " + data);
+            }
+        })
+            .done(function (message) {
+                alert("message : " + message);
+            })
+        ;
+    }
+
     $.ajax({
         method: "GET",
         url: "http://localhost:8080/api/hello",

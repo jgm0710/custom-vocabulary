@@ -13,6 +13,6 @@ import project.study.jgm.customvocabulary.vocabulary.category.Category;
 @NoArgsConstructor
 public class SharedCategoryCreateDto {
     private String name;
-    private Category parent;
+    private Long parentId;
     private int orders;
 }

@@ -12,6 +12,6 @@ import project.study.jgm.customvocabulary.vocabulary.category.Category;
 @NoArgsConstructor
 public class CategoryUpdateDto {
     private String name;
-    private Category parent;
+    private Long parentId;
     private int orders;
 }

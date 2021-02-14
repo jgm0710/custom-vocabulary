@@ -46,6 +46,7 @@ public class MemberApiController {
      */
     @PostMapping
     public ResponseEntity join(@RequestBody @Valid MemberCreateDto memberCreateDto, Errors errors) {
+        System.out.println("여기 걸리나요??");
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
         }

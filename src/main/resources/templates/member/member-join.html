@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+</head>
+<body>
+<p>ID : <input type="text" placeholder="ID" id="joinId"/></p>
+<p>Password : <input type="password" placeholder="Password" id="password"/></p>
+<p>Email : <input type="email" placeholder="Email" id="email"/></p>
+<p>이름 : <input type="text" placeholder="이름" id="name"></p>
+<p>닉네임 : <input type="text" placeholder="Nickname" id="nickname"></p>
+<p>생년월일 : <input type="text" placeholder="xxxx-xx-xx" id="dateOfBirth"></p>
+<p>성별 :
+    <select name="gender" id="gender">
+        <option value="">성별 선택</option>
+        <option value="MALE">남성</option>
+        <option value="FEMALE">여성</option>
+    </select>
+</p>
+<p>
+    거주 지역 : <input type="text" placeholder="거주 지역" id="simpleAddress">
+</p>
+
+<input type="button" value="회원가입" onclick="join()"/>
+
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+        crossorigin="anonymous"></script>
+<script>
+    function join() {
+        var joinId = $('#joinId').val();
+        var password = $('#password').val();
+        var email = $('#email').val();
+        var name = $('#name').val();
+        var nickname = $('#nickname').val();
+        var dateOfBirth = $('#dateOfBirth').val();
+        var gender = $('#gender').val();
+        var simpleAddress = $('#simpleAddress').val();
+
+        var memberCreateDto = {
+            joinId: joinId,
+            password: password,
+            email: email,
+            name: name,
+            nickname: nickname,
+            dateOfBirth: dateOfBirth,
+            gender: gender,
+            simpleAddress: simpleAddress
+        };
+
+        $.ajax({
+            url: "http://localhost:8080/api/members",
+            contentType: "application/json",
+            data: JSON.stringify(memberCreateDto),
+            method: "POST",
+            success: function (dto) {
+                alert("회원가입에 성공했습니다!! " + dto.joinId);
+                window.location.replace("http://localhost:8080/members/login");
+            },
+            error: function (dto) {
+                alert("message : "+dto)
+            }
+        });
+    }
+</script>
+</body>
+</html>

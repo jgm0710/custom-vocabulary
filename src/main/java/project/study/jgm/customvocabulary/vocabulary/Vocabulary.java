@@ -196,7 +196,7 @@ public class Vocabulary {
         return "Vocabulary{" +
                 "id=" + id +
 //                ", member=" + member +
-//                ", category=" + category +
+                ", category=" + category +
                 ", thumbnailImgUrl='" + thumbnailImgUrl + '\'' +
                 ", title='" + title + '\'' +
 //                ", wordList=" + wordList +
@@ -209,5 +209,9 @@ public class Vocabulary {
                 ", division=" + division +
                 ", registerDate=" + registerDate +
                 '}';
+    }
+
+    public void deleteCategory() {
+        this.category = null;
     }
 }

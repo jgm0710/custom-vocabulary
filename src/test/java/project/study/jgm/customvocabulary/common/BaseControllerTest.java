@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import project.study.jgm.customvocabulary.bbs.BbsRepository;
@@ -25,6 +26,9 @@ import project.study.jgm.customvocabulary.members.*;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.JwtTokenProvider;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
+import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
+import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
+import project.study.jgm.customvocabulary.vocabulary.category.*;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
@@ -87,6 +91,19 @@ public abstract class BaseControllerTest {
     @Autowired
     protected ReplyRepository replyRepository;
 
+    @Autowired
+    protected CategoryService categoryService;
+
+    @Autowired
+    protected CategoryRepository categoryRepository;
+
+    @Autowired
+    protected VocabularyService vocabularyService;
+
+    @Autowired
+    protected VocabularyRepository vocabularyRepository;
+
+
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
@@ -94,6 +111,14 @@ public abstract class BaseControllerTest {
                 .apply(springSecurity())    //springSecurityFilter 를 타기 위해서 허용해줘야함. -> 없으면 filter를 타지 않음
                 .alwaysDo(print())
                 .build();
+
+        vocabularyRepository.deleteAll();
+        categoryRepository.deleteAll();
+        bbsLikeRepository.deleteAll();
+        replyLikeRepository.deleteAll();
+        replyRepository.deleteAll();
+        bbsRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 
     protected final String X_AUTH_TOKEN = "X-AUTH-TOKEN";
@@ -143,6 +168,52 @@ public abstract class BaseControllerTest {
 
             memberRepository.save(member);
         }
+    }
+
+    protected List<Category> createCategoryList(Member member,CategoryDivision division) {
+        Category sub1 = createCategory(member, division, "sub1", null, 2, CategoryStatus.REGISTER);
+        Category sub2 = createCategory(member, division, "sub2", null, 3, CategoryStatus.REGISTER);
+        Category sub3 = createCategory(member, division, "sub3", null, 1, CategoryStatus.REGISTER);
+        Category sub11 = createCategory(member, division, "sub1-1", sub1, 3, CategoryStatus.REGISTER);
+        Category sub12 = createCategory(member, division, "sub1-2", sub1, 2, CategoryStatus.REGISTER);
+        Category sub13 = createCategory(member, division, "sub1-3", sub1, 1, CategoryStatus.REGISTER);
+        Category sub21 = createCategory(member, division, "sub2-1", sub2, 2, CategoryStatus.REGISTER);
+        Category sub22 = createCategory(member, division, "sub2-2", sub2, 1, CategoryStatus.REGISTER);
+        Category sub23 = createCategory(member, division, "sub2-2", sub2, 3, CategoryStatus.REGISTER);
+        Category sub31 = createCategory(member, division, "sub3-1", sub3, 1, CategoryStatus.REGISTER);
+        Category sub32 = createCategory(member, division, "sub3-2", sub3, 3, CategoryStatus.REGISTER);
+        Category sub33 = createCategory(member, division, "sub3-3", sub3, 2, CategoryStatus.REGISTER);
+
+        categoryRepository.save(sub1);
+        categoryRepository.save(sub2);
+        categoryRepository.save(sub3);
+        categoryRepository.save(sub11);
+        categoryRepository.save(sub12);
+        categoryRepository.save(sub13);
+        categoryRepository.save(sub21);
+        categoryRepository.save(sub22);
+        categoryRepository.save(sub23);
+        categoryRepository.save(sub31);
+        categoryRepository.save(sub32);
+        categoryRepository.save(sub33);
+
+        return List.of(sub1, sub2, sub11, sub12, sub21, sub22);
+    }
+
+    protected Category createCategory(Member userMember, CategoryDivision division, String name, Category parent, int orders, CategoryStatus status) {
+        Category category = Category.builder()
+                .name(name)
+                .member(userMember)
+                .parent(parent)
+                .vocabularyCount(0)
+                .division(division)
+                .orders(orders)
+                .status(status)
+                .build();
+
+        categoryRepository.save(category);
+
+        return category;
     }
 
 

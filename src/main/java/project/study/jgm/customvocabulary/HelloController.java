@@ -3,10 +3,7 @@ package project.study.jgm.customvocabulary;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class HelloController {
@@ -22,4 +19,15 @@ public class HelloController {
     public ResponseEntity helloApi(HelloDto helloDto) {
         return ResponseEntity.ok(helloDto);
     }
+
+    @PostMapping("/api/hello")
+    @ResponseBody
+    public ResponseEntity postHello(
+            @RequestBody OnlyMessageDto onlyMessageDto
+    ) {
+
+        System.out.println(onlyMessageDto.getMessage());
+        return ResponseEntity.ok(onlyMessageDto.getMessage());
+    }
+
 }

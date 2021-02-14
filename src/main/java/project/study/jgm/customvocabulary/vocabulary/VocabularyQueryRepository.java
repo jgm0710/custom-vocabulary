@@ -41,6 +41,17 @@ public class VocabularyQueryRepository {
                 .fetchResults();
     }
 
+    public long getCountOfPersonalVocabularyWhereCategoryIsNull(Long memberId) {
+        return queryFactory
+                .selectFrom(vocabulary)
+                .where(
+                        vocabulary.member.id.eq(memberId),
+                        vocabulary.category.isNull(),
+                        vocabulary.division.eq(VocabularyDivision.PERSONAL)
+                )
+                .fetchCount();
+    }
+
     private BooleanExpression categoryIdEq(Long categoryId) {
         return categoryId != null ? vocabulary.category.id.eq(categoryId) : null;
     }

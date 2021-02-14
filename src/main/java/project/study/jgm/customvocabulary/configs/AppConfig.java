@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import project.study.jgm.customvocabulary.members.Gender;
 import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.category.Category;
+import project.study.jgm.customvocabulary.vocabulary.category.CategoryRepository;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
@@ -70,6 +72,7 @@ public class AppConfig {
                         .build();
 
                 memberService.adminJoin(admin);
+
             }
         };
     }

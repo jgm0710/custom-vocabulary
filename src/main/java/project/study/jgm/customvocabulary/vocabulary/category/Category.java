@@ -51,13 +51,23 @@ public class Category {
     @Enumerated(EnumType.STRING)
     private CategoryStatus status;  //삭제 시 category 를 삭제하지 않고 상태만 바꾸기 위해 사용//  [REGISTER, DELETE]
 
+//.name
+//.member
+//.parent
+//.vocabularyCount
+//.division
+//.orders
+//.status
+
+
     @Override
     public String toString() {
         return "Category{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", member=" + member +
-                ", parent=" + parent +
+//                ", member=" + member +
+//                ", parent=" + parent +
+                ", children=" + children +
                 ", vocabularyCount=" + vocabularyCount +
                 ", division=" + division +
                 ", orders=" + orders +
@@ -65,37 +75,33 @@ public class Category {
                 '}';
     }
 
-    public static Category createPersonalCategory(Member member, PersonalCategoryCreateDto createDto) {
+    public static Category createPersonalCategory(Member member, String name, Category parent, int orders) {
         return Category.builder()
-                .name(createDto.getName())
+                .name(name)
                 .member(member)
-                .parent(createDto.getParent())
+                .parent(parent)
                 .division(CategoryDivision.PERSONAL)
-                .orders(createDto.getOrders())
+                .orders(orders)
                 .status(CategoryStatus.REGISTER)
                 .vocabularyCount(0)
                 .build();
     }
 
-    public static Category createSharedCategory(SharedCategoryCreateDto createDto) {
+    public static Category createSharedCategory(String name, Category parent, int orders) {
         return Category.builder()
-                .name(createDto.getName())
-                .parent(createDto.getParent())
+                .name(name)
+                .parent(parent)
                 .division(CategoryDivision.SHARED)
-                .orders(createDto.getOrders())
+                .orders(orders)
                 .status(CategoryStatus.REGISTER)
                 .vocabularyCount(0)
                 .build();
     }
 
-    public void updateCategory(CategoryUpdateDto updateDto) {
-        this.name = updateDto.getName();
-        this.parent = updateDto.getParent();
-        this.orders = updateDto.getOrders();
-    }
-
-    public void changeStatusToDelete() {
-        this.status = CategoryStatus.DELETE;
+    public void updateCategory(String name, Category parent, int orders) {
+        this.name = name;
+        this.parent = parent;
+        this.orders = orders;
     }
 
     public void addVocabulary() {
