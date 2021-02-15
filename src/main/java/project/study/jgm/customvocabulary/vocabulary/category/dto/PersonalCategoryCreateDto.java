@@ -18,7 +18,9 @@ public class PersonalCategoryCreateDto {
 
     @NotBlank(message = "생성할 카테고리 이름을 입력해주세요.")
     private String name;
+
     private Long parentId;
+
     @NotNull(message = "카테고리를 생성할 순서를 지정해주세요.")
     private Integer orders;
 

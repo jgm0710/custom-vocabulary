@@ -17,15 +17,16 @@ import project.study.jgm.customvocabulary.security.dto.TokenDto;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryStatus;
+import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.PersonalCategoryCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryExistsInTheCorrespondingOrdersException;
+import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.ParentNotFoundException;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -62,6 +63,17 @@ class CategoryApiControllerTest extends BaseControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(redirectedUrl("http://localhost/api/vocabulary/category/" + user1.getId()))
                 .andExpect(jsonPath("message").value(MessageDto.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("카테고리 생성 시 입력값이 없는 경우")
+    public void addPersonalCategory_Empty() throws Exception {
+        //given
+
+        //when
+
+        //then
 
     }
 
@@ -240,6 +252,77 @@ class CategoryApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("USER가 다른 회원의 카테고리 목록을 조회")
+    @Transactional
+    public void getCategoryListByMember_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+        createCategoryList(user1, CategoryDivision.PERSONAL);
+
+        em.flush();
+        em.clear();
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/vocabulary/category/" + user1.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.GET_PERSONAL_CATEGORY_LIST_OF_DIFFERENT_MEMBER));
+
+    }
+
+    @Test
+    @DisplayName("관리자가 다른 회원의 카테고리 목록을 조회")
+    @Transactional
+    public void getCategoryListByMember_By_Admin() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+        createCategoryList(user1, CategoryDivision.PERSONAL);
+
+        em.flush();
+        em.clear();
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/vocabulary/category/" + user1.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].name").exists())
+                .andExpect(jsonPath("$[0].parentId").isEmpty())
+                .andExpect(jsonPath("$[0].subCategoryList").exists())
+                .andExpect(jsonPath("$[0].vocabularyCount").exists())
+                .andExpect(jsonPath("$[0].orders").exists())
+        ;
+
+    }
+
+    @Test
     @DisplayName("인증되지 않은 사용자가 개인용 카테고리 목록 조회")
     @Transactional
     public void getCategoryListByMember_UnAuthentication() throws Exception {
@@ -265,6 +348,344 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("개인용 카테고리 수정")
+    @Transactional
+    public void modifyPersonalCategory() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 2, CategoryStatus.REGISTER);
+
+
+        String category_name = "update category";
+        int orders = 10;
+        Long parentId = parent.getId();
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto(category_name, parentId, orders);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_SUCCESSFULLY));
+
+        em.flush();
+        em.clear();
+
+        Category findCategory = categoryService.getCategory(sampleCategory.getId());
+        assertEquals(findCategory.getName(), category_name);
+        assertEquals(findCategory.getParent().getId(), parentId);
+        assertEquals(findCategory.getOrders(), orders);
+
+
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 시 입력값이 없는 경우")
+    public void modifyCategory_Empty() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("다른 회원의 카테고리를 수정하는 경우")
+    public void modifyCategory_DifferentMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_OF_DIFFERENT_MEMBER));
+
+    }
+
+    @Test
+    @DisplayName("관리자가 다른 회원의 카테고리를 수정하는 경우")
+    public void modifyCategory_DifferentMember_By_Admin() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_OF_DIFFERENT_MEMBER));
+
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 시 수정할 카테고리를 찾을 수 없는 경우")
+    public void modifyCategory_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + 10000L)
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new CategoryNotFoundException().getMessage()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 시 이동할 부모 카테고리를 찾을 수 없는 경우")
+    public void modifyCategory_ParentNotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", 10000L, 1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new ParentNotFoundException(10000L).getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 시 이동할 순서에 이미 카테고리가 존재하는 경우")
+    public void modifyCategory_ExistOrders() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory2 = createCategory(user1, CategoryDivision.PERSONAL, "user1 category2", null, 2, CategoryStatus.REGISTER);
+
+        int orders = 2;
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, orders);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new CategoryExistsInTheCorrespondingOrdersException(orders).getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 카테고리를 수정하는 경우")
+    public void modifyCategory_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+//                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("관리자가 공유 카테고리를 수정")
+    public void modifySharedCategory() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(admin, CategoryDivision.SHARED, "shared category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 2);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("일반 회원이 공유 카테고리를 수정하는 경우")
+    public void modifySharedCategory_By_User() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        Category sampleCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1, CategoryStatus.REGISTER);
+
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 2);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + sampleCategory.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(categoryUpdateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageDto.MODIFY_SHARED_CATEGORY_BY_USER));
 
     }
 

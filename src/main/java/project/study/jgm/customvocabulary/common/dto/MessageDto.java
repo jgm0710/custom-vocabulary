@@ -79,4 +79,12 @@ public class MessageDto {
 
     public static final String ADD_PERSONAL_CATEGORY_SUCCESSFULLY = "개인용 카테고리가 정상적으로 추가되었습니다.";
 
+    public static final String GET_PERSONAL_CATEGORY_LIST_OF_DIFFERENT_MEMBER = "다른 회원의 카테고리 목록은 조회할 수 없습니다.";
+
+    public static final String MODIFY_CATEGORY_SUCCESSFULLY = "카테고리 수정이 성공적으로 완료되었습니다.";
+
+    public static final String MODIFY_CATEGORY_OF_DIFFERENT_MEMBER = "다른 회원의 카테고리는 수정할 수 없습니다.";
+
+    public static final String MODIFY_SHARED_CATEGORY_BY_USER = "일반 회원은 공유 카테고리의 수정이 불가능합니다.";
+
 }
