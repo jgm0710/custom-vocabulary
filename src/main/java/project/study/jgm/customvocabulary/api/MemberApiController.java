@@ -1,19 +1,15 @@
 package project.study.jgm.customvocabulary.api;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import project.study.jgm.customvocabulary.common.EntityModelCreator;
-import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
 import project.study.jgm.customvocabulary.common.dto.PaginationDto;
+import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.MemberService;
@@ -26,10 +22,12 @@ import project.study.jgm.customvocabulary.security.CurrentUser;
 import project.study.jgm.customvocabulary.security.exception.PasswordMismatchException;
 
 import javax.validation.Valid;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import static project.study.jgm.customvocabulary.common.LinkToCreator.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static project.study.jgm.customvocabulary.common.dto.MessageVo.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,55 +44,45 @@ public class MemberApiController {
      */
     @PostMapping
     public ResponseEntity join(@RequestBody @Valid MemberCreateDto memberCreateDto, Errors errors) {
-        System.out.println("여기 걸리나요??");
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
         }
 
         Member member = memberService.userJoin(memberCreateDto);
         MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(member);
-        var memberDetailEntityModel = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class);
-        Link loginLink = linkToLogin();
-        memberDetailEntityModel.add(loginLink);
 
-        return ResponseEntity.created(loginLink.toUri()).body(memberDetailEntityModel);
+        URI loginUri = linkTo(LoginApiController.class).slash("login").withRel("login").toUri();
+
+        return ResponseEntity.created(loginUri)
+                .body(new ResponseDto<>(memberDetailDto, MEMBER_JOIN_SUCCESSFULLY));
     }
 
     @GetMapping("/{memberId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity getMember(@PathVariable("memberId") Long memberId, @CurrentUser Member member) {
 
-        member.getRoles().forEach(memberRole -> System.out.println("memberRole.getRoleName() = " + memberRole.getRoleName()));
-
         try {
             Member findMember = memberService.getMember(memberId);
             if (member.getRoles().contains(MemberRole.ADMIN)) {
                 MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
 
-                EntityModel<MemberAdminViewDto> memberAdminViewResponse = EntityModelCreator.createMemberAdminViewResponse(memberAdminViewDto, MemberApiController.class, memberId);
-                memberAdminViewResponse.add(linkToIndex());
-
-                return ResponseEntity.ok(memberAdminViewResponse);
+                return ResponseEntity
+                        .ok(new ResponseDto<>(memberAdminViewDto, GET_MEMBER_BY_ADMIN_SUCCESSFULLY));
             } else {
-                if (!findMember.equals(member)) {
-                    var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.GET_DIFFERENT_MEMBER_INFO), MemberApiController.class, memberId);
-                    messageResponse.add(linkToIndex());
-
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
+                if (!findMember.getId().equals(member.getId())) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(new ResponseDto<>(GET_DIFFERENT_MEMBER_INFO));
                 }
+
                 MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
 
-                var memberDetailResponse = EntityModelCreator.createMemberDetailResponse(memberDetailDto, MemberApiController.class, memberId);
-                memberDetailResponse.add(linkToIndex());
-
-                return ResponseEntity.ok(memberDetailResponse);
+                return ResponseEntity
+                        .ok(new ResponseDto<>(memberDetailDto, GET_MEMBER_SUCCESSFULLY));
             }
 
         } catch (MemberNotFoundException e) {
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
         }
     }
 
@@ -112,31 +100,33 @@ public class MemberApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
+        if (!memberId.equals(member.getId())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ResponseDto<>(MODIFY_DIFFERENT_MEMBER_INFO));
+        }
+
         try {
             memberService.modifyMember(memberId, password, memberUpdateDto);
-
-            if (!memberId.equals(member.getId())) {
-                var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO), MemberApiController.class, memberId);
-                messageResponse.add(linkToIndex());
-
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
-            }
-
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFIED_MEMBER_INFO_SUCCESSFULLY), MemberApiController.class, memberId);
-            messageResponse.add(linkToIndex());
-            messageResponse.add(linkToGetMember(memberId));
-
-            return ResponseEntity.ok(messageResponse);
         } catch (MemberNotFoundException e) {
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
         } catch (PasswordMismatchException e) {
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, memberId);
-            messageResponse.add(linkToIndex());
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDto<>(e.getMessage()));
+        }
 
-            return ResponseEntity.badRequest().body(messageResponse);
+        Member findMember = memberService.getMember(memberId);
+
+        if (member.getRoles().contains(MemberRole.ADMIN)) {
+            MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
+
+            return ResponseEntity
+                    .ok(new ResponseDto<>(memberAdminViewDto, MODIFIED_MEMBER_INFO_SUCCESSFULLY));
+        } else {
+            MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
+
+            return ResponseEntity
+                    .ok(new ResponseDto<>(memberDetailDto, MODIFIED_MEMBER_INFO_SUCCESSFULLY));
         }
     }
 
@@ -152,32 +142,23 @@ public class MemberApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
+        if (!memberId.equals(member.getId())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ResponseDto<>(MODIFY_DIFFERENT_MEMBER_INFO));
+        }
+
         try {
             memberService.updatePassword(memberId, passwordUpdateDto.getOldPassword(), passwordUpdateDto.getNewPassword());
-
-            if (!memberId.equals(member.getId())) {
-                var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO), MemberApiController.class, "password", memberId);
-                messageResponse.add(linkToIndex());
-
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
-            }
-
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.CHANGED_PASSWORD), MemberApiController.class, "password", memberId);
-            messageResponse.add(linkToLogin());
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.ok(messageResponse);
         } catch (MemberNotFoundException e) {
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "password", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
         } catch (PasswordMismatchException e) {
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "password", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.badRequest().body(messageResponse);
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDto<>(e.getMessage()));
         }
+
+        return ResponseEntity
+                .ok(new ResponseDto<>(CHANGED_PASSWORD_SUCCESSFULLY));
     }
 
     @PutMapping("/secession/{memberId}")
@@ -185,24 +166,20 @@ public class MemberApiController {
     public ResponseEntity secession(@PathVariable("memberId") Long memberId,
                                     @CurrentUser Member member) {
 
+        if (!memberId.equals(member.getId())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ResponseDto<>(MODIFY_DIFFERENT_MEMBER_INFO));
+        }
+
         try {
             memberService.secession(memberId);
-            if (!memberId.equals(member.getId())) {
-                var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.MODIFY_DIFFERENT_MEMBER_INFO), MemberApiController.class, "secession", memberId);
-                messageResponse.add(linkToIndex());
 
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageResponse);
-            }
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.SECESSION_SUCCESSFULLY), MemberApiController.class, "secession", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.ok(messageResponse);
         } catch (MemberNotFoundException e) {
-            var messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "secession", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
         }
+
+        return ResponseEntity.ok(new ResponseDto<>(SECESSION_SUCCESSFULLY));
     }
 
     /**
@@ -212,8 +189,7 @@ public class MemberApiController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity getMemberList(
             @ModelAttribute @Valid MemberSearchDto memberSearchDto,
-            BindingResult bindingResult,
-            @CurrentUser Member member
+            BindingResult bindingResult
     ) {
 
         if (bindingResult.hasErrors()) {
@@ -229,11 +205,7 @@ public class MemberApiController {
         PaginationDto paginationDto = getPaginationDto(memberSearchDto);
         ListResponseDto<Object> listResponseDto = getListResponseDto(memberAdminViewDtoList, paginationDto);
 
-        EntityModel<ListResponseDto> listResponse = EntityModelCreator.createListResponse(listResponseDto);
-        listResponse.add(linkToGetMemberList(memberSearchDto));     //selfLink 추가
-        addLinkInfoOfPrevAndNextLinkToListResponse(memberSearchDto, paginationDto, listResponse);
-
-        return ResponseEntity.ok(listResponse);
+        return ResponseEntity.ok(new ResponseDto<>(listResponseDto, GET_MEMBER_LIST_BY_ADMIN_SUCCESSFULLY));
     }
 
     @PutMapping("/ban/{memberId}")
@@ -243,17 +215,14 @@ public class MemberApiController {
         try {
             memberService.ban(memberId);
         } catch (MemberNotFoundException e) {
-            EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "ban", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
         }
 
-        EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(MessageDto.BAN_SUCCESSFULLY), MemberApiController.class, "ban", memberId);
-        messageResponse.add(linkToGetMember(memberId));
-        messageResponse.add(linkToIndex());
+        Member findMember = memberService.getMember(memberId);
+        MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
 
-        return ResponseEntity.ok(messageResponse);
+        return ResponseEntity.ok(new ResponseDto<>(memberAdminViewDto, BAN_SUCCESSFULLY));
     }
 
     @PutMapping("/changeToUser/{memberId}")
@@ -265,53 +234,43 @@ public class MemberApiController {
         try {
             memberService.changeMemberRoleToUser(memberId);
         } catch (MemberNotFoundException e) {
-            EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "changeToUser", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageResponse);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
         } catch (MemberAlreadyHasAuthorityException e) {
-            EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(new MessageDto(e.getMessage()), MemberApiController.class, "changeToUser", memberId);
-            messageResponse.add(linkToIndex());
-
-            return ResponseEntity.badRequest().body(messageResponse);
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
-        EntityModel<MessageDto> messageResponse = EntityModelCreator.createMessageResponse(
-                new MessageDto(MessageDto.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY),
-                MemberApiController.class,
-                "changeToUser", memberId
-        );
-        messageResponse.add(linkToGetMember(memberId));
-        messageResponse.add(linkToIndex());
+        Member findMember = memberService.getMember(memberId);
+        MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
 
-        return ResponseEntity.ok(messageResponse);
+        return ResponseEntity.ok(new ResponseDto<>(memberAdminViewDto, CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY));
     }
 
     /**
      * PRIVATE
      */
 
-    private void addLinkInfoOfPrevAndNextLinkToListResponse(MemberSearchDto memberSearchDto, PaginationDto paginationDto, EntityModel<ListResponseDto> listResponse) {
-        MemberSearchDto tempSearchDto = MemberSearchDto.builder()
-                .searchType(memberSearchDto.getSearchType())
-                .keyword(memberSearchDto.getKeyword())
-                .criteriaDto(new CriteriaDto(memberSearchDto.getCriteriaDto().getPageNum(), memberSearchDto.getCriteriaDto().getLimit()))
-                .sortType(memberSearchDto.getSortType())
-                .build();
-
-        if (paginationDto.isPrev()) {
-            tempSearchDto.updatePage(paginationDto.getLastPageOfPrevList());
-            listResponse.add(linkToGetMemberList(tempSearchDto, "prev-list"));
-        }
-        if (paginationDto.isNext()) {
-            tempSearchDto.updatePage(paginationDto.getFirstPageOfNextList());
-            listResponse.add(linkToGetMemberList(tempSearchDto, "next-list"));
-        }
-    }
+//    private void addLinkInfoOfPrevAndNextLinkToListResponse(MemberSearchDto memberSearchDto, PaginationDto paginationDto, EntityModel<ListResponseDto> listResponse) {
+//        MemberSearchDto tempSearchDto = MemberSearchDto.builder()
+//                .searchType(memberSearchDto.getSearchType())
+//                .keyword(memberSearchDto.getKeyword())
+//                .criteriaDto(new CriteriaDto(memberSearchDto.getCriteriaDto().getPageNum(), memberSearchDto.getCriteriaDto().getLimit()))
+//                .sortType(memberSearchDto.getSortType())
+//                .build();
+//
+//        if (paginationDto.isPrev()) {
+//            tempSearchDto.updatePage(paginationDto.getLastPageOfPrevList());
+//            listResponse.add(linkToGetMemberList(tempSearchDto, "prev-list"));
+//        }
+//        if (paginationDto.isNext()) {
+//            tempSearchDto.updatePage(paginationDto.getFirstPageOfNextList());
+//            listResponse.add(linkToGetMemberList(tempSearchDto, "next-list"));
+//        }
+//    }
 
     private ListResponseDto<Object> getListResponseDto(List<MemberAdminViewDto> memberAdminViewDtoList, PaginationDto paginationDto) {
         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
-                .data(memberAdminViewDtoList)
+                .list(memberAdminViewDtoList)
                 .paging(paginationDto)
                 .build();
         return listResponseDto;

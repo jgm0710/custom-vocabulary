@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.EntityModel;
 import project.study.jgm.customvocabulary.bbs.reply.Reply;
 import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeService;
@@ -36,6 +37,15 @@ public class ReplyParentResponseDto {
     private boolean viewLike;
 
     private boolean allowModificationAndDeletion;
+
+    public static ReplyParentResponseDto replyToParentResponseDto(Reply reply, ModelMapper modelMapper) {
+        ReplyParentResponseDto replyParentResponseDto = modelMapper.map(reply, ReplyParentResponseDto.class);
+        replyParentResponseDto.setWriter(reply.getMember().getNickname());
+        replyParentResponseDto.setViewLike(false);
+        replyParentResponseDto.setAllowModificationAndDeletion(true);
+
+        return replyParentResponseDto;
+    }
 
     public static List<ReplyParentResponseDto> replyListToParentListResponse(List<Reply> replyList, Member member, ReplyLikeService replyLikeService) {
         List<ReplyParentResponseDto> replyParentResponseDtoList = new ArrayList<>();

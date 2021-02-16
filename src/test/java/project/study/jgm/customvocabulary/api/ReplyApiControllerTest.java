@@ -4,13 +4,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.bbs.Bbs;
 import project.study.jgm.customvocabulary.bbs.BbsStatus;
 import project.study.jgm.customvocabulary.bbs.exception.BbsNotFoundException;
-import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
 import project.study.jgm.customvocabulary.bbs.reply.Reply;
 import project.study.jgm.customvocabulary.bbs.reply.ReplySortType;
 import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyCreateDto;
@@ -19,7 +17,8 @@ import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundExcep
 import project.study.jgm.customvocabulary.bbs.reply.like.exception.AddLikeToChildReplyException;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.dto.MessageVo;
+import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
@@ -83,7 +82,15 @@ class ReplyApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("message").value(MessageDto.REPLY_REGISTER_SUCCESSFULLY))
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.childrenCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.viewLike").value(false))
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.REPLY_REGISTER_SUCCESSFULLY))
         ;
 
         List<Reply> findReplyList = replyRepository.findAll();
@@ -281,7 +288,12 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("message").value(MessageDto.REPLY_REGISTER_SUCCESSFULLY))
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.REPLY_REGISTER_SUCCESSFULLY))
                 .andExpect(redirectedUrl("http://localhost/api/bbs/reply"))
         ;
 
@@ -415,14 +427,15 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].writer").exists())
-                .andExpect(jsonPath("$[0].content").exists())
-                .andExpect(jsonPath("$[0].likeCount").exists())
-                .andExpect(jsonPath("$[0].registerDate").exists())
-                .andExpect(jsonPath("$[0].like").exists())
-                .andExpect(jsonPath("$[0].viewLike").exists())
-                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].id").exists())
+                .andExpect(jsonPath("data[0].writer").exists())
+                .andExpect(jsonPath("data[0].content").exists())
+                .andExpect(jsonPath("data[0].likeCount").exists())
+                .andExpect(jsonPath("data[0].registerDate").exists())
+                .andExpect(jsonPath("data[0].like").exists())
+                .andExpect(jsonPath("data[0].viewLike").exists())
+                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_PARENT_REPLY_LIST_SUCCESSFULLY))
         ;
 
     }
@@ -463,14 +476,14 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].writer").exists())
-                .andExpect(jsonPath("$[0].content").exists())
-                .andExpect(jsonPath("$[0].likeCount").exists())
-                .andExpect(jsonPath("$[0].registerDate").exists())
-                .andExpect(jsonPath("$[0].like").exists())
-                .andExpect(jsonPath("$[0].viewLike").exists())
-                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].id").exists())
+                .andExpect(jsonPath("data[0].writer").exists())
+                .andExpect(jsonPath("data[0].content").exists())
+                .andExpect(jsonPath("data[0].likeCount").exists())
+                .andExpect(jsonPath("data[0].registerDate").exists())
+                .andExpect(jsonPath("data[0].like").exists())
+                .andExpect(jsonPath("data[0].viewLike").exists())
+                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
         ;
 
     }
@@ -594,11 +607,12 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].writer").exists())
-                .andExpect(jsonPath("$[0].content").exists())
-                .andExpect(jsonPath("$[0].registerDate").exists())
-                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].id").exists())
+                .andExpect(jsonPath("data[0].writer").exists())
+                .andExpect(jsonPath("data[0].content").exists())
+                .andExpect(jsonPath("data[0].registerDate").exists())
+                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_CHILD_REPLY_LIST_SUCCESSFULLY))
         ;
 
     }
@@ -639,11 +653,12 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].writer").exists())
-                .andExpect(jsonPath("$[0].content").exists())
-                .andExpect(jsonPath("$[0].registerDate").exists())
-                .andExpect(jsonPath("$[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].id").exists())
+                .andExpect(jsonPath("data[0].writer").exists())
+                .andExpect(jsonPath("data[0].content").exists())
+                .andExpect(jsonPath("data[0].registerDate").exists())
+                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_CHILD_REPLY_LIST_SUCCESSFULLY))
         ;
 
     }
@@ -761,7 +776,15 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.like").exists())
+                .andExpect(jsonPath("data.viewLike").value(false))
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_REPLY_SUCCESSFULLY));
 
         Reply findReply = replyService.getReply(reply.getId());
         assertEquals(findReply.getContent(), user2_update_content);
@@ -803,7 +826,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_REPLY_OF_DIFFERENT_MEMBER));
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_REPLY_OF_DIFFERENT_MEMBER));
 
     }
 
@@ -944,7 +967,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.DELETE_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_REPLY_SUCCESSFULLY));
 
     }
 
@@ -1008,7 +1031,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.DELETE_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_REPLY_SUCCESSFULLY));
     }
 
     @Test
@@ -1041,7 +1064,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.DELETE_REPLY_OF_DIFFERENT_MEMBER));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_REPLY_OF_DIFFERENT_MEMBER));
 
     }
 
@@ -1139,7 +1162,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.ADD_LIKE_TO_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_REPLY_SUCCESSFULLY));
 
     }
 
@@ -1349,7 +1372,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.UNLIKE_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_REPLY_SUCCESSFULLY));
 
     }
 

@@ -5,9 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.members.Member;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryUpdateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.PersonalCategoryCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.SharedCategoryCreateDto;
 
 import javax.persistence.*;
 import java.util.ArrayList;

@@ -9,12 +9,8 @@ import project.study.jgm.customvocabulary.members.exception.MemberNotFoundExcept
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryUpdateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.PersonalCategoryCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.SharedCategoryCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryExistsInTheCorrespondingOrdersException;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.ExistSubCategoryException;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.ParentNotFoundException;
+import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.category.exception.*;
 
 import java.util.List;
 
@@ -37,15 +33,38 @@ public class CategoryService {
      * Personal
      */
     @Transactional
-    public Category addPersonalCategory(Long memberId, PersonalCategoryCreateDto createDto) {
+    public Category addPersonalCategory(Long memberId, CategoryCreateDto createDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+
         Category parent = null;
         parent = ifParentIdIsNotNullGetParent(parent, createDto.getParentId());
-        checkCategoryExistsInTheCorrespondingOrders(createDto.getParentId(), createDto.getOrders(), CategoryDivision.PERSONAL);
+
+        checkDivisionBetweenParentAndChild(parent, CategoryDivision.PERSONAL);
+
+        checkMemberOfParent(memberId, parent);
+
+        checkCategoryExistsInTheCorrespondingOrders(memberId, createDto.getParentId(), createDto.getOrders(), CategoryDivision.PERSONAL);
+
         Category category = Category.createPersonalCategory(member, createDto.getName(), parent, createDto.getOrders());
         categoryRepository.save(category);
 
         return category;
+    }
+
+    private void checkDivisionBetweenParentAndChild(Category parent, CategoryDivision childDivision) {
+        if (parent != null) {
+            if (parent.getDivision() != childDivision) {
+                throw new DivisionBetweenParentAndChildIsDifferentException();
+            }
+        }
+    }
+
+    private void checkMemberOfParent(Long memberId, Category parent) {
+        if (parent != null) {
+            if (!parent.getMember().getId().equals(memberId)) {
+                throw new ParentBelongToOtherMembersException();
+            }
+        }
     }
 
     public List<Category> getPersonalCategoryList(Long memberId) {
@@ -59,11 +78,23 @@ public class CategoryService {
     @Transactional
     public void modifyCategory(Long categoryId, CategoryUpdateDto updateDto) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+
         Category parent = null;
         parent = ifParentIdIsNotNullGetParent(parent, updateDto.getParentId());
-        if (category.getOrders() != updateDto.getOrders()) {
-            checkCategoryExistsInTheCorrespondingOrders(updateDto.getParentId(), updateDto.getOrders(), category.getDivision());
+
+        checkDivisionBetweenParentAndChild(parent, category.getDivision());
+        if (category.getDivision() == CategoryDivision.PERSONAL) {
+            checkMemberOfParent(category.getMember().getId(), parent);
         }
+
+        if (category.getOrders() != updateDto.getOrders()) {
+            Long memberId = null;
+            if (parent != null) {
+                memberId = parent.getMember().getId();
+            }
+            checkCategoryExistsInTheCorrespondingOrders(memberId, updateDto.getParentId(), updateDto.getOrders(), category.getDivision());
+        }
+
         category.updateCategory(updateDto.getName(), parent, updateDto.getOrders());
     }
 
@@ -89,10 +120,16 @@ public class CategoryService {
      * shared
      */
     @Transactional
-    public Category addSharedCategory(SharedCategoryCreateDto createDto) {
+    public Category addSharedCategory(CategoryCreateDto createDto) {
         Category parent = null;
         parent = ifParentIdIsNotNullGetParent(parent, createDto.getParentId());
-        checkCategoryExistsInTheCorrespondingOrders(createDto.getParentId(), createDto.getOrders(), CategoryDivision.SHARED);
+
+        checkCategoryExistsInTheCorrespondingOrders(null, createDto.getParentId(), createDto.getOrders(), CategoryDivision.SHARED);
+
+        if (parent != null) {
+            checkDivisionBetweenParentAndChild(parent, CategoryDivision.SHARED);
+        }
+
         Category category = Category.createSharedCategory(createDto.getName(), parent, createDto.getOrders());
         categoryRepository.save(category);
 
@@ -103,8 +140,8 @@ public class CategoryService {
         return categoryQueryRepository.findAllSharedCategory();
     }
 
-    private void checkCategoryExistsInTheCorrespondingOrders(Long parentId, Integer orders, CategoryDivision personal) {
-        Category findCategory = categoryQueryRepository.findByParentIdAndOrders(parentId, orders, personal);
+    private void checkCategoryExistsInTheCorrespondingOrders(Long memberId, Long parentId, Integer orders, CategoryDivision personal) {
+        Category findCategory = categoryQueryRepository.findByParentIdAndOrders(memberId, parentId, orders, personal);
         if (findCategory != null) {
             throw new CategoryExistsInTheCorrespondingOrdersException(orders);
         }

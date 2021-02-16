@@ -2,18 +2,25 @@ package project.study.jgm.customvocabulary.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class MessageDto {
+@Getter
+public class MessageVo {
 
-    private String message;
+    /**
+     * Login
+     */
+
+    public static final String LOGIN_SUCCESSFULLY = "로그인이 정상적으로 완료되었습니다.";
+
+    public static final String REFRESH_SUCCESSFULLY = "refresh_token 을 통한 로그인이 정상적으로 완료되었습니다.";
 
     /**
      * Member
      */
+
+    public static final String MEMBER_JOIN_SUCCESSFULLY = "회원가입이 정상적으로 완료되었습니다.";
 
     public static final String CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY = "회원의 권한이 정상적으로 복구 되었습니다.";
 
@@ -29,9 +36,15 @@ public class MessageDto {
 
     public static final String MODIFIED_MEMBER_INFO_SUCCESSFULLY = "회원 정보가 정상적으로 수정되었습니다.";
 
-    public static final String CHANGED_PASSWORD = "비밀번호가 변경되었습니다.";
+    public static final String CHANGED_PASSWORD_SUCCESSFULLY = "비밀번호가 정상적으로 변경되었습니다.";
 
     public static final String LOGOUT_SUCCESSFULLY = "logout 이 정상적으로 완료되었습니다.";
+
+    public static final String GET_MEMBER_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 조회하는 회원 정보가 정상적으로 조회되었습니다.";
+
+    public static final String GET_MEMBER_SUCCESSFULLY = "회원 정보가 정상적으로 조회되었습니다.";
+
+    public static final String GET_MEMBER_LIST_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 회원 목록이 정상적으로 조회되었습니다.";
 
 
     /**
@@ -54,6 +67,16 @@ public class MessageDto {
 
     public static final String UNLIKE_BBS_SUCCESSFULLY = "게시글에 등록된 좋아요가 성공적으로 해제되었습니다.";
 
+    public static final String GET_BBS_LIST_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 게시글 목록을 정상적으로 조회하였습니다.";
+
+    public static final String GET_BBS_LIST_SUCCESSFULLY = "게시글 목록 조회가 성공적으로 완료되었습니다.";
+
+    public static final String GET_BBS_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 게시글 조회가 정상적으로 완료되었습니다";
+
+    public static final String GET_BBS_SUCCESSFULLY = "게시글 조회가 정상적으로 완료되었습니다.";
+
+    public static final String MODIFY_BBS_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 게시글이 정상적으로 수정되었습니다.";
+
 
     /**
      * Reply
@@ -73,6 +96,10 @@ public class MessageDto {
 
     public static final String UNLIKE_REPLY_SUCCESSFULLY = "댓글에 등록된 좋아요가 성공적으로 해제되었습니다.";
 
+    public static final String GET_PARENT_REPLY_LIST_SUCCESSFULLY = "댓글 목록이 정상적으로 조회되었습니다.";
+
+    public static final String GET_CHILD_REPLY_LIST_SUCCESSFULLY = "댓글에 등록된 댓글 목록이 정상적으로 조회되었습니다.";
+
     /**
      * Category
      */
@@ -86,5 +113,13 @@ public class MessageDto {
     public static final String MODIFY_CATEGORY_OF_DIFFERENT_MEMBER = "다른 회원의 카테고리는 수정할 수 없습니다.";
 
     public static final String MODIFY_SHARED_CATEGORY_BY_USER = "일반 회원은 공유 카테고리의 수정이 불가능합니다.";
+
+    public static final String DELETE_CATEGORY_SUCCESSFULLY = "카테고리 삭제가 정상적으로 완료되었습니다.";
+
+    public static final String DELETE_CATEGORY_OF_DIFFERENT_MEMBER = "다른 회원의 카테고리는 삭제할 수 없습니다.";
+
+    public static final String GET_PERSONAL_CATEGORY_LIST_SUCCESSFULLY = "개인용 카테고리 목록이 정상적으로 조회되었습니다.";
+
+    public static final String ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 공유 카테고리가 정상적으로 등록되었습니다.";
 
 }

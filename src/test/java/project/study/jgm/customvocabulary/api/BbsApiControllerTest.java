@@ -9,10 +9,8 @@ import project.study.jgm.customvocabulary.bbs.Bbs;
 import project.study.jgm.customvocabulary.bbs.BbsStatus;
 import project.study.jgm.customvocabulary.bbs.dto.*;
 import project.study.jgm.customvocabulary.bbs.exception.BbsNotFoundException;
-import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
-import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
@@ -72,7 +70,21 @@ class BbsApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("message").value(MessageDto.BBS_REGISTERED_SUCCESSFULLY))
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.title").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.views").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.replyCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.updateDate").exists())
+                .andExpect(jsonPath("data.like").exists())
+                .andExpect(jsonPath("data.viewLike").exists())
+                .andExpect(jsonPath("data.allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("message").value(MessageVo.BBS_REGISTERED_SUCCESSFULLY))
         ;
 
     }
@@ -163,22 +175,23 @@ class BbsApiControllerTest extends BaseControllerTest {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("data.[0].id").exists())
-                .andExpect(jsonPath("data.[0].writer").exists())
-                .andExpect(jsonPath("data.[0].title").exists())
-                .andExpect(jsonPath("data.[0].views").exists())
-                .andExpect(jsonPath("data.[0].likeCount").exists())
-                .andExpect(jsonPath("data.[0].replyCount").exists())
-                .andExpect(jsonPath("data.[0].registerDate").exists())
-                .andExpect(jsonPath("paging.totalCount").exists())
-                .andExpect(jsonPath("paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("paging.criteriaDto.limit").value(15))
-                .andExpect(jsonPath("paging.startPage").exists())
-                .andExpect(jsonPath("paging.endPage").exists())
-                .andExpect(jsonPath("paging.endPage").exists())
-                .andExpect(jsonPath("paging.prev").exists())
-                .andExpect(jsonPath("paging.next").exists())
-                .andExpect(jsonPath("paging.totalPage").exists())
+                .andExpect(jsonPath("data.list[0].id").exists())
+                .andExpect(jsonPath("data.list[0].writer").exists())
+                .andExpect(jsonPath("data.list[0].title").exists())
+                .andExpect(jsonPath("data.list[0].views").exists())
+                .andExpect(jsonPath("data.list[0].likeCount").exists())
+                .andExpect(jsonPath("data.list[0].replyCount").exists())
+                .andExpect(jsonPath("data.list[0].registerDate").exists())
+                .andExpect(jsonPath("data.paging.totalCount").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
+                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(15))
+                .andExpect(jsonPath("data.paging.startPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.prev").exists())
+                .andExpect(jsonPath("data.paging.next").exists())
+                .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_BBS_LIST_SUCCESSFULLY))
         ;
         //then
 
@@ -208,22 +221,23 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("data.[0].id").exists())
-                .andExpect(jsonPath("data.[0].writer").exists())
-                .andExpect(jsonPath("data.[0].title").exists())
-                .andExpect(jsonPath("data.[0].views").exists())
-                .andExpect(jsonPath("data.[0].likeCount").exists())
-                .andExpect(jsonPath("data.[0].replyCount").exists())
-                .andExpect(jsonPath("data.[0].registerDate").exists())
-                .andExpect(jsonPath("paging.totalCount").exists())
-                .andExpect(jsonPath("paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("paging.criteriaDto.limit").value(15))
-                .andExpect(jsonPath("paging.startPage").exists())
-                .andExpect(jsonPath("paging.endPage").exists())
-                .andExpect(jsonPath("paging.endPage").exists())
-                .andExpect(jsonPath("paging.prev").exists())
-                .andExpect(jsonPath("paging.next").exists())
-                .andExpect(jsonPath("paging.totalPage").exists())
+                .andExpect(jsonPath("data.list[0].id").exists())
+                .andExpect(jsonPath("data.list[0].writer").exists())
+                .andExpect(jsonPath("data.list[0].title").exists())
+                .andExpect(jsonPath("data.list[0].views").exists())
+                .andExpect(jsonPath("data.list[0].likeCount").exists())
+                .andExpect(jsonPath("data.list[0].replyCount").exists())
+                .andExpect(jsonPath("data.list[0].registerDate").exists())
+                .andExpect(jsonPath("data.paging.totalCount").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
+                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(15))
+                .andExpect(jsonPath("data.paging.startPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.prev").exists())
+                .andExpect(jsonPath("data.paging.next").exists())
+                .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_BBS_LIST_SUCCESSFULLY))
         ;
 
     }
@@ -257,23 +271,23 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("data.[0].id").exists())
-                .andExpect(jsonPath("data.[0].writer").exists())
-                .andExpect(jsonPath("data.[0].title").exists())
-                .andExpect(jsonPath("data.[0].views").exists())
-                .andExpect(jsonPath("data.[0].likeCount").exists())
-                .andExpect(jsonPath("data.[0].replyCount").exists())
-                .andExpect(jsonPath("data.[0].registerDate").exists())
-                .andExpect(jsonPath("data.[0].status").exists())
-                .andExpect(jsonPath("paging.totalCount").exists())
-                .andExpect(jsonPath("paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("paging.criteriaDto.limit").value(10))
-                .andExpect(jsonPath("paging.startPage").exists())
-                .andExpect(jsonPath("paging.endPage").exists())
-                .andExpect(jsonPath("paging.endPage").exists())
-                .andExpect(jsonPath("paging.prev").exists())
-                .andExpect(jsonPath("paging.next").exists())
-                .andExpect(jsonPath("paging.totalPage").exists())
+                .andExpect(jsonPath("data.list.[0].id").exists())
+                .andExpect(jsonPath("data.list.[0].writer").exists())
+                .andExpect(jsonPath("data.list.[0].title").exists())
+                .andExpect(jsonPath("data.list.[0].views").exists())
+                .andExpect(jsonPath("data.list.[0].likeCount").exists())
+                .andExpect(jsonPath("data.list.[0].replyCount").exists())
+                .andExpect(jsonPath("data.list.[0].registerDate").exists())
+                .andExpect(jsonPath("data.list.[0].status").exists())
+                .andExpect(jsonPath("data.paging.totalCount").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
+                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(10))
+                .andExpect(jsonPath("data.paging.startPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.prev").exists())
+                .andExpect(jsonPath("data.paging.next").exists())
+                .andExpect(jsonPath("data.paging.totalPage").exists())
         ;
     }
 
@@ -369,15 +383,19 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("id").exists())
-                .andExpect(jsonPath("writer").exists())
-                .andExpect(jsonPath("title").exists())
-                .andExpect(jsonPath("content").exists())
-                .andExpect(jsonPath("views").exists())
-                .andExpect(jsonPath("likeCount").exists())
-                .andExpect(jsonPath("replyCount").exists())
-                .andExpect(jsonPath("registerDate").exists())
-                .andExpect(jsonPath("updateDate").exists())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.title").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.views").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.replyCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.updateDate").exists())
+                .andExpect(jsonPath("data.like").exists())
+                .andExpect(jsonPath("data.viewLike").value(true))
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
         ;
 
     }
@@ -405,17 +423,20 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("id").exists())
-                .andExpect(jsonPath("writer").exists())
-                .andExpect(jsonPath("title").exists())
-                .andExpect(jsonPath("content").exists())
-                .andExpect(jsonPath("views").exists())
-                .andExpect(jsonPath("likeCount").exists())
-                .andExpect(jsonPath("replyCount").exists())
-                .andExpect(jsonPath("registerDate").exists())
-                .andExpect(jsonPath("updateDate").exists())
-                .andExpect(jsonPath("viewLike").value(false))
-                .andExpect(jsonPath("_links.update-bbs.href").exists())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.title").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.views").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.replyCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.updateDate").exists())
+                .andExpect(jsonPath("data.like").exists())
+                .andExpect(jsonPath("data.viewLike").value(false))
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
+//                .andExpect(jsonPath("_links.update-bbs.href").exists())
         ;
 
     }
@@ -448,18 +469,20 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("id").exists())
-                .andExpect(jsonPath("writer").exists())
-                .andExpect(jsonPath("title").exists())
-                .andExpect(jsonPath("content").exists())
-                .andExpect(jsonPath("views").exists())
-                .andExpect(jsonPath("likeCount").exists())
-                .andExpect(jsonPath("replyCount").exists())
-                .andExpect(jsonPath("registerDate").exists())
-                .andExpect(jsonPath("updateDate").exists())
-                .andExpect(jsonPath("like").value(true))
-                .andExpect(jsonPath("viewLike").value(true))
-                .andExpect(jsonPath("_links.update-bbs.href").doesNotExist())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.title").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.views").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.replyCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.updateDate").exists())
+                .andExpect(jsonPath("data.like").value(true))
+                .andExpect(jsonPath("data.viewLike").value(true))
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
+//                .andExpect(jsonPath("_links.update-bbs.href").doesNotExist())
         ;
 
     }
@@ -486,17 +509,18 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("id").exists())
-                .andExpect(jsonPath("writer").exists())
-                .andExpect(jsonPath("title").exists())
-                .andExpect(jsonPath("content").exists())
-                .andExpect(jsonPath("views").exists())
-                .andExpect(jsonPath("likeCount").exists())
-                .andExpect(jsonPath("replyCount").exists())
-                .andExpect(jsonPath("registerDate").exists())
-                .andExpect(jsonPath("updateDate").exists())
-                .andExpect(jsonPath("status").exists())
-                .andExpect(jsonPath("_links.update-bbs.href").exists())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.title").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.views").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.replyCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.updateDate").exists())
+                .andExpect(jsonPath("data.status").exists())
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+//                .andExpect(jsonPath("_links.update-bbs.href").exists())
         ;
 
     }
@@ -550,7 +574,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("message").value(MessageDto.UNAUTHORIZED_USERS_VIEW_DELETED_POSTS))
+                .andExpect(jsonPath("message").value(MessageVo.UNAUTHORIZED_USERS_VIEW_DELETED_POSTS))
         ;
 
     }
@@ -587,8 +611,20 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFIED_BBS_SUCCESSFULLY))
-                .andExpect(jsonPath("_links.get-bbs.href").exists())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.writer").exists())
+                .andExpect(jsonPath("data.title").exists())
+                .andExpect(jsonPath("data.content").exists())
+                .andExpect(jsonPath("data.views").exists())
+                .andExpect(jsonPath("data.likeCount").exists())
+                .andExpect(jsonPath("data.replyCount").exists())
+                .andExpect(jsonPath("data.registerDate").exists())
+                .andExpect(jsonPath("data.updateDate").exists())
+                .andExpect(jsonPath("data.like").exists())
+                .andExpect(jsonPath("data.viewLike").value(false))
+                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.MODIFIED_BBS_SUCCESSFULLY))
+//                .andExpect(jsonPath("_links.get-bbs.href").exists())
         ;
 
         Bbs findBbs = bbsService.getBbs(bbsSample.getId());
@@ -706,7 +742,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_BBS_OF_DIFFERENT_MEMBER));
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_BBS_OF_DIFFERENT_MEMBER));
 
     }
 
@@ -801,7 +837,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.DELETE_BBS_SUCCESSFULLY))
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_BBS_SUCCESSFULLY))
         ;
 
     }
@@ -833,7 +869,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.DELETE_BBS_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_BBS_SUCCESSFULLY));
 
     }
 
@@ -891,7 +927,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.DELETE_BBS_OF_DIFFERENT_MEMBER))
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_BBS_OF_DIFFERENT_MEMBER))
         ;
 
     }
@@ -978,7 +1014,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.ADD_LIKE_TO_BBS_SUCCESSFULLY))
+                .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_BBS_SUCCESSFULLY))
         ;
 
         boolean existLike = bbsLikeService.getExistLike(user2.getId(), bbsSample.getId());
@@ -1135,7 +1171,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.UNLIKE_BBS_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_BBS_SUCCESSFULLY));
 
     }
 

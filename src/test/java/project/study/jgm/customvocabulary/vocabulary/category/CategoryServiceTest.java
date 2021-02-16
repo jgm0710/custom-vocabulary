@@ -6,9 +6,8 @@ import org.junit.jupiter.api.Test;
 import project.study.jgm.customvocabulary.common.BaseServiceTest;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
-import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryUpdateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.PersonalCategoryCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryResponseDto;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryExistsInTheCorrespondingOrdersException;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
@@ -41,7 +40,7 @@ class CategoryServiceTest extends BaseServiceTest {
         em.clear();
 
         String category_name = "service category";
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name(category_name)
                 .parentId(null)
                 .orders(1)
@@ -72,7 +71,7 @@ class CategoryServiceTest extends BaseServiceTest {
         em.clear();
 
         String category_name = "service category";
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name(category_name)
                 .parentId(1000L)
                 .orders(1)
@@ -99,7 +98,7 @@ class CategoryServiceTest extends BaseServiceTest {
         em.clear();
 
         String category_name = "service category";
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name(category_name)
                 .parentId(null)
                 .orders(1)

@@ -1,6 +1,7 @@
 package project.study.jgm.customvocabulary.vocabulary.category.dto;
 
 import lombok.*;
+import org.modelmapper.ModelMapper;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 
 import java.util.ArrayList;
@@ -46,6 +47,14 @@ public class CategoryResponseDto {
 //.children
 //.vocabularyCount
 //.orders
+
+    public static CategoryResponseDto categoryToResponseDto(Category category, ModelMapper modelMapper) {
+        CategoryResponseDto categoryResponseDto = modelMapper.map(category, CategoryResponseDto.class);
+        if (category.getParent() != null) {
+            categoryResponseDto.setParentId(category.getParent().getId());
+        }
+        return categoryResponseDto;
+    }
 
     public static List<CategoryResponseDto> categoryListToResponseList(List<Category> categoryList) {
 

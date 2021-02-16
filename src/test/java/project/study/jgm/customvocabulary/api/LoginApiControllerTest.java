@@ -1,17 +1,14 @@
 package project.study.jgm.customvocabulary.api;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
-import project.study.jgm.customvocabulary.members.Gender;
+import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
@@ -21,10 +18,8 @@ import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 import project.study.jgm.customvocabulary.security.exception.PasswordMismatchException;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -246,7 +241,7 @@ class LoginApiControllerTest extends BaseControllerTest {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.LOGOUT_SUCCESSFULLY))
+                .andExpect(jsonPath("message").value(MessageVo.LOGOUT_SUCCESSFULLY))
         ;
 
     }

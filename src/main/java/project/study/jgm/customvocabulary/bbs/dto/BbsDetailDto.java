@@ -40,6 +40,8 @@ public class BbsDetailDto {
 
     private boolean viewLike;
 
+    private boolean allowModificationAndDeletion;
+
 //id
 //writer
 //title
@@ -61,6 +63,8 @@ public class BbsDetailDto {
                 .replyCount(bbs.getReplyCount())
                 .registerDate(bbs.getRegisterDate())
                 .updateDate(bbs.getUpdateDate())
+                .allowModificationAndDeletion(false)
+                .viewLike(true)
                 .build();
     }
 

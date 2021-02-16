@@ -1,15 +1,12 @@
 package project.study.jgm.customvocabulary.api;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.restdocs.RestDocsMockMvcConfigurationCustomizer;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
@@ -18,12 +15,8 @@ import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryStatus;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryUpdateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.dto.PersonalCategoryCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryExistsInTheCorrespondingOrdersException;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.category.exception.ParentNotFoundException;
-
-import java.util.List;
+import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.category.exception.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
@@ -39,10 +32,12 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
-                .name("test category")
+        int orders = 1;
+        String categoryName = "test category";
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
                 .parentId(null)
-                .orders(1)
+                .orders(orders)
                 .build();
 
         OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
@@ -61,8 +56,14 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.name").value(categoryName))
+                .andExpect(jsonPath("data.parentId").isEmpty())
+                .andExpect(jsonPath("data.subCategoryList").isEmpty())
+                .andExpect(jsonPath("data.vocabularyCount").value(0))
+                .andExpect(jsonPath("data.orders").value(orders))
                 .andExpect(redirectedUrl("http://localhost/api/vocabulary/category/" + user1.getId()))
-                .andExpect(jsonPath("message").value(MessageDto.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
 
     }
 
@@ -70,10 +71,38 @@ class CategoryApiControllerTest extends BaseControllerTest {
     @DisplayName("카테고리 생성 시 입력값이 없는 경우")
     public void addPersonalCategory_Empty() throws Exception {
         //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        int orders = 1;
+        String categoryName = "test category";
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+//                .name(categoryName)
+//                .parentId(null)
+//                .orders(orders)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
 
         //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category")
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
 
         //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+        ;
 
     }
 
@@ -86,7 +115,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
 
         Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, 0, CategoryStatus.REGISTER);
 
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
                 .parentId(parent.getId())
                 .orders(1)
@@ -109,7 +138,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isCreated())
                 .andExpect(redirectedUrl("http://localhost/api/vocabulary/category/" + user1.getId()))
-                .andExpect(jsonPath("message").value(MessageDto.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
 
     }
 
@@ -120,7 +149,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
                 .parentId(10000L)
                 .orders(1)
@@ -157,7 +186,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         int orders = 1;
         Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, orders, CategoryStatus.REGISTER);
 
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
                 .parentId(null)
                 .orders(orders)
@@ -184,13 +213,86 @@ class CategoryApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("개인 카테고리 생성 시 부모 카테고리와 자식 카테고리의 구분이 다른 경우")
+    public void addPersonalCategory_DivisionBetweenParentAndChildIsDifferent() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category parent = createCategory(user1, CategoryDivision.SHARED, "parent", null, 0, CategoryStatus.REGISTER);
+
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name("test category")
+                .parentId(parent.getId())
+                .orders(1)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category")
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new DivisionBetweenParentAndChildIsDifferentException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("개인 카테고리 생성 시 부모 카테고리가 다른 회원의 카테고리인 경우")
+    public void addPersonalCategory_ParentBelongToOtherMembers() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, 0, CategoryStatus.REGISTER);
+
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name("test category")
+                .parentId(parent.getId())
+                .orders(1)
+                .build();
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category")
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(new ParentBelongToOtherMembersException().getMessage()));
+
+    }
+
+    @Test
     @DisplayName("인증되지 않은 사용자가 개인용 카테고리를 생성하는 경우")
     public void addPersonalCategory_UnAuthentication() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        PersonalCategoryCreateDto createDto = PersonalCategoryCreateDto.builder()
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
                 .parentId(null)
                 .orders(1)
@@ -241,12 +343,13 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].name").exists())
-                .andExpect(jsonPath("$[0].parentId").isEmpty())
-                .andExpect(jsonPath("$[0].subCategoryList").exists())
-                .andExpect(jsonPath("$[0].vocabularyCount").exists())
-                .andExpect(jsonPath("$[0].orders").exists())
+                .andExpect(jsonPath("data[0].id").exists())
+                .andExpect(jsonPath("data[0].name").exists())
+                .andExpect(jsonPath("data[0].parentId").isEmpty())
+                .andExpect(jsonPath("data[0].subCategoryList").exists())
+                .andExpect(jsonPath("data[0].vocabularyCount").exists())
+                .andExpect(jsonPath("data[0].orders").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_PERSONAL_CATEGORY_LIST_SUCCESSFULLY))
         ;
 
     }
@@ -280,7 +383,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.GET_PERSONAL_CATEGORY_LIST_OF_DIFFERENT_MEMBER));
+                .andExpect(jsonPath("message").value(MessageVo.GET_PERSONAL_CATEGORY_LIST_OF_DIFFERENT_MEMBER));
 
     }
 
@@ -312,12 +415,13 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].name").exists())
-                .andExpect(jsonPath("$[0].parentId").isEmpty())
-                .andExpect(jsonPath("$[0].subCategoryList").exists())
-                .andExpect(jsonPath("$[0].vocabularyCount").exists())
-                .andExpect(jsonPath("$[0].orders").exists())
+                .andExpect(jsonPath("data[0].id").exists())
+                .andExpect(jsonPath("data[0].name").exists())
+                .andExpect(jsonPath("data[0].parentId").isEmpty())
+                .andExpect(jsonPath("data[0].subCategoryList").exists())
+                .andExpect(jsonPath("data[0].vocabularyCount").exists())
+                .andExpect(jsonPath("data[0].orders").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_PERSONAL_CATEGORY_LIST_SUCCESSFULLY))
         ;
 
     }
@@ -364,10 +468,10 @@ class CategoryApiControllerTest extends BaseControllerTest {
         Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 2, CategoryStatus.REGISTER);
 
 
-        String category_name = "update category";
+        String updateName = "update category";
         int orders = 10;
         Long parentId = parent.getId();
-        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto(category_name, parentId, orders);
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto(updateName, parentId, orders);
 
         OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
         TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
@@ -385,16 +489,121 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_SUCCESSFULLY));
+                .andExpect(jsonPath("data.id").value(sampleCategory.getId()))
+                .andExpect(jsonPath("data.name").value(updateName))
+                .andExpect(jsonPath("data.parentId").value(parentId))
+                .andExpect(jsonPath("data.subCategoryList").isEmpty())
+                .andExpect(jsonPath("data.vocabularyCount").value(sampleCategory.getVocabularyCount()))
+                .andExpect(jsonPath("data.orders").value(orders))
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_CATEGORY_SUCCESSFULLY));
 
         em.flush();
         em.clear();
 
         Category findCategory = categoryService.getCategory(sampleCategory.getId());
-        assertEquals(findCategory.getName(), category_name);
+        assertEquals(findCategory.getName(), updateName);
         assertEquals(findCategory.getParent().getId(), parentId);
         assertEquals(findCategory.getOrders(), orders);
 
+
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 시 부모와 자식 카테고리간의 구분이 다른 경우")
+    public void modifyCategory_DivisionBetweenParentAndChildIsDifferent() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        CategoryCreateDto createDto1 = CategoryCreateDto.builder()
+                .name("category1")
+                .parentId(null)
+                .orders(1)
+                .build();
+
+        CategoryCreateDto sharedCategoryDto = CategoryCreateDto.builder()
+                .name("sharedCategory")
+                .parentId(null)
+                .orders(2)
+                .build();
+
+        Category personalCategory = categoryService.addPersonalCategory(user1.getId(), createDto1);
+        Category sharedCategory = categoryService.addSharedCategory(sharedCategoryDto);
+
+        CategoryUpdateDto updateDto = CategoryUpdateDto.builder()
+                .name("update category")
+                .parentId(sharedCategory.getId())
+                .orders(1)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + personalCategory.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new DivisionBetweenParentAndChildIsDifferentException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("개인 카테고리 수정 시 부모 카테고리가 다른 회원의 카테고리인 경우")
+    public void modifyCategory_ParentBelongToOtherMembers() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        CategoryCreateDto user1CategoryDto = CategoryCreateDto.builder()
+                .name("user1 category")
+                .parentId(null)
+                .orders(1)
+                .build();
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        CategoryCreateDto user2CategoryDto = CategoryCreateDto.builder()
+                .name("user2 category")
+                .parentId(null)
+                .orders(1)
+                .build();
+
+        Category user1Category = categoryService.addPersonalCategory(user1.getId(), user1CategoryDto);
+        Category user2Category = categoryService.addPersonalCategory(user2.getId(), user2CategoryDto);
+
+        CategoryUpdateDto updateDto = CategoryUpdateDto.builder()
+                .name("update category")
+                .parentId(user1Category.getId())
+                .orders(1)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/category/" + user2Category.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(new ParentBelongToOtherMembersException().getMessage()));
 
     }
 
@@ -462,7 +671,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_OF_DIFFERENT_MEMBER));
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_CATEGORY_OF_DIFFERENT_MEMBER));
 
     }
 
@@ -495,7 +704,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_OF_DIFFERENT_MEMBER));
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_CATEGORY_OF_DIFFERENT_MEMBER));
 
     }
 
@@ -634,7 +843,9 @@ class CategoryApiControllerTest extends BaseControllerTest {
 
         Category sampleCategory = createCategory(admin, CategoryDivision.SHARED, "shared category", null, 1, CategoryStatus.REGISTER);
 
-        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 2);
+        String updateName = "update category";
+        int orders = 2;
+        CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto(updateName, null, orders);
 
         OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
         TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
@@ -652,7 +863,13 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_CATEGORY_SUCCESSFULLY));
+                .andExpect(jsonPath("data.id").value(sampleCategory.getId()))
+                .andExpect(jsonPath("data.name").value(updateName))
+                .andExpect(jsonPath("data.parentId").isEmpty())
+                .andExpect(jsonPath("data.subCategoryList").isEmpty())
+                .andExpect(jsonPath("data.vocabularyCount").value(sampleCategory.getVocabularyCount()))
+                .andExpect(jsonPath("data.orders").value(orders))
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_CATEGORY_SUCCESSFULLY));
 
     }
 
@@ -685,7 +902,576 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("message").value(MessageDto.MODIFY_SHARED_CATEGORY_BY_USER));
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_SHARED_CATEGORY_BY_USER));
+
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제")
+    public void deleteCategory() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/vocabulary/category/" + user1Category.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_CATEGORY_SUCCESSFULLY));
+
+        assertThrows(CategoryNotFoundException.class, () -> categoryService.getCategory(user1Category.getId()));
+    }
+
+    @Test
+    @DisplayName("USER가 다른 회원의 카테고리를 삭제하는 경우")
+    public void deleteCategory_Unauthorized() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        em.flush();
+        em.clear();
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/vocabulary/category/" + user1Category.getId())
+                                .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_CATEGORY_OF_DIFFERENT_MEMBER));
+
+    }
+
+    @Test
+    @DisplayName("관리자가 다른 회원의 카테고리를 삭제하는 경우")
+    public void deleteCategory_By_Admin() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        em.flush();
+        em.clear();
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/vocabulary/category/" + user1Category.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_CATEGORY_OF_DIFFERENT_MEMBER))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 시 해당 카테고리를 찾을 수 없는 경우")
+    public void deleteCategory_NotFound() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/vocabulary/category/" + 10000L)
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new CategoryNotFoundException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 시 자식 카테고리를 가지고 있는 카테고리인 경우")
+    public void deleteCategory_Has_SubCategory() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 1, CategoryStatus.REGISTER);
+        Category child1 = createCategory(user1, CategoryDivision.PERSONAL, "child1 category", parent, 1, CategoryStatus.REGISTER);
+        Category child2 = createCategory(user1, CategoryDivision.PERSONAL, "child2 category", parent, 2, CategoryStatus.REGISTER);
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/vocabulary/category/" + parent.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new ExistSubCategoryException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 카테고리를 삭제하는 경우")
+    public void deleteCategory_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        delete("/api/vocabulary/category/" + user1Category.getId())
+//                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("관리자에 의해 공유 카테고리 생성")
+    public void addSharedCategory_By_Admin() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = null;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.name").value(categoryName))
+                .andExpect(jsonPath("data.parentId").value(parentId))
+                .andExpect(jsonPath("data.subCategoryList").isEmpty())
+                .andExpect(jsonPath("data.vocabularyCount").value(0))
+                .andExpect(jsonPath("data.orders").value(orders))
+                .andExpect(jsonPath("message").value(MessageVo.ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("관리자에 의해 자식 공유 카테고리 생성")
+    public void addSharedChildCategory_By_Admin() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        CategoryCreateDto parentCategoryDto = CategoryCreateDto.builder()
+                .name("parent category")
+                .orders(1)
+                .parentId(null)
+                .build();
+
+        Category parent = categoryService.addSharedCategory(parentCategoryDto);
+
+        String categoryName = "child category";
+        int orders = 1;
+        Long parentId = parent.getId();
+        CategoryCreateDto childCategoryDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(childCategoryDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.name").value(categoryName))
+                .andExpect(jsonPath("data.parentId").value(parentId))
+                .andExpect(jsonPath("data.subCategoryList").isEmpty())
+                .andExpect(jsonPath("data.vocabularyCount").value(0))
+                .andExpect(jsonPath("data.orders").value(orders))
+                .andExpect(jsonPath("message").value(MessageVo.ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY));
+
+        em.flush();
+        em.clear();
+
+        Category findParentCategory = categoryService.getCategory(parentId);
+        assertFalse(findParentCategory.getChildren().isEmpty());
+
+    }
+
+    @Test
+    @DisplayName("공유 카테고리 생성 시 입력값이 없는 경우")
+    public void addSharedCategory_Empty() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = null;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+//                .name(categoryName)
+//                .orders(orders)
+//                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("공유 카테고리 생성 시 순서가 0인 경우")
+    public void addSharedCategory_OrdersIsZero() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 0;
+        Long parentId = null;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").value("지정할 수 있는 순서는 1보다 작을 수 없습니다."))
+                .andExpect(jsonPath("$[0].field").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 공유 카테고리를 생성")
+    public void addSharedCategory_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = null;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+//                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("USER 권한의 사용자가 공유 카테고리를 생성")
+    public void addSharedCategory_By_User() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = null;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("자식 공유 카테고리 생성 시 부모 카테고리를 찾을 수 없는 경우")
+    public void addSharedCategory_ParentNotFound() throws Exception {
+          //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = 100000L;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value(new ParentNotFoundException(parentId).getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("공유 카테고리 생성 시 해당 순서에 카테고리가 존재하는 경우")
+    public void addSharedCategory_CategoryExistsInTheCorrespondingOrdersException() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        CategoryCreateDto sampleCreateDto = CategoryCreateDto.builder()
+                .name("sample Category")
+                .orders(1)
+                .parentId(null)
+                .build();
+
+        categoryService.addSharedCategory(sampleCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = null;
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new CategoryExistsInTheCorrespondingOrdersException(orders).getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("공유 자식 카테고리 생성 시 부모 카테고리가 개인 카테고리일 경우")
+    public void addSharedCategory_DivisionBetweenParentAndChildIsDifferentException() throws Exception {
+          //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto1);
+        CategoryCreateDto personalCreateDto = CategoryCreateDto.builder()
+                .name("personal category")
+                .orders(1)
+                .parentId(null)
+                .build();
+
+        Category personalCategory = categoryService.addPersonalCategory(user1.getId(), personalCreateDto);
+
+        String categoryName = "sample category";
+        int orders = 1;
+        Long parentId = personalCategory.getId();
+        CategoryCreateDto createDto = CategoryCreateDto.builder()
+                .name(categoryName)
+                .orders(orders)
+                .parentId(parentId)
+                .build();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/vocabulary/category/admin")
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createDto))
+                )
+                .andDo(print());
+
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new DivisionBetweenParentAndChildIsDifferentException().getMessage()))
+        ;
 
     }
 

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.modelmapper.ModelMapper;
 import project.study.jgm.customvocabulary.bbs.reply.Reply;
 import project.study.jgm.customvocabulary.members.Member;
 
@@ -21,6 +22,14 @@ public class ReplyChildResponseDto {
     private String content;
     private LocalDateTime registerDate;
     private boolean allowModificationAndDeletion;
+
+    public static ReplyChildResponseDto replyToChildResponseDto(Reply reply, ModelMapper modelMapper) {
+        ReplyChildResponseDto replyChildResponseDto = modelMapper.map(reply, ReplyChildResponseDto.class);
+        replyChildResponseDto.setWriter(reply.getMember().getNickname());
+        replyChildResponseDto.setAllowModificationAndDeletion(true);
+
+        return replyChildResponseDto;
+    }
 
     public static List<ReplyChildResponseDto> replyListToChildList(List<Reply> replyList, Member member) {
         List<ReplyChildResponseDto> replyChildResponseDtoList = new ArrayList<>();

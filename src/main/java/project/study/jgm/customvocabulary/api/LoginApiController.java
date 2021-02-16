@@ -7,8 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import project.study.jgm.customvocabulary.common.EntityModelCreator;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
@@ -21,7 +20,7 @@ import project.study.jgm.customvocabulary.security.exception.PasswordMismatchExc
 
 import javax.validation.Valid;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static project.study.jgm.customvocabulary.common.dto.MessageVo.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,15 +38,12 @@ public class LoginApiController {
         try {
             TokenDto tokenDto = memberService.login(loginDto);
 
-            var tokenResponse = EntityModelCreator.createTokenResponse(tokenDto, LoginApiController.class, "login");
-            tokenResponse.add(linkTo(IndexApiController.class).withRel("index"));
-
-            return ResponseEntity.ok(tokenResponse);
+            return ResponseEntity.ok(new ResponseDto<>(tokenDto, LOGIN_SUCCESSFULLY));
 
         } catch (UsernameNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         } catch (PasswordMismatchException e) {
-            return ResponseEntity.badRequest().body(new MessageDto(e.getMessage()));
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
     }
@@ -61,14 +57,12 @@ public class LoginApiController {
         try {
             TokenDto tokenDto = memberService.refresh(onlyTokenDto);
 
-            var tokenResponse = EntityModelCreator.createTokenResponse(tokenDto, LoginApiController.class, "refresh");
-            tokenResponse.add(linkTo(IndexApiController.class).withRel("index"));
+            return ResponseEntity.ok(new ResponseDto<>(tokenDto, REFRESH_SUCCESSFULLY));
 
-            return ResponseEntity.ok(tokenResponse);
         } catch (RefreshTokenNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageDto(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
         } catch (RefreshTokenExpirationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageDto(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
         }
     }
 
@@ -77,6 +71,6 @@ public class LoginApiController {
     public ResponseEntity logout(@CurrentUser Member member) {
         memberService.logout(member.getId());
 
-        return ResponseEntity.ok(new MessageDto(MessageDto.LOGOUT_SUCCESSFULLY));
+        return ResponseEntity.ok(new ResponseDto<>(LOGOUT_SUCCESSFULLY));
     }
 }

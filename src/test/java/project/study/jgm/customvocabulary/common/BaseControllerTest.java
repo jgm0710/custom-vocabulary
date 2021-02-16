@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Disabled
+@Transactional
 public abstract class BaseControllerTest {
 
     @Autowired

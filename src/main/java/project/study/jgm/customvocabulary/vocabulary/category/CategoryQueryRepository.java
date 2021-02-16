@@ -6,10 +6,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import project.study.jgm.customvocabulary.members.QMember;
 
 import javax.persistence.EntityManager;
 import java.util.List;
 
+import static project.study.jgm.customvocabulary.members.QMember.*;
 import static project.study.jgm.customvocabulary.vocabulary.category.QCategory.category;
 
 @Repository
@@ -43,23 +45,31 @@ public class CategoryQueryRepository {
      * Common
      */
 
-    public Category findByParentIdAndOrders(Long parentId, int orders, CategoryDivision categoryDivision) {
+    public Category findByParentIdAndOrders(Long memberId, Long parentId, int orders, CategoryDivision categoryDivision) {
         return queryFactory
                 .selectFrom(category)
                 .where(
-                        whereFrom(parentId, orders, categoryDivision),
+                        whereFrom(memberId, parentId, orders, categoryDivision),
                         category.status.eq(CategoryStatus.REGISTER)
                 )
                 .fetchOne();
     }
 
-    private BooleanExpression whereFrom(Long parentId, int orders, CategoryDivision categoryDivision) {
+    private BooleanExpression whereFrom(Long memberId, Long parentId, int orders, CategoryDivision categoryDivision) {
         BooleanExpression booleanExpression = category.id.gt(0);
-        if (parentIdEq(parentId) != null) {
+        if (memberId != null) {
+            booleanExpression = booleanExpression.and(memberIdEq(memberId));
+        }
+        if (parentId != null) {
             booleanExpression = booleanExpression.and(parentIdEq(parentId));
         }
         return booleanExpression.and(ordersEq(orders)).and(divisionEq(categoryDivision));
     }
+
+    private BooleanExpression memberIdEq(Long memberId) {
+        return category.member.id.eq(memberId);
+    }
+
     private BooleanExpression divisionEq(CategoryDivision categoryDivision) {
         return category.division.eq(categoryDivision);
     }
@@ -70,9 +80,6 @@ public class CategoryQueryRepository {
     }
 
     private BooleanExpression parentIdEq(Long parentId) {
-        if (parentId == null) {
-            return null;
-        }
         return category.parent.id.eq(parentId);
     }
 

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ListResponseDto<T> {
 
-    private T data;
+    private T list;
 
     private PaginationDto paging;
 }

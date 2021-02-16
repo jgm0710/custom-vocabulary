@@ -34,7 +34,7 @@ class CategoryQueryRepositoryTest extends BaseServiceTest {
         em.clear();
 
         //when
-        Category findCategory = categoryQueryRepository.findByParentIdAndOrders(null, orders, division);
+        Category findCategory = categoryQueryRepository.findByParentIdAndOrders(userMember.getId(), null, orders, division);
 
         //then
         System.out.println("test result findCategory = " + findCategory.toString());
@@ -59,7 +59,7 @@ class CategoryQueryRepositoryTest extends BaseServiceTest {
         em.clear();
 
         //when
-        Category findCategory = categoryQueryRepository.findByParentIdAndOrders(parent.getId(), 1, CategoryDivision.PERSONAL);
+        Category findCategory = categoryQueryRepository.findByParentIdAndOrders(userMember.getId(), parent.getId(), 1, CategoryDivision.PERSONAL);
 
         //then
         System.out.println("findCategory.toString() = " + findCategory.toString());

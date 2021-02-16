@@ -4,14 +4,11 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.validation.Errors;
-import project.study.jgm.customvocabulary.api.MemberApiController;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
-import project.study.jgm.customvocabulary.common.dto.MessageDto;
+import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.members.dto.MemberAdminViewDto;
 import project.study.jgm.customvocabulary.members.dto.MemberDetailDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
-
-import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
@@ -27,9 +24,9 @@ public class EntityModelCreator extends EntityModel<Errors>{
         return EntityModel.of(memberAdminViewDto, selfLink);
     }
 
-    public static <T> EntityModel<MessageDto> createMessageResponse(MessageDto messageDto, Class<T> controller, Object... slashs) {
+    public static <T> EntityModel<MessageVo> createMessageResponse(MessageVo messageVo, Class<T> controller, Object... slashs) {
         Link selfLink = getSelfLink(controller, slashs);
-        return EntityModel.of(messageDto, selfLink);
+        return EntityModel.of(messageVo, selfLink);
     }
 
     public static <T> EntityModel<ListResponseDto> createListResponse(ListResponseDto listResponseDto) {
