@@ -52,6 +52,16 @@ public class VocabularyQueryRepository {
                 .fetchCount();
     }
 
+    public long getCountOfSharedVocabularyWhereCategoryIsNull() {
+        return queryFactory
+                .selectFrom(vocabulary)
+                .where(
+                        vocabulary.division.eq(VocabularyDivision.SHARED),
+                        vocabulary.category.isNull()
+                )
+                .fetchCount();
+    }
+
     private BooleanExpression categoryIdEq(Long categoryId) {
         return categoryId != null ? vocabulary.category.id.eq(categoryId) : null;
     }

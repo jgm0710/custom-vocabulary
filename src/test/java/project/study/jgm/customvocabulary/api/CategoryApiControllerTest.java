@@ -1117,7 +1117,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1169,7 +1169,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(childCategoryDto))
@@ -1217,7 +1217,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1257,7 +1257,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1297,7 +1297,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
 //                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1332,7 +1332,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1367,7 +1367,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1412,7 +1412,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1459,7 +1459,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        post("/api/vocabulary/category/admin")
+                        post("/api/vocabulary/category/shared")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createDto))
@@ -1471,6 +1471,26 @@ class CategoryApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").value(new DivisionBetweenParentAndChildIsDifferentException().getMessage()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("공유 카테고리 목록 조회")
+    public void getSharedCategoryList() throws Exception {
+        //given
+        createCategoryList(null, CategoryDivision.SHARED);
+        em.flush();
+        em.clear();
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        get("/api/vocabulary/category/shared")
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
         ;
 
     }

@@ -57,19 +57,15 @@ public class CategoryApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Category savedCategory = null;
+        Category savedCategory;
 
         try {
             savedCategory = categoryService.addPersonalCategory(member.getId(), createDto);
         } catch (ParentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (CategoryExistsInTheCorrespondingOrdersException e) {
+        } catch (CategoryExistsInTheCorrespondingOrdersException | DivisionBetweenParentAndChildIsDifferentException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (MemberNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
-        } catch (DivisionBetweenParentAndChildIsDifferentException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (ParentBelongToOtherMembersException e) {
+        } catch (MemberNotFoundException | ParentBelongToOtherMembersException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
         }
 
@@ -122,7 +118,7 @@ public class CategoryApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Category findCategory = null;
+        Category findCategory;
 
         try {
 
@@ -147,9 +143,7 @@ public class CategoryApiController {
             categoryService.modifyCategory(categoryId, categoryUpdateDto);
         } catch (ParentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (CategoryExistsInTheCorrespondingOrdersException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (DivisionBetweenParentAndChildIsDifferentException e) {
+        } catch (CategoryExistsInTheCorrespondingOrdersException | DivisionBetweenParentAndChildIsDifferentException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         } catch (ParentBelongToOtherMembersException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
@@ -191,29 +185,25 @@ public class CategoryApiController {
      * Shared == Admin
      */
 
-    @PostMapping("/admin")
+    @PostMapping("/shared")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity addShredCategory(
             @RequestBody @Valid CategoryCreateDto createDto,
-            Errors errors,
-            @CurrentUser Member member
+            Errors errors
     ) {
 
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Category savedCategory = null;
+        Category savedCategory;
         try {
             savedCategory = categoryService.addSharedCategory(createDto);
 
         } catch (ParentNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ResponseDto<>(e.getMessage()));
-        } catch (CategoryExistsInTheCorrespondingOrdersException e) {
-            return ResponseEntity.badRequest()
-                    .body(new ResponseDto<>(e.getMessage()));
-        } catch (DivisionBetweenParentAndChildIsDifferentException e) {
+        } catch (CategoryExistsInTheCorrespondingOrdersException | DivisionBetweenParentAndChildIsDifferentException e) {
             return ResponseEntity.badRequest()
                     .body(new ResponseDto<>(e.getMessage()));
         }
@@ -223,6 +213,19 @@ public class CategoryApiController {
 
         return ResponseEntity.created(getSharedCategoryListUri)
                 .body(new ResponseDto<>(categoryResponseDto, ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY));
+    }
+
+    @GetMapping("/shared")
+    public ResponseEntity getSharedCategoryList() {
+
+        List<Category> sharedCategoryList = categoryService.getSharedCategoryList();
+        List<CategoryResponseDto> categoryResponseDtos = CategoryResponseDto.categoryListToResponseList(sharedCategoryList);
+
+        long countOfSharedVocabularyWhereCategoryIsNull = vocabularyQueryRepository.getCountOfSharedVocabularyWhereCategoryIsNull();
+        CategoryResponseDto other = new CategoryResponseDto(0L, "기타", null, null, countOfSharedVocabularyWhereCategoryIsNull, 0);
+        categoryResponseDtos.add(other);
+
+        return ResponseEntity.ok(new ResponseDto<>(categoryResponseDtos, GET_SHARED_CATEGORY_LIST_SUCCESSFULLY));
     }
 
 

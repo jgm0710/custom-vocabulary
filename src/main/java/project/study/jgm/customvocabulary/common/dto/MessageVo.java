@@ -122,4 +122,6 @@ public class MessageVo {
 
     public static final String ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 공유 카테고리가 정상적으로 등록되었습니다.";
 
+    public static final String GET_SHARED_CATEGORY_LIST_SUCCESSFULLY = "공유 카테고리 목록이 정상적으로 조회 되었습니다.";
+
 }
