@@ -240,11 +240,11 @@ public abstract class BaseControllerTest {
 
     protected List<OnlyFileIdDto> getOnlyFileIdDtos() throws IOException {
         String path = "/static/test/text.txt";
-        MultipartFile multipartFile = getMultipartFile(path);
+        MultipartFile multipartFile = getMockMultipartFile(path);
         BbsUploadFile bbsUploadFile = bbsFileStorageService.uploadBbsFile(multipartFile);
 
         String path2 = "/static/test/사진1.jpg";
-        MultipartFile multipartFile1 = getMultipartFile(path2);
+        MultipartFile multipartFile1 = getMockMultipartFile(path2);
         BbsUploadFile bbsUploadFile1 = bbsFileStorageService.uploadBbsFile(multipartFile1);
 
         OnlyFileIdDto onlyFileIdDto = new OnlyFileIdDto(bbsUploadFile.getId());
@@ -256,7 +256,7 @@ public abstract class BaseControllerTest {
         return onlyFileIdDtos;
     }
 
-    protected MockMultipartFile getMultipartFile(String path) throws IOException {
+    protected MockMultipartFile getMockMultipartFile(String path) throws IOException {
         ClassPathResource classPathResource = new ClassPathResource(path);
         String filename = classPathResource.getFilename();
         String contentType = URLConnection.guessContentTypeFromName(filename);

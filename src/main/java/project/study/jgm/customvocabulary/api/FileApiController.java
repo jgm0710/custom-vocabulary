@@ -72,7 +72,7 @@ public class FileApiController {
 
     @CrossOrigin
     @GetMapping("/bbs/downloadFile/{fileName:.+}")
-    public ResponseEntity<? extends ResponseDto<?>> downloadBbsFile(
+    public ResponseEntity<?> downloadBbsFile(
             @PathVariable String fileName
     ) {
 
@@ -91,11 +91,11 @@ public class FileApiController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(new ResponseDto<>(resource, GET_DOWNLOAD_FILE_SUCCESSFULLY));
+                .body(resource);
     }
 
     @GetMapping("/bbs/displayThumbnail/{fileName:.+}")
-    public ResponseEntity<? extends ResponseDto<?>> displayThumbnailOfBbsImage(
+    public ResponseEntity<?> displayThumbnailOfBbsImage(
             @PathVariable String fileName
     ) {
         BbsUploadFile bbsUploadFile;
@@ -113,7 +113,7 @@ public class FileApiController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(new ResponseDto<>(resource, GET_THUMBNAIL_SUCCESSFULLY));
+                .body(resource);
     }
 
 }
