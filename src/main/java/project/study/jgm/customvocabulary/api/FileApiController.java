@@ -35,10 +35,13 @@ public class FileApiController {
     private final BbsFileStorageService bbsFileStorageService;
 
 
+    /**
+     * Bbs
+     */
+
     @CrossOrigin
     @PostMapping("/bbs/uploadFile")
     @PreAuthorize("hasRole('ROLE_USER')")
-
     public ResponseEntity<ResponseDto<UploadFileResponseDto>> uploadBbsFile(
             @RequestParam("file") MultipartFile file
     ) {
@@ -81,7 +84,7 @@ public class FileApiController {
 
         try {
             bbsUploadFile = bbsFileStorageService.getBbsUploadFileByFileName(fileName);
-            resource = bbsFileStorageService.loadBbsFileAsResource(bbsUploadFile.getId());
+            resource = bbsFileStorageService.loadBbsUploadFileAsResource(bbsUploadFile.getId());
         } catch (MyFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }
@@ -103,7 +106,7 @@ public class FileApiController {
 
         try {
             bbsUploadFile = bbsFileStorageService.getBbsUploadFileByFileName(fileName);
-            resource = bbsFileStorageService.loadBbsThumbnailAsResource(bbsUploadFile.getId());
+            resource = bbsFileStorageService.loadThumbnailOfBbsUploadFileAsResource(bbsUploadFile.getId());
         } catch (MyFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }

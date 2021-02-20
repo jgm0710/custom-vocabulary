@@ -135,9 +135,9 @@ public abstract class FileStorage {
         }
     }
 
-    protected String getThumbnailName(BbsUploadFile bbsUploadFile) {
+    protected String getThumbnailName(String fileName) {
         String thumbnailPrefix = fileStorageProperties.getThumbnailPrefix();
-        return thumbnailPrefix + bbsUploadFile.getFileName();
+        return thumbnailPrefix + fileName;
     }
 
     protected String getFileDownloadUri(String requestPrefix, String fileName) {

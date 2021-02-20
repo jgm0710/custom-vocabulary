@@ -53,9 +53,9 @@ public class BbsFileStorageService extends FileStorage {
         return bbsUploadFileRepository.findByFileName(fileName).orElseThrow(BbsUploadFileNotFoundException::new);
     }
 
-    public Resource loadBbsFileAsResource(Long bbsFileId) {
+    public Resource loadBbsUploadFileAsResource(Long fileId) {
 
-        BbsUploadFile bbsUploadFile = bbsUploadFileRepository.findById(bbsFileId).orElseThrow(BbsUploadFileNotFoundException::new);
+        BbsUploadFile bbsUploadFile = bbsUploadFileRepository.findById(fileId).orElseThrow(BbsUploadFileNotFoundException::new);
 
         String fileName = bbsUploadFile.getFileName();
         String fileStoredPath = bbsUploadFile.getFileStoredPath();
@@ -64,10 +64,10 @@ public class BbsFileStorageService extends FileStorage {
 
     }
 
-    public Resource loadBbsThumbnailAsResource(Long bbsFileId) {
-        BbsUploadFile bbsUploadFile = bbsUploadFileRepository.findById(bbsFileId).orElseThrow(BbsUploadFileNotFoundException::new);
+    public Resource loadThumbnailOfBbsUploadFileAsResource(Long fileId) {
+        BbsUploadFile bbsUploadFile = bbsUploadFileRepository.findById(fileId).orElseThrow(BbsUploadFileNotFoundException::new);
 
-        String thumbnailName = super.getThumbnailName(bbsUploadFile);
+        String thumbnailName = super.getThumbnailName(bbsUploadFile.getFileName());
         String fileStoredPath = bbsUploadFile.getFileStoredPath();
 
         return super.getResource(thumbnailName, fileStoredPath);
