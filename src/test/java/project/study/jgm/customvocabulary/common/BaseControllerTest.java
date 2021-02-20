@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -14,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.multipart.MultipartFile;
 import project.study.jgm.customvocabulary.bbs.BbsRepository;
 import project.study.jgm.customvocabulary.bbs.BbsService;
 import project.study.jgm.customvocabulary.bbs.like.BbsLikeRepository;
@@ -22,6 +26,10 @@ import project.study.jgm.customvocabulary.bbs.reply.ReplyRepository;
 import project.study.jgm.customvocabulary.bbs.reply.ReplyService;
 import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeRepository;
 import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeService;
+import project.study.jgm.customvocabulary.bbs.upload.BbsFileStorageService;
+import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
+import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFileRepository;
+import project.study.jgm.customvocabulary.common.upload.OnlyFileIdDto;
 import project.study.jgm.customvocabulary.members.*;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.JwtTokenProvider;
@@ -31,8 +39,11 @@ import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.*;
 
 import javax.persistence.EntityManager;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -46,6 +57,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Disabled
 @Transactional
 public abstract class BaseControllerTest {
+
+    @Autowired
+    protected ModelMapper modelMapper;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -104,6 +118,12 @@ public abstract class BaseControllerTest {
     @Autowired
     protected VocabularyRepository vocabularyRepository;
 
+    @Autowired
+    protected BbsFileStorageService bbsFileStorageService;
+
+    @Autowired
+    protected BbsUploadFileRepository bbsUploadFileRepository;
+
 
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {
@@ -113,6 +133,7 @@ public abstract class BaseControllerTest {
                 .alwaysDo(print())
                 .build();
 
+        bbsUploadFileRepository.deleteAll();
         vocabularyRepository.deleteAll();
         categoryRepository.deleteAll();
         bbsLikeRepository.deleteAll();
@@ -215,6 +236,31 @@ public abstract class BaseControllerTest {
         categoryRepository.save(category);
 
         return category;
+    }
+
+    protected List<OnlyFileIdDto> getOnlyFileIdDtos() throws IOException {
+        String path = "/static/test/text.txt";
+        MultipartFile multipartFile = getMultipartFile(path);
+        BbsUploadFile bbsUploadFile = bbsFileStorageService.uploadBbsFile(multipartFile);
+
+        String path2 = "/static/test/사진1.jpg";
+        MultipartFile multipartFile1 = getMultipartFile(path2);
+        BbsUploadFile bbsUploadFile1 = bbsFileStorageService.uploadBbsFile(multipartFile1);
+
+        OnlyFileIdDto onlyFileIdDto = new OnlyFileIdDto(bbsUploadFile.getId());
+        OnlyFileIdDto onlyFileIdDto1 = new OnlyFileIdDto(bbsUploadFile1.getId());
+
+        List<OnlyFileIdDto> onlyFileIdDtos = new ArrayList<>();
+        onlyFileIdDtos.add(onlyFileIdDto);
+        onlyFileIdDtos.add(onlyFileIdDto1);
+        return onlyFileIdDtos;
+    }
+
+    protected MockMultipartFile getMultipartFile(String path) throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource(path);
+        String filename = classPathResource.getFilename();
+        String contentType = URLConnection.guessContentTypeFromName(filename);
+        return new MockMultipartFile("files", filename, contentType, classPathResource.getInputStream());
     }
 
 

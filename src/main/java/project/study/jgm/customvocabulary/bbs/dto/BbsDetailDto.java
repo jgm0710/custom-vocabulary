@@ -4,14 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.modelmapper.ModelMapper;
 import project.study.jgm.customvocabulary.bbs.Bbs;
-import project.study.jgm.customvocabulary.bbs.BbsStatus;
-import project.study.jgm.customvocabulary.members.Member;
+import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
+import project.study.jgm.customvocabulary.common.upload.UploadFileResponseDto;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
-
-import static javax.persistence.FetchType.LAZY;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -42,6 +42,9 @@ public class BbsDetailDto {
 
     private boolean allowModificationAndDeletion;
 
+    @Builder.Default
+    private List<UploadFileResponseDto> uploadFiles = new ArrayList<>();
+
 //id
 //writer
 //title
@@ -52,8 +55,9 @@ public class BbsDetailDto {
 //registerDate
 //updateDate
 
-    public static BbsDetailDto bbsToDetail(Bbs bbs) {
-        return BbsDetailDto.builder()
+    public static BbsDetailDto bbsToDetail(Bbs bbs, ModelMapper modelMapper) {
+
+        BbsDetailDto bbsDetailDto = BbsDetailDto.builder()
                 .id(bbs.getId())
                 .writer(bbs.getMember().getNickname())
                 .title(bbs.getTitle())
@@ -63,9 +67,21 @@ public class BbsDetailDto {
                 .replyCount(bbs.getReplyCount())
                 .registerDate(bbs.getRegisterDate())
                 .updateDate(bbs.getUpdateDate())
-                .allowModificationAndDeletion(false)
                 .viewLike(true)
+                .allowModificationAndDeletion(false)
                 .build();
+
+        List<BbsUploadFile> bbsUploadFileList = bbs.getBbsUploadFileList();
+        for (BbsUploadFile bbsUploadFile : bbsUploadFileList) {
+            UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
+            bbsDetailDto.addUploadFileResponseDto(uploadFileResponseDto);
+        }
+
+        return bbsDetailDto;
+    }
+
+    public void addUploadFileResponseDto(UploadFileResponseDto uploadFileResponseDto) {
+        this.uploadFiles.add(uploadFileResponseDto);
     }
 
 }

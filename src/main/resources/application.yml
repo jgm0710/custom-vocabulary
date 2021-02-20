@@ -12,6 +12,17 @@ spring:
       hibernate:
         format_sql: true
 
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 200MB
+      max-request-size: 215MB
+
+file:
+  bbs-upload-dir: C:\Users\jgm\Desktop\project\upload\bbs-file
+  thumbnail-prefix: s_
+
 logging:
   level:
     org.hibernate.SQL: debug
@@ -20,7 +31,6 @@ logging:
 
 jwt-security:
   secret-key: costomvocaSecretKey
-  token-valid-second: 300
+  token-valid-second: 3000
   expiration-cycle-days: 14
-
 

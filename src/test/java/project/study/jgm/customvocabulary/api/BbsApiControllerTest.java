@@ -1,6 +1,5 @@
 package project.study.jgm.customvocabulary.api;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -14,12 +13,14 @@ import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
+import project.study.jgm.customvocabulary.common.upload.OnlyFileIdDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class BbsApiControllerTest extends BaseControllerTest {
-
-    @BeforeEach
-    public void setUp() {
-        bbsLikeRepository.deleteAll();
-        bbsRepository.deleteAll();
-        memberRepository.deleteAll();
-    }
 
     @Test
     @DisplayName("게시글 추가")
@@ -51,9 +45,12 @@ class BbsApiControllerTest extends BaseControllerTest {
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
 
+        List<OnlyFileIdDto> onlyFileIdDtos = getOnlyFileIdDtos();
+
         BbsCreateDto bbsCreateDto = BbsCreateDto.builder()
                 .title("test bbs")
                 .content("test content")
+                .fileIdList(onlyFileIdDtos)
                 .build();
 
         //when
@@ -82,12 +79,16 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").exists())
                 .andExpect(jsonPath("data.allowModificationAndDeletion").exists())
-                .andExpect(jsonPath("data.id").exists())
-                .andExpect(jsonPath("data.id").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("message").value(MessageVo.BBS_REGISTERED_SUCCESSFULLY))
         ;
 
     }
+
 
     @Test
     @DisplayName("게시글 추가 시 제목이나 내용이 비어 있는 경우")
@@ -372,11 +373,14 @@ class BbsApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+//        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+
+        Bbs bbs = createBbsByService(userMember);
+
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/" + bbsSample.getId())
+                        get("/api/bbs/" + bbs.getId())
                 )
                 .andDo(print());
 
@@ -395,9 +399,25 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(true))
                 .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
         ;
 
+    }
+
+    private Bbs createBbsByService(Member userMember) throws IOException {
+        List<OnlyFileIdDto> onlyFileIdDtos = getOnlyFileIdDtos();
+        BbsCreateDto bbsCreateDto = BbsCreateDto.builder()
+                .title("test bbs")
+                .content("test content")
+                .fileIdList(onlyFileIdDtos)
+                .build();
+
+        return bbsService.addBbs(userMember.getId(), bbsCreateDto);
     }
 
     @Test
@@ -407,7 +427,8 @@ class BbsApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+//        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+        Bbs bbs = createBbsByService(userMember);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto userTokenDto = memberService.login(loginDto);
@@ -415,7 +436,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/" + bbsSample.getId())
+                        get("/api/bbs/" + bbs.getId())
                                 .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -435,6 +456,11 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(false))
                 .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
 //                .andExpect(jsonPath("_links.update-bbs.href").exists())
         ;
@@ -448,7 +474,8 @@ class BbsApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+//        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+        Bbs bbs = createBbsByService(userMember);
 
         MemberCreateDto memberCreateDto1 = getMemberCreateDto("differentMember", "differentMember");
         Member user2 = memberService.userJoin(memberCreateDto1);
@@ -456,12 +483,12 @@ class BbsApiControllerTest extends BaseControllerTest {
         LoginDto loginDto = getLoginDto(memberCreateDto1);
         TokenDto user2TokenDto = memberService.login(loginDto);
 
-        bbsLikeService.like(user2.getId(), bbsSample.getId());
+        bbsLikeService.like(user2.getId(), bbs.getId());
 
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/" + bbsSample.getId())
+                        get("/api/bbs/" + bbs.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -481,6 +508,11 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.like").value(true))
                 .andExpect(jsonPath("data.viewLike").value(true))
                 .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
 //                .andExpect(jsonPath("_links.update-bbs.href").doesNotExist())
         ;
@@ -493,7 +525,10 @@ class BbsApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member adminMember = memberService.adminJoin(memberCreateDto);
 
-        Bbs bbsSample = getBbsSample(adminMember, BbsStatus.DELETE);
+        MemberCreateDto memberCreateDto2 = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto2);
+//        Bbs bbsSample = getBbsSample(adminMember, BbsStatus.DELETE);
+        Bbs bbs = createBbsByService(user1);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto adminTokenDto = memberService.login(loginDto);
@@ -501,7 +536,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/" + bbsSample.getId())
+                        get("/api/bbs/" + bbs.getId())
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -519,6 +554,11 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("data.status").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
+                .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
 //                .andExpect(jsonPath("_links.update-bbs.href").exists())
         ;
@@ -589,19 +629,23 @@ class BbsApiControllerTest extends BaseControllerTest {
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto userTokenDto = memberService.login(loginDto);
 
-        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+//        Bbs bbsSample = getBbsSample(userMember, BbsStatus.REGISTER);
+        Bbs bbs = createBbsByService(userMember);
 
         String update_title = "update bbs";
         String update_content = "update content";
+//        List<OnlyFileIdDto> onlyFileIdDtos = getOnlyFileIdDtos();
+
         BbsUpdateDto bbsUpdateDto = BbsUpdateDto.builder()
                 .title(update_title)
                 .content(update_content)
+//                .fileIdList(onlyFileIdDtos)
                 .build();
 
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/bbs/" + bbsSample.getId())
+                        put("/api/bbs/" + bbs.getId())
                                 .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(bbsUpdateDto))
@@ -623,11 +667,12 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(false))
                 .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.uploadFiles").isEmpty())
                 .andExpect(jsonPath("message").value(MessageVo.MODIFIED_BBS_SUCCESSFULLY))
 //                .andExpect(jsonPath("_links.get-bbs.href").exists())
         ;
 
-        Bbs findBbs = bbsService.getBbs(bbsSample.getId());
+        Bbs findBbs = bbsService.getBbs(bbs.getId());
         assertEquals(findBbs.getTitle(), update_title);
         assertEquals(findBbs.getContent(), update_content);
 

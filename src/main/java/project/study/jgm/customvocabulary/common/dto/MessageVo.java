@@ -77,6 +77,10 @@ public class MessageVo {
 
     public static final String MODIFY_BBS_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 게시글이 정상적으로 수정되었습니다.";
 
+    public static final String ADD_FILE_TO_BBS_SUCCESSFULLY = "게시글에 파일이 정상적으로 업로드되었습니다.";
+
+    public static final String ADD_FILE_LIST_TO_BBS_SUCCESSFULLY = "게시글에 파일 목록이 정상적으로 업로드되었습니다.";
+
 
     /**
      * Reply
@@ -123,5 +127,13 @@ public class MessageVo {
     public static final String ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 공유 카테고리가 정상적으로 등록되었습니다.";
 
     public static final String GET_SHARED_CATEGORY_LIST_SUCCESSFULLY = "공유 카테고리 목록이 정상적으로 조회 되었습니다.";
+
+    /**
+     * Common
+     */
+
+    public static final String GET_DOWNLOAD_FILE_SUCCESSFULLY = "요청하신 파일이 정상적으로 다운로드 되었습니다.";
+
+    public static final String GET_THUMBNAIL_SUCCESSFULLY = "요청하신 썸네일 이미지가 정상적으로 다운로드 되었습니다.";
 
 }

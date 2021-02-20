@@ -20,12 +20,13 @@ import project.study.jgm.customvocabulary.bbs.exception.BbsNotFoundException;
 import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
 import project.study.jgm.customvocabulary.bbs.like.BbsLikeService;
 import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
-import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.common.dto.PaginationDto;
 import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
+import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
+import project.study.jgm.customvocabulary.common.upload.UploadFileResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.MemberService;
@@ -33,6 +34,7 @@ import project.study.jgm.customvocabulary.security.CurrentUser;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -53,10 +55,9 @@ public class BbsApiController {
 
     private final BbsLikeService bbsLikeService;
 
-
     @PostMapping
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity addBbs(
+    public ResponseEntity<?> addBbs(
             @RequestBody @Valid BbsCreateDto bbsCreateDto,
             Errors errors,
             @CurrentUser Member member
@@ -69,14 +70,15 @@ public class BbsApiController {
         Bbs savedBbs = bbsService.addBbs(member.getId(), bbsCreateDto);
         URI getBbsUri = linkTo(BbsApiController.class).slash(savedBbs.getId()).toUri();
 
-        BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(savedBbs);
+        BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(savedBbs, modelMapper);
         bbsDetailDto.setAllowModificationAndDeletion(true);
 
         return ResponseEntity.created(getBbsUri).body(new ResponseDto<>(bbsDetailDto, BBS_REGISTERED_SUCCESSFULLY));
     }
 
+
     @GetMapping
-    public ResponseEntity getBbsList(
+    public ResponseEntity<?> getBbsList(
             @ModelAttribute @Valid BbsSearchDto bbsSearchDto,
             BindingResult bindingResult,
             @CurrentUser Member member
@@ -119,18 +121,20 @@ public class BbsApiController {
     }
 
     @GetMapping("/{bbsId}")
-    public ResponseEntity getBbs(
+    public ResponseEntity<? extends ResponseDto<?>> getBbs(
             @PathVariable("bbsId") Long bbsId,
             @CurrentUser Member member
     ) {
 
         try {
             Bbs findBbs = bbsService.getBbs(bbsId);
-            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs);
+            List<BbsUploadFile> bbsUploadFileList = findBbs.getBbsUploadFileList();
+            List<UploadFileResponseDto> uploadFileResponseDtoList = uploadFilesToResponseDtos(bbsUploadFileList);
+            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs,modelMapper);
 
             if (member != null) {
                 if (member.getRoles().contains(MemberRole.ADMIN)) {
-                    BbsDetailAdminViewDto bbsDetailAdminViewDto = BbsDetailAdminViewDto.bbsToDetailAdminView(findBbs);
+                    BbsDetailAdminViewDto bbsDetailAdminViewDto = BbsDetailAdminViewDto.bbsToDetailAdminView(findBbs, modelMapper);
 
                     return ResponseEntity.ok(new ResponseDto<>(bbsDetailAdminViewDto, GET_BBS_BY_ADMIN_SUCCESSFULLY));
                 } else {
@@ -158,7 +162,7 @@ public class BbsApiController {
 
     @PutMapping("/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity modifyBbs(
+    public ResponseEntity<?> modifyBbs(
             @PathVariable("bbsId") Long bbsId,
             @RequestBody @Valid BbsUpdateDto bbsUpdateDto,
             Errors errors,
@@ -169,8 +173,10 @@ public class BbsApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
+        Bbs findBbs;
+
         try {
-            Bbs findBbs = bbsService.getBbs(bbsId);
+            findBbs = bbsService.getBbs(bbsId);
             if (!findBbs.getMember().getId().equals(member.getId())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(MODIFY_BBS_OF_DIFFERENT_MEMBER));
             }
@@ -185,12 +191,11 @@ public class BbsApiController {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
-        Bbs findBbs = bbsService.getBbs(bbsId);
         if (member.getRoles().contains(MemberRole.ADMIN)) {
-            BbsDetailAdminViewDto bbsDetailAdminViewDto = BbsDetailAdminViewDto.bbsToDetailAdminView(findBbs);
+            BbsDetailAdminViewDto bbsDetailAdminViewDto = BbsDetailAdminViewDto.bbsToDetailAdminView(findBbs, modelMapper);
             return ResponseEntity.ok(new ResponseDto<>(bbsDetailAdminViewDto, MODIFY_BBS_BY_ADMIN_SUCCESSFULLY));
         } else {
-            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs);
+            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs,modelMapper);
             bbsDetailDto.setViewLike(false);
             bbsDetailDto.setAllowModificationAndDeletion(true);
             return ResponseEntity.ok(new ResponseDto<>(bbsDetailDto, MODIFIED_BBS_SUCCESSFULLY));
@@ -199,7 +204,7 @@ public class BbsApiController {
 
     @DeleteMapping("/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity deleteBbs(
+    public ResponseEntity<ResponseDto<Object>> deleteBbs(
             @PathVariable("bbsId") Long bbsId,
             @CurrentUser Member member
     ) {
@@ -228,21 +233,17 @@ public class BbsApiController {
 
     @GetMapping("/like/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity addLikeToBbs(
+    public ResponseEntity<ResponseDto<Object>> addLikeToBbs(
             @PathVariable("bbsId") Long bbsId,
             @CurrentUser Member member
     ) {
 
         try {
             bbsLikeService.like(member.getId(), bbsId);
-        } catch (ExistLikeException e) {
+        } catch (ExistLikeException | SelfLikeException | DeletedBbsException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         } catch (BbsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (SelfLikeException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (DeletedBbsException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
         return ResponseEntity.ok(new ResponseDto<>(ADD_LIKE_TO_BBS_SUCCESSFULLY));
@@ -250,7 +251,7 @@ public class BbsApiController {
 
     @GetMapping("/unlike/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity unLikeBbs(
+    public ResponseEntity<ResponseDto<Object>> unLikeBbs(
             @PathVariable("bbsId") Long bbsId,
             @CurrentUser Member member
     ) {
@@ -262,5 +263,14 @@ public class BbsApiController {
         }
 
         return ResponseEntity.ok(new ResponseDto<>(UNLIKE_BBS_SUCCESSFULLY));
+    }
+
+    private List<UploadFileResponseDto> uploadFilesToResponseDtos(List<BbsUploadFile> bbsUploadFiles) {
+        List<UploadFileResponseDto> uploadFileResponseDtoList = new ArrayList<>();
+        for (BbsUploadFile bbsUploadFile : bbsUploadFiles) {
+            UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
+            uploadFileResponseDtoList.add(uploadFileResponseDto);
+        }
+        return uploadFileResponseDtoList;
     }
 }

@@ -6,10 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.bbs.dto.BbsCreateDto;
 import project.study.jgm.customvocabulary.bbs.dto.BbsUpdateDto;
+import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
 import project.study.jgm.customvocabulary.members.Member;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static javax.persistence.FetchType.LAZY;
 
@@ -39,6 +42,10 @@ public class Bbs {
     private int likeCount;
 
     private int replyCount;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "bbs", cascade = CascadeType.ALL)
+    private List<BbsUploadFile> bbsUploadFileList = new ArrayList<>();
 
     private LocalDateTime registerDate;
 
@@ -85,10 +92,11 @@ public class Bbs {
         this.views++;
     }
 
-    public void modify(BbsUpdateDto updateDto) {
+    public void modify(BbsUpdateDto updateDto, List<BbsUploadFile> bbsUploadFileList) {
         this.title = updateDto.getTitle();
         this.content = updateDto.getContent();
         this.updateDate = LocalDateTime.now();
+        this.modifyFileList(bbsUploadFileList);
     }
 
     public void delete() {
@@ -109,5 +117,14 @@ public class Bbs {
 
     public void decreaseReplyCount() {
         this.replyCount--;
+    }
+
+    public void addUploadFile(BbsUploadFile bbsUploadFile) {
+        this.bbsUploadFileList.add(bbsUploadFile);
+        bbsUploadFile.setBbs(this);
+    }
+
+    public void modifyFileList(List<BbsUploadFile> bbsUploadFileList) {
+        this.bbsUploadFileList = bbsUploadFileList;
     }
 }

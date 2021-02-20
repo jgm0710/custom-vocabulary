@@ -1,11 +1,14 @@
 package project.study.jgm.customvocabulary.bbs.dto;
 
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import project.study.jgm.customvocabulary.common.upload.OnlyFileIdDto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,4 +21,6 @@ public class BbsCreateDto {
 
     @NotBlank(message = "내용을 입력해주세요.")
     private String content;
+
+    private List<OnlyFileIdDto> fileIdList;
 }
