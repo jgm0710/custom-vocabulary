@@ -5,7 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
-import project.study.jgm.customvocabulary.vocabulary.word.dto.WordDto;
+import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 
 import javax.persistence.*;
 
@@ -27,32 +28,34 @@ public class Word {
     @JoinColumn(name = "vocabulary_id")
     private Vocabulary vocabulary;
 
-    private String imgUrl;
+    //    private String imgUrl;
+    @OneToOne(mappedBy = "word", cascade = CascadeType.ALL)
+    private WordImageFile wordImageFile;
 
-    @Enumerated(EnumType.STRING)
-    private LanguageType mainLanguage;
+//    @Enumerated(EnumType.STRING)
+//    private LanguageType mainLanguage;
 
     private String mainWord;
 
-    @Enumerated(EnumType.STRING)
-    private LanguageType subLanguage;
+//     @Enumerated(EnumType.STRING)
+////    private LanguageType mainLanguage;
 
     private String subWord;
 
     private boolean memorisedCheck; //암기 했는지 체크
 
-    public static void addWordToVocabulary(Vocabulary vocabulary, WordDto wordDto) {
+    public static void addWordToVocabulary(Vocabulary vocabulary, WordRequestDto wordRequestDto, WordImageFile wordImageFile) {
         Word word = Word.builder()
                 .vocabulary(vocabulary)
-                .imgUrl(wordDto.getImgUrl())
-                .mainLanguage(wordDto.getMainLanguage())
-                .mainWord(wordDto.getMainWord())
-                .subLanguage(wordDto.getSubLanguage())
-                .subWord(wordDto.getSubWord())
-                .memorisedCheck(wordDto.isMemorisedCheck())
+                .wordImageFile(wordImageFile)
+//                .mainLanguage(wordRequestDto.getMainLanguage())
+                .mainWord(wordRequestDto.getMainWord())
+//                .subLanguage(wordRequestDto.getSubLanguage())
+                .subWord(wordRequestDto.getSubWord())
+                .memorisedCheck(wordRequestDto.isMemorisedCheck())
                 .build();
 
-        word.getVocabulary().addWord(word);
+        vocabulary.addWord(word);
     }
 
     public void checkMemorise() {

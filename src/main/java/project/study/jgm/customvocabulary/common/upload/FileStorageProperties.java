@@ -13,5 +13,8 @@ public class FileStorageProperties {
 
     private String bbsUploadDir;
 
+    private String wordImageDir;
+
     private String thumbnailPrefix;
+
 }

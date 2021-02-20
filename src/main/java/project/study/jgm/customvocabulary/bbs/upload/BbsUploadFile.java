@@ -18,14 +18,14 @@ public class BbsUploadFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "upload_file_id")
+    @Column(name = "bbs_upload_file_id")
     private Long id;
 
     private String fileName;
 
     private String fileStoredPath;
 
-    @Column(length = 2000)
+    @Column(length = 1000)
     private String fileDownloadUri;
 
     private String fileType;

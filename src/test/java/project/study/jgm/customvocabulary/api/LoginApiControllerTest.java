@@ -56,10 +56,10 @@ class LoginApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("accessToken").exists())
-                .andExpect(jsonPath("accessTokenExpirationSecond").value(300))
-                .andExpect(jsonPath("refreshToken").exists())
-                .andExpect(jsonPath("refreshTokenExpirationPeriodDateTime").exists())
+                .andExpect(jsonPath("data.accessToken").exists())
+                .andExpect(jsonPath("data.accessTokenExpirationSecond").value(securityProperties.getTokenValidSecond()))
+                .andExpect(jsonPath("data.refreshToken").exists())
+                .andExpect(jsonPath("data.refreshTokenExpirationPeriodDateTime").exists())
         ;
 
     }
@@ -148,10 +148,10 @@ class LoginApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("accessToken").exists())
-                .andExpect(jsonPath("accessTokenExpirationSecond").value(300))
-                .andExpect(jsonPath("refreshToken").exists())
-                .andExpect(jsonPath("refreshTokenExpirationPeriodDateTime").exists())
+                .andExpect(jsonPath("data.accessToken").exists())
+                .andExpect(jsonPath("data.accessTokenExpirationSecond").value(securityProperties.getTokenValidSecond()))
+                .andExpect(jsonPath("data.refreshToken").exists())
+                .andExpect(jsonPath("data.refreshTokenExpirationPeriodDateTime").exists())
         ;
 
     }

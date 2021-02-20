@@ -45,12 +45,12 @@ class FileApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("data.fileId").exists())
-                .andExpect(jsonPath("data.fileName").exists())
-                .andExpect(jsonPath("data.fileDownloadUri").exists())
-                .andExpect(jsonPath("data.fileType").exists())
-                .andExpect(jsonPath("data.size").exists())
-                .andExpect(jsonPath("data.fileId").exists())
+                .andExpect(jsonPath("data[0].fileId").exists())
+                .andExpect(jsonPath("data[0].fileName").exists())
+                .andExpect(jsonPath("data[0].fileDownloadUri").exists())
+                .andExpect(jsonPath("data[0].fileType").exists())
+                .andExpect(jsonPath("data[0].size").exists())
+                .andExpect(jsonPath("data[0].fileId").exists())
                 .andExpect(jsonPath("message").value(MessageVo.ADD_FILE_LIST_TO_BBS_SUCCESSFULLY))
         ;
 

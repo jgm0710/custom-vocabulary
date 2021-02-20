@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
+import project.study.jgm.customvocabulary.common.upload.OnlyFileIdDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRepository;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
@@ -17,7 +18,10 @@ import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdat
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.WordRepository;
-import project.study.jgm.customvocabulary.vocabulary.word.dto.WordDto;
+import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
 import java.util.List;
 
@@ -35,6 +39,8 @@ public class VocabularyService {
     private final CategoryRepository categoryRepository;
 
     private final WordRepository wordRepository;
+
+    private final WordImageFileRepository wordImageFileRepository;
 
     /**
      * personal
@@ -57,22 +63,25 @@ public class VocabularyService {
     }
 
     @Transactional
-    public void addWordListToPersonalVocabulary(Long vocabularyId, List<WordDto> wordDtoList) {
+    public void addWordListToPersonalVocabulary(Long vocabularyId, List<WordRequestDto> wordRequestDtoList) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
             throw new BadRequestByDivision();
         }
 
-        for (WordDto wordDto :
-                wordDtoList) {
-            wordDto.setMemorisedCheck(false);
-            Word.addWordToVocabulary(vocabulary, wordDto);
+        for (WordRequestDto wordRequestDto :
+                wordRequestDtoList) {
+            wordRequestDto.setMemorisedCheck(false);
+
+            WordImageFile wordImageFile = getWordImageFile(wordRequestDto);
+
+            Word.addWordToVocabulary(vocabulary, wordRequestDto, wordImageFile);
         }
     }
 
     @Transactional
-    public void updateWordListToPersonalVocabulary(Long vocabularyId, List<WordDto> wordDtoList) {
+    public void updateWordListToPersonalVocabulary(Long vocabularyId, List<WordRequestDto> wordRequestDtoList) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
@@ -81,9 +90,12 @@ public class VocabularyService {
 
         vocabulary.removeWordList();
 
-        for (WordDto createDto :
-                wordDtoList) {
-            Word.addWordToVocabulary(vocabulary, createDto);
+        for (WordRequestDto wordRequestDto :
+                wordRequestDtoList) {
+
+            WordImageFile wordImageFile = getWordImageFile(wordRequestDto);
+
+            Word.addWordToVocabulary(vocabulary, wordRequestDto, wordImageFile);
         }
     }
 
@@ -218,4 +230,11 @@ public class VocabularyService {
         vocabulary.unshared();
     }
 
+
+    private WordImageFile getWordImageFile(WordRequestDto wordRequestDto) {
+        OnlyFileIdDto imageFileIdDto = wordRequestDto.getImageFileIdDto();
+        return wordImageFileRepository
+                .findById(imageFileIdDto.getFileId())
+                .orElseThrow(WordImageFileNotFoundException::new);
+    }
 }

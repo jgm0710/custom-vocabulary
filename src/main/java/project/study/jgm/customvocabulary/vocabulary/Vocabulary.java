@@ -8,6 +8,7 @@ import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 
 import javax.persistence.*;
@@ -40,6 +41,12 @@ public class Vocabulary {
     private String thumbnailImgUrl;
 
     private String title;
+
+    @Enumerated(EnumType.STRING)
+    private LanguageType mainLanguage;
+
+    @Enumerated(EnumType.STRING)
+    private LanguageType subLanguage;
 
     @Builder.Default
     @OneToMany(mappedBy = "vocabulary", cascade = CascadeType.ALL)
@@ -101,10 +108,7 @@ public class Vocabulary {
     }
 
     public void removeWordList() {
-        for (int i = 0; i < this.wordList.size(); i++) {
-            this.wordList.remove(i);
-        }
-
+        this.wordList.clear();
         this.totalWordCount = 0;
         this.memorisedCount = 0;
     }

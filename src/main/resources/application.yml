@@ -21,6 +21,7 @@ spring:
 
 file:
   bbs-upload-dir: C:\Users\jgm\Desktop\project\upload\bbs-file
+  word-image-dir: C:\Users\jgm\Desktop\project\upload\word-file
   thumbnail-prefix: s_
 
 logging:
