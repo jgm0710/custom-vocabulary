@@ -37,6 +37,8 @@ import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.*;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
@@ -57,6 +59,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Disabled
 @Transactional
 public abstract class BaseControllerTest {
+
+    @Autowired
+    protected WordImageFileRepository wordImageFileRepository;
+
+    @Autowired
+    protected WordFileStorageService wordFileStorageService;
 
     @Autowired
     protected ModelMapper modelMapper;
@@ -240,11 +248,11 @@ public abstract class BaseControllerTest {
 
     protected List<OnlyFileIdDto> getOnlyFileIdDtos() throws IOException {
         String path = "/static/test/text.txt";
-        MultipartFile multipartFile = getMockMultipartFile(path);
+        MultipartFile multipartFile = getMockMultipartFile("files", path);
         BbsUploadFile bbsUploadFile = bbsFileStorageService.uploadBbsFile(multipartFile);
 
         String path2 = "/static/test/사진1.jpg";
-        MultipartFile multipartFile1 = getMockMultipartFile(path2);
+        MultipartFile multipartFile1 = getMockMultipartFile("files", path2);
         BbsUploadFile bbsUploadFile1 = bbsFileStorageService.uploadBbsFile(multipartFile1);
 
         OnlyFileIdDto onlyFileIdDto = new OnlyFileIdDto(bbsUploadFile.getId());
@@ -256,11 +264,11 @@ public abstract class BaseControllerTest {
         return onlyFileIdDtos;
     }
 
-    protected MockMultipartFile getMockMultipartFile(String path) throws IOException {
+    protected MockMultipartFile getMockMultipartFile(String parameterName, String path) throws IOException {
         ClassPathResource classPathResource = new ClassPathResource(path);
         String filename = classPathResource.getFilename();
         String contentType = URLConnection.guessContentTypeFromName(filename);
-        return new MockMultipartFile("files", filename, contentType, classPathResource.getInputStream());
+        return new MockMultipartFile(parameterName, filename, contentType, classPathResource.getInputStream());
     }
 
 

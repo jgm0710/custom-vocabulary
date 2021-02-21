@@ -16,6 +16,8 @@ import project.study.jgm.customvocabulary.vocabulary.category.exception.Category
 import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFileRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.WordRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
@@ -42,6 +44,10 @@ public class VocabularyService {
 
     private final WordImageFileRepository wordImageFileRepository;
 
+    private final VocabularyThumbnailImageFileRepository vocabularyThumbnailImageFileRepository;
+
+
+
     /**
      * personal
      */
@@ -50,7 +56,10 @@ public class VocabularyService {
     public Vocabulary createPersonalVocabulary(Long memberId, Long categoryId, PersonalVocabularyCreateDto createDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Category category = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
-        Vocabulary personalVocabulary = Vocabulary.createPersonalVocabulary(member, category, createDto);
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
+                .findById(createDto.getImageFileIdDto().getFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
+
+        Vocabulary personalVocabulary = Vocabulary.createPersonalVocabulary(member, category, createDto, vocabularyThumbnailImageFile);
 
         if (!category.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
             throw new DivisionMismatchException();
@@ -115,12 +124,14 @@ public class VocabularyService {
     @Transactional
     public void modifyPersonalVocabulary(Long vocabularyId, PersonalVocabularyUpdateDto updateDto) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
+                .findById(updateDto.getImageFileIdDto().getFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
             throw new BadRequestByDivision();
         }
 
-        vocabulary.modify(updateDto);
+        vocabulary.modify(updateDto, vocabularyThumbnailImageFile);
     }
 
     @Transactional

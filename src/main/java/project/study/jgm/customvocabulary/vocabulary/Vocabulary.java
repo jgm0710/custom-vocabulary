@@ -8,6 +8,7 @@ import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 
@@ -38,7 +39,8 @@ public class Vocabulary {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    private String thumbnailImgUrl;
+    @OneToOne(mappedBy = "vocabulary", cascade = CascadeType.ALL)
+    private VocabularyThumbnailImageFile vocabularyThumbnailImageFile;
 
     private String title;
 
@@ -69,11 +71,12 @@ public class Vocabulary {
 
     private LocalDateTime registerDate;     //division에 따라 다르게 해석 : 개인 단어장{생성 날짜, 복사 날짜 저장} 단어장 공유{공유 날짜 저장}
 
-    public static Vocabulary createPersonalVocabulary(Member member, Category category, PersonalVocabularyCreateDto createDto) {
+    public static Vocabulary createPersonalVocabulary(Member member, Category category, PersonalVocabularyCreateDto createDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
         Vocabulary vocabulary = Vocabulary.builder()
                 .member(member)
                 .category(category)
-                .thumbnailImgUrl(createDto.getThumbnailImgUrl())
+//                .thumbnailImgUrl(createDto.getThumbnailImgUrl())
+                .vocabularyThumbnailImageFile(vocabularyThumbnailImageFile)
                 .title(createDto.getTitle())
                 .difficulty(createDto.getDifficulty())
                 .views(0)
@@ -113,8 +116,8 @@ public class Vocabulary {
         this.memorisedCount = 0;
     }
 
-    public void modify(PersonalVocabularyUpdateDto updateDto) {
-        this.thumbnailImgUrl = updateDto.getThumbnailImgUrl();
+    public void modify(PersonalVocabularyUpdateDto updateDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
+        this.vocabularyThumbnailImageFile = vocabularyThumbnailImageFile;
         this.title = updateDto.getTitle();
         this.difficulty = updateDto.getDifficulty();
     }
@@ -131,7 +134,7 @@ public class Vocabulary {
         Vocabulary vocabulary = Vocabulary.builder()
                 .member(this.member)
                 .category(sharedCategory)
-                .thumbnailImgUrl(this.thumbnailImgUrl)
+                .vocabularyThumbnailImageFile(this.vocabularyThumbnailImageFile)
                 .title(this.title)
                 .difficulty(this.difficulty)
                 .views(0)
@@ -170,7 +173,7 @@ public class Vocabulary {
         Vocabulary vocabulary = Vocabulary.builder()
                 .member(member)
                 .category(personalCategory)
-                .thumbnailImgUrl(this.thumbnailImgUrl)
+                .vocabularyThumbnailImageFile(this.vocabularyThumbnailImageFile)
                 .title(this.title)
                 .difficulty(this.difficulty)
                 .views(0)
@@ -193,26 +196,6 @@ public class Vocabulary {
 
     public void decreaseLikeCount() {
         this.likeCount--;
-    }
-
-    @Override
-    public String toString() {
-        return "Vocabulary{" +
-                "id=" + id +
-//                ", member=" + member +
-                ", category=" + category +
-                ", thumbnailImgUrl='" + thumbnailImgUrl + '\'' +
-                ", title='" + title + '\'' +
-//                ", wordList=" + wordList +
-                ", difficulty=" + difficulty +
-                ", views=" + views +
-                ", likeCount=" + likeCount +
-                ", downloadCount=" + downloadCount +
-                ", memorisedCount=" + memorisedCount +
-                ", totalWordCount=" + totalWordCount +
-                ", division=" + division +
-                ", registerDate=" + registerDate +
-                '}';
     }
 
     public void deleteCategory() {

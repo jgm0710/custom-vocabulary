@@ -77,9 +77,9 @@ public class MessageVo {
 
     public static final String MODIFY_BBS_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 게시글이 정상적으로 수정되었습니다.";
 
-    public static final String ADD_FILE_TO_BBS_SUCCESSFULLY = "게시글에 파일이 정상적으로 업로드되었습니다.";
+    public static final String UPLOAD_BBS_FILE_SUCCESSFULLY = "게시글 파일이 정상적으로 업로드되었습니다.";
 
-    public static final String ADD_FILE_LIST_TO_BBS_SUCCESSFULLY = "게시글에 파일 목록이 정상적으로 업로드되었습니다.";
+    public static final String UPLOAD_BBS_FILE_LIST_SUCCESSFULLY = "게시글 파일 목록이 정상적으로 업로드되었습니다.";
 
 
     /**

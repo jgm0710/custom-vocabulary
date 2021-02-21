@@ -13,10 +13,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import project.study.jgm.customvocabulary.bbs.upload.BbsFileStorageService;
 import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
+import project.study.jgm.customvocabulary.bbs.upload.exception.BbsUploadFileNotFoundException;
 import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.common.upload.*;
+import project.study.jgm.customvocabulary.common.upload.exception.FileStorageException;
 import project.study.jgm.customvocabulary.common.upload.exception.MyFileNotFoundException;
 import project.study.jgm.customvocabulary.common.upload.exception.OriginalFilenameNotFoundException;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.NotImageTypeException;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,13 +40,17 @@ public class FileApiController {
 
     private final BbsFileStorageService bbsFileStorageService;
 
+    private final WordFileStorageService wordFileStorageService;
+
+
+    private final String AAA = "AAA";
 
     /**
      * Bbs
      */
 
     @CrossOrigin
-    @PostMapping("/bbs/uploadFile")
+    @PostMapping(value = "/bbs/uploadFile")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ResponseDto<UploadFileResponseDto>> uploadBbsFile(
             @RequestParam("file") MultipartFile file
@@ -48,20 +58,23 @@ public class FileApiController {
         BbsUploadFile bbsUploadFile;
         try {
             bbsUploadFile = bbsFileStorageService.uploadBbsFile(file);
-        } catch (OriginalFilenameNotFoundException e) {
+        } catch (OriginalFilenameNotFoundException | FileStorageException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
+
         UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
 
-        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, ADD_FILE_TO_BBS_SUCCESSFULLY));
+        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, UPLOAD_BBS_FILE_SUCCESSFULLY));
     }
 
+
     @CrossOrigin
-    @PostMapping("/bbs/uploadMultipleFiles")
+    @PostMapping(value = "/bbs/uploadMultipleFiles")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ResponseDto<List<UploadFileResponseDto>>> uploadBbsMultipleFiles(
             @RequestParam("files") MultipartFile[] files
     ) {
+
         List<UploadFileResponseDto> uploadFileResponseDtos = Arrays.stream(files)
                 .map(file -> {
                     ResponseEntity<ResponseDto<UploadFileResponseDto>> responseDtoResponseEntity = uploadBbsFile(file);
@@ -70,11 +83,10 @@ public class FileApiController {
                 })
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDtos, ADD_FILE_LIST_TO_BBS_SUCCESSFULLY));
+        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDtos, UPLOAD_BBS_FILE_LIST_SUCCESSFULLY));
     }
 
-    @CrossOrigin
-    @GetMapping("/bbs/downloadFile/{fileName:.+}")
+    @GetMapping(value = "/bbs/downloadFile/{fileName:.+}")
     public ResponseEntity<?> downloadBbsFile(
             @PathVariable String fileName
     ) {
@@ -85,19 +97,19 @@ public class FileApiController {
         try {
             bbsUploadFile = bbsFileStorageService.getBbsUploadFileByFileName(fileName);
             resource = bbsFileStorageService.loadBbsUploadFileAsResource(bbsUploadFile.getId());
-        } catch (MyFileNotFoundException e) {
+        } catch (BbsUploadFileNotFoundException | MyFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }
 
-        String contentType = bbsUploadFile.getFileType();
+        MediaType parseContentType = getParseContentType(bbsUploadFile.getFileType());
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .contentType(parseContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
                 .body(resource);
     }
 
-    @GetMapping("/bbs/displayThumbnail/{fileName:.+}")
+    @GetMapping(value = "/bbs/displayThumbnail/{fileName:.+}")
     public ResponseEntity<?> displayThumbnailOfBbsImage(
             @PathVariable String fileName
     ) {
@@ -107,16 +119,89 @@ public class FileApiController {
         try {
             bbsUploadFile = bbsFileStorageService.getBbsUploadFileByFileName(fileName);
             resource = bbsFileStorageService.loadThumbnailOfBbsUploadFileAsResource(bbsUploadFile.getId());
-        } catch (MyFileNotFoundException e) {
+        } catch (BbsUploadFileNotFoundException | MyFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }
 
-        String contentType = bbsUploadFile.getFileType();
+        MediaType parseContentType = getParseContentType(bbsUploadFile.getFileType());
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .contentType(parseContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
                 .body(resource);
     }
 
+
+    @CrossOrigin
+    @PostMapping(value = "/vocabulary/word/uploadImageFile")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<? extends ResponseDto<?>> uploadWordImageFile(
+            @RequestParam("file") MultipartFile file
+    ) {
+
+        WordImageFile wordImageFile;
+        try {
+            wordImageFile = wordFileStorageService.uploadWordImageFile(file);
+        } catch (NotImageTypeException | OriginalFilenameNotFoundException | FileStorageException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
+
+        UploadFileResponseDto uploadFileResponseDto = modelMapper.map(wordImageFile, UploadFileResponseDto.class);
+
+        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, "단어 이미지 파일이 정상적으로 업로드되었습니다.."));
+    }
+
+    @GetMapping(value = "/vocabulary/word/downloadImageFile/{fileName:.+}")
+    public ResponseEntity<?> downloadWordFile(
+            @PathVariable String fileName
+    ) {
+
+        WordImageFile wordImageFile;
+        Resource resource;
+
+        try {
+            wordImageFile = wordFileStorageService.getWordImageFileByFileName(fileName);
+            resource = wordFileStorageService.loadWordImageFileAsResource(wordImageFile.getId());
+        } catch (WordImageFileNotFoundException | MyFileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
+        String contentType = wordImageFile.getFileType();
+        MediaType parseContentType = getParseContentType(wordImageFile.getFileType());
+
+        return ResponseEntity.ok()
+                .contentType(parseContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
+                .body(resource);
+    }
+
+    @GetMapping(value = "/vocabulary/word/displayThumbnail/{fileName:.+}")
+    public ResponseEntity<?> displayThumbnailOfWordImage(
+            @PathVariable String fileName
+    ) {
+        WordImageFile wordImageFile;
+        Resource resource;
+
+        try {
+            wordImageFile = wordFileStorageService.getWordImageFileByFileName(fileName);
+            resource = wordFileStorageService.loadThumbnailOfWordImageFileAsResource(wordImageFile.getId());
+        } catch (WordImageFileNotFoundException | MyFileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        }
+
+        MediaType parseContentType = getParseContentType(wordImageFile.getFileType());
+
+        return ResponseEntity.ok()
+                .contentType(parseContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
+                .body(resource);
+    }
+
+    private String getContentDispositionString(Resource resource) {
+        return "attachment; filename=\"" + resource.getFilename() + "\"";
+    }
+
+    private MediaType getParseContentType(String fileType) {
+        return MediaType.parseMediaType(fileType);
+    }
 }

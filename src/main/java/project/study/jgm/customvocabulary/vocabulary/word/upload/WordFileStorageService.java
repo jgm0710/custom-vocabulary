@@ -32,7 +32,7 @@ public class WordFileStorageService extends FileStorage {
 
         StoreFileDto storeFileDto = super.storeImageFile(file);
 
-        String requestPrefix = "api/vocabulary/word/downloadFile";
+        String requestPrefix = "api/vocabulary/word/downloadImageFile";
         String fileName = storeFileDto.getFileName();
         String fileStoredPathValue = storeFileDto.getFileStoredPath().toAbsolutePath().toString();
         String fileDownloadUri = super.getFileDownloadUri(requestPrefix, fileName);
