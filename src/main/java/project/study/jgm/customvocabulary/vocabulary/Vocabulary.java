@@ -75,9 +75,10 @@ public class Vocabulary {
         Vocabulary vocabulary = Vocabulary.builder()
                 .member(member)
                 .category(category)
-//                .thumbnailImgUrl(createDto.getThumbnailImgUrl())
                 .vocabularyThumbnailImageFile(vocabularyThumbnailImageFile)
                 .title(createDto.getTitle())
+                .mainLanguage(createDto.getMainLanguage())
+                .subLanguage(createDto.getSubLanguage())
                 .difficulty(createDto.getDifficulty())
                 .views(0)
                 .likeCount(0)
@@ -88,22 +89,17 @@ public class Vocabulary {
                 .registerDate(LocalDateTime.now())
                 .build();
 
+        if (vocabularyThumbnailImageFile != null) {
+            vocabularyThumbnailImageFile.setVocabulary(vocabulary);
+        }
+
         vocabulary.getCategory().addVocabulary();
 
         return vocabulary;
     }
 
-    public void addWord(Word word) {
-        this.wordList.add(word);
-        this.totalWordCount++;
-
-        int tmpMemorisedCount = 0;
-        for (Word tmpWord : wordList) {
-            if (tmpWord.isMemorisedCheck() == true) {
-                tmpMemorisedCount ++;
-            }
-        }
-        this.memorisedCount = tmpMemorisedCount;
+    public void setTotalWordCount(int totalWordCount) {
+        this.totalWordCount = totalWordCount;
     }
 
     public void updateTotalWordCount(int totalWordCount) {
@@ -120,6 +116,8 @@ public class Vocabulary {
         this.vocabularyThumbnailImageFile = vocabularyThumbnailImageFile;
         this.title = updateDto.getTitle();
         this.difficulty = updateDto.getDifficulty();
+
+        vocabularyThumbnailImageFile.setVocabulary(this);
     }
 
     public void delete() {
@@ -200,5 +198,40 @@ public class Vocabulary {
 
     public void deleteCategory() {
         this.category = null;
+    }
+
+    @Override
+    public String toString() {
+        return "Vocabulary{" +
+                "id=" + id +
+                ", member=" + member +
+                ", category=" + category +
+                ", vocabularyThumbnailImageFile=" + vocabularyThumbnailImageFile +
+                ", title='" + title + '\'' +
+                ", mainLanguage=" + mainLanguage +
+                ", subLanguage=" + subLanguage +
+                ", wordList=" + wordList +
+                ", difficulty=" + difficulty +
+                ", views=" + views +
+                ", likeCount=" + likeCount +
+                ", downloadCount=" + downloadCount +
+                ", memorisedCount=" + memorisedCount +
+                ", totalWordCount=" + totalWordCount +
+                ", division=" + division +
+                ", registerDate=" + registerDate +
+                '}';
+    }
+
+    public void addWordList(List<Word> wordList) {
+        this.wordList = wordList;
+        this.totalWordCount = wordList.size();
+
+        for (Word word : wordList) {
+            word.setVocabulary(this);
+
+            if (word.isMemorisedCheck()==true) {
+                this.increaseMemorisedCount();
+            }
+        }
     }
 }

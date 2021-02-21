@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
-import project.study.jgm.customvocabulary.common.upload.OnlyFileIdDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRepository;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
@@ -26,6 +25,7 @@ import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -57,8 +57,13 @@ public class VocabularyService {
     public Vocabulary createPersonalVocabulary(Long memberId, Long categoryId, PersonalVocabularyCreateDto createDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Category category = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
-        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
-                .findById(createDto.getImageFileIdDto().getFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
+
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = null;
+
+        if (createDto.getImageFileId() != null) {
+            vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
+                    .findById(createDto.getImageFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
+        }
 
         Vocabulary personalVocabulary = Vocabulary.createPersonalVocabulary(member, category, createDto, vocabularyThumbnailImageFile);
 
@@ -80,14 +85,17 @@ public class VocabularyService {
             throw new BadRequestByDivision();
         }
 
+        List<Word> wordList = new ArrayList<>();
         for (WordRequestDto wordRequestDto :
                 wordRequestDtoList) {
             wordRequestDto.setMemorisedCheck(false);
-
             WordImageFile wordImageFile = getWordImageFile(wordRequestDto);
-
-            Word.addWordToVocabulary(vocabulary, wordRequestDto, wordImageFile);
+            Word word = Word.createWord(wordRequestDto, wordImageFile);
+            wordList.add(word);
         }
+
+        vocabulary.addWordList(wordList);
+
     }
 
     @Transactional
@@ -100,13 +108,16 @@ public class VocabularyService {
 
         vocabulary.removeWordList();
 
+        List<Word> wordList = new ArrayList<>();
         for (WordRequestDto wordRequestDto :
                 wordRequestDtoList) {
-
             WordImageFile wordImageFile = getWordImageFile(wordRequestDto);
-
-            Word.addWordToVocabulary(vocabulary, wordRequestDto, wordImageFile);
+            Word word = Word.createWord(wordRequestDto, wordImageFile);
+            wordList.add(word);
         }
+
+        vocabulary.addWordList(wordList);
+
     }
 
     public void checkMemorise(Long wordId) {
@@ -126,7 +137,7 @@ public class VocabularyService {
     public void modifyPersonalVocabulary(Long vocabularyId, PersonalVocabularyUpdateDto updateDto) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
-                .findById(updateDto.getImageFileIdDto().getFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
+                .findById(updateDto.getImageFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
             throw new BadRequestByDivision();
@@ -244,9 +255,12 @@ public class VocabularyService {
 
 
     private WordImageFile getWordImageFile(WordRequestDto wordRequestDto) {
-        OnlyFileIdDto imageFileIdDto = wordRequestDto.getImageFileIdDto();
-        return wordImageFileRepository
-                .findById(imageFileIdDto.getFileId())
-                .orElseThrow(WordImageFileNotFoundException::new);
+        if (wordRequestDto.getImageFileId() != null) {
+            return wordImageFileRepository
+                    .findById(wordRequestDto.getImageFileId())
+                    .orElseThrow(WordImageFileNotFoundException::new);
+        } else {
+            return null;
+        }
     }
 }

@@ -28,34 +28,38 @@ public class Word {
     @JoinColumn(name = "vocabulary_id")
     private Vocabulary vocabulary;
 
-    //    private String imgUrl;
     @OneToOne(mappedBy = "word", cascade = CascadeType.ALL)
     private WordImageFile wordImageFile;
 
-//    @Enumerated(EnumType.STRING)
-//    private LanguageType mainLanguage;
-
     private String mainWord;
-
-//     @Enumerated(EnumType.STRING)
-////    private LanguageType mainLanguage;
 
     private String subWord;
 
     private boolean memorisedCheck; //암기 했는지 체크
 
-    public static void addWordToVocabulary(Vocabulary vocabulary, WordRequestDto wordRequestDto, WordImageFile wordImageFile) {
+    @Override
+    public String toString() {
+        return "Word{" +
+                "id=" + id +
+//                ", vocabulary=" + vocabulary +
+                ", wordImageFile=" + wordImageFile +
+                ", mainWord='" + mainWord + '\'' +
+                ", subWord='" + subWord + '\'' +
+                ", memorisedCheck=" + memorisedCheck +
+                '}';
+    }
+
+    public static Word createWord(WordRequestDto wordRequestDto, WordImageFile wordImageFile) {
         Word word = Word.builder()
-                .vocabulary(vocabulary)
                 .wordImageFile(wordImageFile)
-//                .mainLanguage(wordRequestDto.getMainLanguage())
                 .mainWord(wordRequestDto.getMainWord())
-//                .subLanguage(wordRequestDto.getSubLanguage())
                 .subWord(wordRequestDto.getSubWord())
                 .memorisedCheck(wordRequestDto.isMemorisedCheck())
                 .build();
 
-        vocabulary.addWord(word);
+        wordImageFile.setWord(word);
+
+        return word;
     }
 
     public void checkMemorise() {
@@ -66,5 +70,9 @@ public class Word {
             this.memorisedCheck = false;
             this.vocabulary.decreaseMemorisedCount();
         }
+    }
+
+    public void setVocabulary(Vocabulary vocabulary) {
+        this.vocabulary = vocabulary;
     }
 }

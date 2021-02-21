@@ -3,14 +3,21 @@ package project.study.jgm.customvocabulary.common;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.members.*;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.*;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
+import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
 
 import javax.persistence.EntityManager;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +27,12 @@ import java.util.List;
 @ActiveProfiles("test")
 @Disabled
 public class BaseServiceTest {
+
+    @Autowired
+    protected VocabularyFileStorageService vocabularyFileStorageService;
+
+    @Autowired
+    protected WordFileStorageService wordFileStorageService;
 
     @Autowired
     protected EntityManager em;
@@ -85,5 +98,12 @@ public class BaseServiceTest {
         categoryRepository.save(category);
 
         return category;
+    }
+
+    protected MockMultipartFile getMockMultipartFile(String parameterName, String path) throws IOException {
+        ClassPathResource classPathResource = new ClassPathResource(path);
+        String filename = classPathResource.getFilename();
+        String contentType = URLConnection.guessContentTypeFromName(filename);
+        return new MockMultipartFile(parameterName, filename, contentType, classPathResource.getInputStream());
     }
 }

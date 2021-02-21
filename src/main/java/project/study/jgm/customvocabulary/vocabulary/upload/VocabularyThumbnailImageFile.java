@@ -32,4 +32,20 @@ public class VocabularyThumbnailImageFile {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vocabulary_id")
     private Vocabulary vocabulary;
+
+    @Override
+    public String toString() {
+        return "VocabularyThumbnailImageFile{" +
+                "id=" + id +
+                ", fileName='" + fileName + '\'' +
+                ", fileStoredPath='" + fileStoredPath + '\'' +
+                ", fileDownloadUri='" + fileDownloadUri + '\'' +
+                ", fileType='" + fileType + '\'' +
+//                ", vocabulary=" + vocabulary +
+                '}';
+    }
+
+    public void setVocabulary(Vocabulary vocabulary) {
+        this.vocabulary = vocabulary;
+    }
 }

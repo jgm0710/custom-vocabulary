@@ -34,11 +34,27 @@ public class WordImageFile {
     @JoinColumn(name = "word_id")
     private Word word;
 
-//.id
+    public void setWord(Word word) {
+        this.word = word;
+    }
+
+    //.id
 //.fileName
 //.fileStoredPath
 //.fileDownloadUri
 //.fileType
 //.word
 
+
+    @Override
+    public String toString() {
+        return "WordImageFile{" +
+                "id=" + id +
+                ", fileName='" + fileName + '\'' +
+                ", fileStoredPath='" + fileStoredPath + '\'' +
+                ", fileDownloadUri='" + fileDownloadUri + '\'' +
+                ", fileType='" + fileType + '\'' +
+//                ", word=" + word +
+                '}';
+    }
 }

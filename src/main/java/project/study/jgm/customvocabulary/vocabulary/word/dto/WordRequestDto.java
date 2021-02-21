@@ -12,12 +12,15 @@ import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WordRequestDto {
-    private OnlyFileIdDto imageFileIdDto;
-//    private LanguageType mainLanguage;
+    private Long imageFileId;
     private String mainWord;
-//    private LanguageType subLanguage;
     private String subWord;
     private boolean memorisedCheck;
+
+//.imageFileId
+//.mainWord
+//.subWord
+//.memorisedCheck
 
     public void setMemorisedCheck(boolean memorisedCheck) {
         this.memorisedCheck = memorisedCheck;
