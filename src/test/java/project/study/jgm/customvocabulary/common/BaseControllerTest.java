@@ -37,6 +37,9 @@ import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.*;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFileRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
 
@@ -59,6 +62,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Disabled
 @Transactional
 public abstract class BaseControllerTest {
+
+    @Autowired
+    protected VocabularyThumbnailImageFileRepository vocabularyThumbnailImageFileRepository;
+
+    @Autowired
+    protected VocabularyFileStorageService vocabularyFileStorageService;
 
     @Autowired
     protected WordImageFileRepository wordImageFileRepository;
@@ -141,6 +150,8 @@ public abstract class BaseControllerTest {
                 .alwaysDo(print())
                 .build();
 
+        vocabularyThumbnailImageFileRepository.deleteAll();
+        wordImageFileRepository.deleteAll();
         bbsUploadFileRepository.deleteAll();
         vocabularyRepository.deleteAll();
         categoryRepository.deleteAll();

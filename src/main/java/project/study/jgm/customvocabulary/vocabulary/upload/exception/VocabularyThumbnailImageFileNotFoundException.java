@@ -1,4 +1,4 @@
-package project.study.jgm.customvocabulary.vocabulary.exception;
+package project.study.jgm.customvocabulary.vocabulary.upload.exception;
 
 public class VocabularyThumbnailImageFileNotFoundException extends RuntimeException{
     public VocabularyThumbnailImageFileNotFoundException() {

@@ -1,4 +1,4 @@
-package project.study.jgm.customvocabulary.vocabulary.word.upload.exception;
+package project.study.jgm.customvocabulary.common.upload.exception;
 
 public class NotImageTypeException extends RuntimeException {
     public NotImageTypeException() {

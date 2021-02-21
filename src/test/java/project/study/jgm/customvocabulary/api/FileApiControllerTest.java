@@ -4,7 +4,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
@@ -13,11 +12,11 @@ import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
-import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.NotImageTypeException;
+import project.study.jgm.customvocabulary.common.upload.exception.NotImageTypeException;
 
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
@@ -109,10 +108,13 @@ class FileApiControllerTest extends BaseControllerTest {
 
         String fileName = bbsUploadFile.getFileName();
 
+        String fileDownloadUri = bbsUploadFile.getFileDownloadUri();
+        String decode = URLDecoder.decode(fileDownloadUri, StandardCharsets.UTF_8);
+
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/downloadFile/" + fileName)
+                        get(decode)
 //                                .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 )
                 .andDo(print());
@@ -143,7 +145,69 @@ class FileApiControllerTest extends BaseControllerTest {
         ).andDo(print());
 
         //then
-        perform.andExpect(status().isOk());
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("data.fileId").exists())
+                .andExpect(jsonPath("data.fileName").exists())
+                .andExpect(jsonPath("data.fileDownloadUri").exists())
+                .andExpect(jsonPath("data.fileType").exists())
+                .andExpect(jsonPath("data.size").exists())
+                .andExpect(jsonPath("data.fileId").exists())
+                .andExpect(jsonPath("message").value(MessageVo.UPLOAD_WORD_IMAGE_FILE_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("단어장 이미지 등록")
+    public void uploadVocabularyThumbnailImageFile() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                multipart("/api/vocabulary/uploadImageFile")
+                        .file(mockMultipartFile)
+                        .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("data.fileId").exists())
+                .andExpect(jsonPath("data.fileName").exists())
+                .andExpect(jsonPath("data.fileDownloadUri").exists())
+                .andExpect(jsonPath("data.fileType").exists())
+                .andExpect(jsonPath("data.size").exists())
+                .andExpect(jsonPath("data.fileId").exists())
+                .andExpect(jsonPath("message").value(MessageVo.UPLOAD_VOCABULARY_THUMBNAIL_IMAGE_FILE_SUCCESSFULLY));
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 단어장 이미지 등록")
+    public void uploadVocabularyThumbnailImageFile_UnAuthentication() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                multipart("/api/vocabulary/uploadImageFile")
+                        .file(mockMultipartFile)
+//                        .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform.andExpect(status().isForbidden());
 
     }
 
@@ -200,7 +264,34 @@ class FileApiControllerTest extends BaseControllerTest {
     }
 
     @Test
-    @DisplayName("단어장에 등록된 이미지 파일 다운로드")
+    @DisplayName("단어장 이미지 등록 시 이미지 파일이 아닐 경우")
+    public void uploadVocabularyThumbnailImageFile_NotImageFileException() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testTextFilePath);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                multipart("/api/vocabulary/uploadImageFile")
+                        .file(mockMultipartFile)
+                        .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new NotImageTypeException().getMessage()))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("단어에 등록된 이미지 파일 다운로드")
     public void downloadWordFile() throws Exception {
         //given
         MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
@@ -223,7 +314,30 @@ class FileApiControllerTest extends BaseControllerTest {
     }
 
     @Test
-    @DisplayName("단어장에 등록된 이미지의 썸네일 이미지 다운로드")
+    @DisplayName("단어장에 등록된 이미지 파일 다운로드")
+    public void downloadVocabularyThumbnailImageFile() throws Exception {
+        //given
+        MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
+
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(mockMultipartFile);
+
+        String fileName = vocabularyThumbnailImageFile.getFileName();
+
+        String decode = URLDecoder.decode(vocabularyThumbnailImageFile.getFileDownloadUri(), StandardCharsets.UTF_8);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                get(decode)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        ).andDo(print());
+
+        //then
+        perform.andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("단어에 등록된 이미지의 썸네일 이미지 다운로드")
     public void displayThumbnailOfWordImage() throws Exception {
         //given
         MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
@@ -235,6 +349,28 @@ class FileApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc.perform(
                 get("/api/vocabulary/word/displayThumbnail/" + fileName)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("단어장에 등록된 이미지의 썸네일 이미지 다운로드")
+    public void displayThumbnailOfVocabularyThumbnailImage() throws Exception {
+        //given
+        MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
+
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(mockMultipartFile);
+
+        String fileName = vocabularyThumbnailImageFile.getFileName();
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                get("/api/vocabulary/displayThumbnail/" + fileName)
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         ).andDo(print());
 

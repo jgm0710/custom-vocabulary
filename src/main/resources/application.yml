@@ -11,6 +11,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_batch_fetch_size: 500
 
   servlet:
     multipart:
@@ -22,6 +23,7 @@ spring:
 file:
   bbs-upload-dir: C:\Users\jgm\Desktop\project\upload\bbs-file
   word-image-dir: C:\Users\jgm\Desktop\project\upload\word-file
+  vocabulary-thumbnail-image-dir: C:\Users\jgm\Desktop\project\upload\vocabulary-file
   thumbnail-prefix: s_
 
 logging:

@@ -1,17 +1,15 @@
 package project.study.jgm.customvocabulary.common.upload;
 
-import lombok.NoArgsConstructor;
 import net.coobird.thumbnailator.Thumbnailator;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
 import project.study.jgm.customvocabulary.common.upload.exception.FileStorageException;
 import project.study.jgm.customvocabulary.common.upload.exception.MyFileNotFoundException;
 import project.study.jgm.customvocabulary.common.upload.exception.OriginalFilenameNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.NotImageTypeException;
+import project.study.jgm.customvocabulary.common.upload.exception.NotImageTypeException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -145,5 +143,10 @@ public abstract class FileStorage {
                 .path(requestPrefix)
                 .path("/" + fileName)
                 .toUriString();
+    }
+
+    protected static Path getFileStorageLocation(String targetDir) {
+        return Paths.get(targetDir)
+                .toAbsolutePath().normalize();
     }
 }

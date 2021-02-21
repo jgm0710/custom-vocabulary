@@ -129,6 +129,15 @@ public class MessageVo {
     public static final String GET_SHARED_CATEGORY_LIST_SUCCESSFULLY = "공유 카테고리 목록이 정상적으로 조회 되었습니다.";
 
     /**
+     * Vocabulary
+     */
+
+    public static final String UPLOAD_WORD_IMAGE_FILE_SUCCESSFULLY = "단어 이미지 파일이 정상적으로 업로드되었습니다.";
+
+    public static final String UPLOAD_VOCABULARY_THUMBNAIL_IMAGE_FILE_SUCCESSFULLY = "단어장 이미지 파일이 정상적으로 업로드되었습니다.";
+
+
+    /**
      * Common
      */
 

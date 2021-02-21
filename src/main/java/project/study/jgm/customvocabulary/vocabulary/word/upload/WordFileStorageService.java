@@ -10,6 +10,7 @@ import project.study.jgm.customvocabulary.common.upload.FileStorageProperties;
 import project.study.jgm.customvocabulary.common.upload.StoreFileDto;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
@@ -21,9 +22,7 @@ public class WordFileStorageService extends FileStorage {
 
     @Autowired
     public WordFileStorageService(WordImageFileRepository wordImageFileRepository, FileStorageProperties fileStorageProperties) {
-        super(Paths.get(fileStorageProperties.getWordImageDir())
-                .toAbsolutePath().normalize(), fileStorageProperties);
-
+        super(getFileStorageLocation(fileStorageProperties.getWordImageDir()), fileStorageProperties);
         this.wordImageFileRepository = wordImageFileRepository;
     }
 

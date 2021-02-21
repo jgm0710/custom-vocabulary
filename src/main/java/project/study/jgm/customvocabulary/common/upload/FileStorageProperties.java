@@ -15,6 +15,8 @@ public class FileStorageProperties {
 
     private String wordImageDir;
 
+    private String vocabularyThumbnailImageDir;
+
     private String thumbnailPrefix;
 
 }

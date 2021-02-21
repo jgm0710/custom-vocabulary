@@ -19,9 +19,11 @@ import project.study.jgm.customvocabulary.common.upload.*;
 import project.study.jgm.customvocabulary.common.upload.exception.FileStorageException;
 import project.study.jgm.customvocabulary.common.upload.exception.MyFileNotFoundException;
 import project.study.jgm.customvocabulary.common.upload.exception.OriginalFilenameNotFoundException;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
+import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
-import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.NotImageTypeException;
+import project.study.jgm.customvocabulary.common.upload.exception.NotImageTypeException;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
 import java.util.Arrays;
@@ -41,6 +43,8 @@ public class FileApiController {
     private final BbsFileStorageService bbsFileStorageService;
 
     private final WordFileStorageService wordFileStorageService;
+
+    private final VocabularyFileStorageService vocabularyFileStorageService;
 
 
     private final String AAA = "AAA";
@@ -131,6 +135,9 @@ public class FileApiController {
                 .body(resource);
     }
 
+    /**
+     * Word
+     */
 
     @CrossOrigin
     @PostMapping(value = "/vocabulary/word/uploadImageFile")
@@ -148,11 +155,11 @@ public class FileApiController {
 
         UploadFileResponseDto uploadFileResponseDto = modelMapper.map(wordImageFile, UploadFileResponseDto.class);
 
-        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, "단어 이미지 파일이 정상적으로 업로드되었습니다.."));
+        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, UPLOAD_WORD_IMAGE_FILE_SUCCESSFULLY));
     }
 
     @GetMapping(value = "/vocabulary/word/downloadImageFile/{fileName:.+}")
-    public ResponseEntity<?> downloadWordFile(
+    public ResponseEntity<?> downloadWordImageFile(
             @PathVariable String fileName
     ) {
 
@@ -166,7 +173,6 @@ public class FileApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
 
-        String contentType = wordImageFile.getFileType();
         MediaType parseContentType = getParseContentType(wordImageFile.getFileType());
 
         return ResponseEntity.ok()
@@ -174,6 +180,7 @@ public class FileApiController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
                 .body(resource);
     }
+
 
     @GetMapping(value = "/vocabulary/word/displayThumbnail/{fileName:.+}")
     public ResponseEntity<?> displayThumbnailOfWordImage(
@@ -196,6 +203,77 @@ public class FileApiController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
                 .body(resource);
     }
+
+    /**
+     * Vocabulary
+     */
+
+    @CrossOrigin
+    @PostMapping("/vocabulary/uploadImageFile")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<? extends ResponseDto<?>> uploadVocabularyThumbnailImageFile(
+            @RequestParam("file") MultipartFile file
+    ) {
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile;
+        try {
+            vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(file);
+        } catch (NotImageTypeException | OriginalFilenameNotFoundException | FileStorageException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
+
+        UploadFileResponseDto uploadFileResponseDto = modelMapper.map(vocabularyThumbnailImageFile, UploadFileResponseDto.class);
+
+        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, UPLOAD_VOCABULARY_THUMBNAIL_IMAGE_FILE_SUCCESSFULLY));
+    }
+
+    @GetMapping(value = "/vocabulary/downloadImageFile/{fileName:.+}")
+    public ResponseEntity<?> downloadVocabularyThumbnailImageFile(
+            @PathVariable String fileName
+    ) {
+
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile;
+        Resource resource;
+
+        try {
+            vocabularyThumbnailImageFile = vocabularyFileStorageService.getVocabularyThumbnailImageFileByFileName(fileName);
+            resource = vocabularyFileStorageService.loadVocabularyThumbnailImageFileAsResource(vocabularyThumbnailImageFile.getId());
+        } catch (WordImageFileNotFoundException | MyFileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
+        MediaType parseContentType = getParseContentType(vocabularyThumbnailImageFile.getFileType());
+
+        return ResponseEntity.ok()
+                .contentType(parseContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
+                .body(resource);
+    }
+
+    @GetMapping(value = "/vocabulary/displayThumbnail/{fileName:.+}")
+    public ResponseEntity<?> displayThumbnailOfVocabularyThumbnailImage(
+            @PathVariable String fileName
+    ) {
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile;
+        Resource resource;
+
+        try {
+            vocabularyThumbnailImageFile = vocabularyFileStorageService.getVocabularyThumbnailImageFileByFileName(fileName);
+            resource = vocabularyFileStorageService.loadThumbnailOfVocabularyThumbnailImageFileAsResource(vocabularyThumbnailImageFile.getId());
+        } catch (WordImageFileNotFoundException | MyFileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        }
+
+        MediaType parseContentType = getParseContentType(vocabularyThumbnailImageFile.getFileType());
+
+        return ResponseEntity.ok()
+                .contentType(parseContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, getContentDispositionString(resource))
+                .body(resource);
+    }
+
+    /**
+     * Private
+     */
 
     private String getContentDispositionString(Resource resource) {
         return "attachment; filename=\"" + resource.getFilename() + "\"";

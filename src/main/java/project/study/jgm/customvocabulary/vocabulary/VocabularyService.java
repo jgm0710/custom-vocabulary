@@ -18,6 +18,7 @@ import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdat
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFileRepository;
+import project.study.jgm.customvocabulary.vocabulary.upload.exception.VocabularyThumbnailImageFileNotFoundException;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.WordRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
