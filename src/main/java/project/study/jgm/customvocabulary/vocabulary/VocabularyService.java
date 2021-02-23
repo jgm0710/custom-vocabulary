@@ -56,7 +56,11 @@ public class VocabularyService {
     @Transactional
     public Vocabulary createPersonalVocabulary(Long memberId, Long categoryId, PersonalVocabularyCreateDto createDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
-        Category category = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+
+        Category category = null;
+        if (categoryId != null) {
+            category = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+        }
 
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile = null;
 
@@ -67,8 +71,10 @@ public class VocabularyService {
 
         Vocabulary personalVocabulary = Vocabulary.createPersonalVocabulary(member, category, createDto, vocabularyThumbnailImageFile);
 
-        if (!category.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
-            throw new DivisionMismatchException();
+        if (category != null) {
+            if (!category.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
+                throw new DivisionMismatchException();
+            }
         }
 
         vocabularyRepository.save(personalVocabulary);
@@ -227,7 +233,10 @@ public class VocabularyService {
 
     public Vocabulary download(Long vocabularyId, Long memberId, Long categoryId) {
         Vocabulary sharedVocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-        Category personalCategory = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+        Category personalCategory = null;
+        if (categoryId != null) {
+            personalCategory = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+        }
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Vocabulary personalVocabulary = sharedVocabulary.sharedToPersonal(member, personalCategory);
 
@@ -235,8 +244,10 @@ public class VocabularyService {
             throw new BadRequestByDivision();
         }
 
-        if (personalCategory.getDivision() != CategoryDivision.PERSONAL) {
-            throw new BadRequestByDivision();
+        if (personalCategory != null) {
+            if (personalCategory.getDivision() != CategoryDivision.PERSONAL) {
+                throw new BadRequestByDivision();
+            }
         }
 
         return vocabularyRepository.save(personalVocabulary);

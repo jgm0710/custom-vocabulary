@@ -93,7 +93,9 @@ public class Vocabulary {
             vocabularyThumbnailImageFile.setVocabulary(vocabulary);
         }
 
-        vocabulary.getCategory().addVocabulary();
+        if (category != null) {
+            category.addVocabulary();
+        }
 
         return vocabulary;
     }
@@ -125,7 +127,13 @@ public class Vocabulary {
     }
 
     public void moveCategory(Category category) {
-        this.category = category;
+        if (this.category != null) {
+            this.category.deleteVocabulary();
+        }
+        if (category != null) {
+            this.category = category;
+            category.addVocabulary();
+        }
     }
 
     public Vocabulary personalToShared(Category sharedCategory) {
@@ -183,7 +191,9 @@ public class Vocabulary {
                 .registerDate(LocalDateTime.now())
                 .build();
 
-        personalCategory.addVocabulary();
+        if (personalCategory != null) {
+            personalCategory.addVocabulary();
+        }
 
         return vocabulary;
     }

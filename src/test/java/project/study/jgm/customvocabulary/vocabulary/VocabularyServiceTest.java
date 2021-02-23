@@ -22,6 +22,7 @@ import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 
+import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -132,7 +133,7 @@ class VocabularyServiceTest extends BaseServiceTest {
     @Transactional(readOnly = true)
     public void updateWordListToPersonalVocabulary() throws Exception {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
 
         Category category = createPersonalCategoryByService(user1);
 
@@ -220,8 +221,7 @@ class VocabularyServiceTest extends BaseServiceTest {
                 .subLanguage(subLanguage)
                 .build();
 
-        Vocabulary personalVocabulary = vocabularyService.createPersonalVocabulary(user1.getId(), category.getId(), vocabularyCreateDto);
-        return personalVocabulary;
+        return vocabularyService.createPersonalVocabulary(user1.getId(), category.getId(), vocabularyCreateDto);
     }
 
     private Vocabulary createVocabularyByService(Member user1, Category category) {
@@ -237,8 +237,12 @@ class VocabularyServiceTest extends BaseServiceTest {
                 .subLanguage(subLanguage)
                 .build();
 
-        Vocabulary personalVocabulary = vocabularyService.createPersonalVocabulary(user1.getId(), category.getId(), vocabularyCreateDto);
-        return personalVocabulary;
+
+        Long categoryId = null;
+        if (category != null) {
+            categoryId = category.getId();
+        }
+        return vocabularyService.createPersonalVocabulary(user1.getId(), categoryId, vocabularyCreateDto);
     }
 
     private Category createPersonalCategoryByService(Member user1, int orders, String name) {
@@ -248,8 +252,7 @@ class VocabularyServiceTest extends BaseServiceTest {
                 .orders(orders)
                 .build();
 
-        Category category = categoryService.addPersonalCategory(user1.getId(), categoryCreateDto);
-        return category;
+        return categoryService.addPersonalCategory(user1.getId(), categoryCreateDto);
     }
 
     private Category createPersonalCategoryByService(Member user1) {
@@ -261,31 +264,46 @@ class VocabularyServiceTest extends BaseServiceTest {
                 .orders(orders)
                 .build();
 
-        Category category = categoryService.addPersonalCategory(user1.getId(), categoryCreateDto);
-        return category;
+        return categoryService.addPersonalCategory(user1.getId(), categoryCreateDto);
     }
 
-    private Member createUser1ByService() {
+    private Member createUserByService(String joinId, String nickname) {
         MemberCreateDto memberCreateDto = MemberCreateDto.builder()
-                .joinId("user1")
+                .joinId(joinId)
                 .email("user1@email.com")
                 .password("user1")
                 .name("user1")
-                .nickname("user1")
+                .nickname(nickname)
                 .dateOfBirth(LocalDate.now())
                 .gender(Gender.MALE)
                 .simpleAddress("simple")
                 .build();
 
-        Member user1 = memberService.userJoin(memberCreateDto);
-        return user1;
+        return memberService.userJoin(memberCreateDto);
+    }
+
+    private Member createUserByService() {
+        String joinId = "user1";
+        String nickname = "user1";
+        MemberCreateDto memberCreateDto = MemberCreateDto.builder()
+                .joinId(joinId)
+                .email("user1@email.com")
+                .password("user1")
+                .name("user1")
+                .nickname(nickname)
+                .dateOfBirth(LocalDate.now())
+                .gender(Gender.MALE)
+                .simpleAddress("simple")
+                .build();
+
+        return memberService.userJoin(memberCreateDto);
     }
 
     @Test
     @DisplayName("암기 체크")
     public void checkMemorise() throws Exception {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category category = createPersonalCategoryByService(user1);
         Vocabulary vocabulary = createVocabularyByService(user1, category);
 
@@ -306,8 +324,8 @@ class VocabularyServiceTest extends BaseServiceTest {
         //then
         Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabulary.getId());
 
-        Word findWord = findVocabulary.getWordList().stream().filter(word1 -> word1.getId().equals(word.getId())).findFirst().get();
-        assertEquals(findWord.isMemorisedCheck(), true);
+        Word findWord = findVocabulary.getWordList().stream().filter(word1 -> word1.getId().equals(word.getId())).findFirst().orElseThrow(EntityNotFoundException::new);
+        assertTrue(findWord.isMemorisedCheck());
 
         System.out.println("findVocabulary = " + findVocabulary);
 
@@ -317,7 +335,7 @@ class VocabularyServiceTest extends BaseServiceTest {
     @DisplayName("개인 단어장 수정")
     public void modifyPersonalVocabulary() throws Exception {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category category = createPersonalCategoryByService(user1);
         Vocabulary vocabulary = createVocabularyByService(user1, category);
 
@@ -352,7 +370,7 @@ class VocabularyServiceTest extends BaseServiceTest {
     @DisplayName("개인 단어장 공유 단어장으로 등록")
     public void share() throws Exception {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category personalCategory = createPersonalCategoryByService(user1);
 
         MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
@@ -397,9 +415,9 @@ class VocabularyServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("개인 단어장 삭제")
-    public void deletePersonalVocabulary() throws Exception {
+    public void deletePersonalVocabulary() {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category category = createPersonalCategoryByService(user1);
         Vocabulary vocabulary = createVocabularyByService(user1, category);
 
@@ -417,13 +435,17 @@ class VocabularyServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("단어장 카테고리 이동")
-    public void moveCategory() throws Exception {
+    public void moveCategory() {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category category1 = createPersonalCategoryByService(user1, 1, "category 1");
         Category category2 = createPersonalCategoryByService(user1, 2, "category 2");
         Vocabulary vocabulary = createVocabularyByService(user1, category1);
 
+        em.flush();
+        em.clear();
+
+        assertEquals(category1.getVocabularyCount(), 1);
         //when
         vocabularyService.moveCategory(vocabulary.getId(), category2.getId());
 
@@ -432,16 +454,19 @@ class VocabularyServiceTest extends BaseServiceTest {
         em.clear();
 
         Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabulary.getId());
+        Category findCategory1 = categoryService.getCategory(category1.getId());
 
+        assertEquals(findVocabulary.getCategory().getVocabularyCount(), 1);
+        assertEquals(findCategory1.getVocabularyCount(), 0);
         assertEquals(category2.getId(), findVocabulary.getCategory().getId());
 
     }
 
     @Test
     @DisplayName("단어장 조회 테스트")
-    public void getVocabulary() throws Exception {
+    public void getVocabulary() {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category category = createPersonalCategoryByService(user1);
         Vocabulary vocabulary = createVocabularyByService(user1, category);
 
@@ -456,9 +481,9 @@ class VocabularyServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("회원의 개인 단어장 목록 중 특정 카테고리에 소속된 단어장 목록 조회")
-    public void getVocabularyListByMember_ByCategory() throws Exception {
+    public void getVocabularyListByMember_ByCategory() {
         //given
-        Member user1 = createUser1ByService();
+        Member user1 = createUserByService();
         Category category1 = createPersonalCategoryByService(user1, 1, "category1");
         Category category2 = createPersonalCategoryByService(user1, 2, "category2");
 
@@ -484,15 +509,111 @@ class VocabularyServiceTest extends BaseServiceTest {
 
     }
 
+    @Test
+    @DisplayName("공유 단어장 카테고리별 목록 조회")
+    public void getVocabularyListByShared_ByCategory() {
+        //given
+        Member user1 = createUserByService();
+        Category personalCategory1 = createPersonalCategoryByService(user1, 1, "personal category1");
+        Category personalCategory2 = createPersonalCategoryByService(user1, 2, "personal category2");
+
+        Category sharedCategory1 = createSharedCategoryByService("shared category1", 1);
+        Category sharedCategory2 = createSharedCategoryByService("shared category2", 2);
+
+        for (int i = 0; i < 10; i++) {
+            Vocabulary personalVocabulary = createVocabularyByService(user1, personalCategory1, "category1 vocabulary" + i);
+
+            vocabularyService.share(personalVocabulary.getId(), sharedCategory1.getId());
+        }
+
+        for (int i = 0; i < 10; i++) {
+            Vocabulary personalVocabulary = createVocabularyByService(user1, personalCategory2, "category2 vocabulary" + i);
+
+            vocabularyService.share(personalVocabulary.getId(), sharedCategory2.getId());
+        }
+
+        //when
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(new CriteriaDto(1,30), sharedCategory2.getId(), null, null);
+        List<Vocabulary> findSharedVocabularyList = results.getResults();
+
+        //then
+        for (Vocabulary vocabulary : findSharedVocabularyList) {
+            System.out.println("vocabulary = " + vocabulary);
+        }
+
+    }
+
+    @Test
+    @DisplayName("공유 단어장 다운로드")
+    public void download() {
+        //given
+        Member user1 = createUserByService();
+        Vocabulary personalVocabulary = createVocabularyByService(user1, null);
+        Category sharedCategory = createSharedCategoryByService();
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabulary.getId(), sharedCategory.getId());
+
+        Member user2 = createUserByService("user2", "user2");
+
+        //when
+        Vocabulary downloadVocabulary = vocabularyService.download(sharedVocabulary.getId(), user2.getId(), null);
+
+        //then
+        assertNotEquals(downloadVocabulary.getId(), sharedVocabulary.getId());
+        assertNotEquals(downloadVocabulary.getId(), personalVocabulary.getId());
+        assertEquals(VocabularyDivision.COPIED, downloadVocabulary.getDivision());
+        assertEquals(downloadVocabulary.getTitle(), sharedVocabulary.getTitle());
+        assertNotEquals(downloadVocabulary.getMember().getId(), sharedVocabulary.getMember().getId());
+
+    }
+
+    @Test
+    @DisplayName("공유 단어장 공유 해제")
+    public void sharedVocabularyToUnshared() {
+        //given
+        Member user1 = createUserByService();
+        Vocabulary personalVocabulary = createVocabularyByService(user1, null);
+
+        Category sharedCategory = createSharedCategoryByService();
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabulary.getId(), sharedCategory.getId());
+
+        assertEquals(VocabularyDivision.SHARED, sharedVocabulary.getDivision());
+
+        //when
+        vocabularyService.sharedVocabularyToUnshared(sharedVocabulary.getId());
+
+
+        //then
+        em.flush();
+        em.clear();
+
+        Vocabulary findVocabulary = vocabularyService.getVocabulary(sharedVocabulary.getId());
+
+        assertEquals(VocabularyDivision.UNSHARED, findVocabulary.getDivision());
+
+    }
+
+
+
+    private Category createSharedCategoryByService(String name, int orders) {
+        CategoryCreateDto categoryCreateDto = CategoryCreateDto.builder()
+                .name(name)
+                .parentId(null)
+                .orders(orders)
+                .build();
+        return categoryService.addSharedCategory(categoryCreateDto);
+    }
 
     private Category createSharedCategoryByService() {
+        String shared_category = "shared category";
+        int orders = 1;
         CategoryCreateDto categoryCreateDto = CategoryCreateDto.builder()
-                .name("shared category")
+                .name(shared_category)
                 .parentId(null)
-                .orders(1)
+                .orders(orders)
                 .build();
-        Category sharedCategory = categoryService.addSharedCategory(categoryCreateDto);
-        return sharedCategory;
+        return categoryService.addSharedCategory(categoryCreateDto);
     }
 
 }
