@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
+import project.study.jgm.customvocabulary.common.upload.UploadFileResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
@@ -13,11 +14,9 @@ import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.WordResponseDto;
 
-import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import static javax.persistence.FetchType.LAZY;
 
 @Getter
 @Builder
@@ -27,11 +26,11 @@ public class PersonalVocabularyDetailResponseDto {
 
     private Long id;
 
-    private Member member;  //개인 단어장 생성 Member, 공유 단어장 공유자
+    private WriterDto writer;
 
-    private Category category;
+    private CategoryDto category;
 
-    private VocabularyThumbnailImageFile vocabularyThumbnailImageFile;
+    protected UploadFileResponseDto thumbnailInfo;
 
     private String title;
 
@@ -48,6 +47,8 @@ public class PersonalVocabularyDetailResponseDto {
 
     private int totalWordCount; //단어 총 갯수 저장
 
+    private LocalDateTime registerDate;
+
 //.id
 //.member
 //.category
@@ -60,6 +61,20 @@ public class PersonalVocabularyDetailResponseDto {
 //.memorisedCount
 //.totalWordCount
 
+    @Getter
+    @AllArgsConstructor
+    static class WriterDto {
+        private Long id;
+        private String nickname;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    static class CategoryDto{
+        private Long id;
+        private String name;
+    }
+
 
     public static PersonalVocabularyDetailResponseDto vocabularyToDetail(Vocabulary vocabulary, ModelMapper modelMapper) {
         List<Word> wordList = vocabulary.getWordList();
@@ -70,11 +85,19 @@ public class PersonalVocabularyDetailResponseDto {
             wordResponseDtos.add(wordResponseDto);
         }
 
-       return PersonalVocabularyDetailResponseDto.builder()
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabulary.getVocabularyThumbnailImageFile();
+        UploadFileResponseDto thumbnailInfo = modelMapper.map(vocabularyThumbnailImageFile, UploadFileResponseDto.class);
+
+        CategoryDto category = null;
+        if (vocabulary.getCategory() != null) {
+            category = new CategoryDto(vocabulary.getCategory().getId(), vocabulary.getCategory().getName());
+        }
+
+        return PersonalVocabularyDetailResponseDto.builder()
                 .id(vocabulary.getId())
-                .member(vocabulary.getMember())
-                .category(vocabulary.getCategory())
-                .vocabularyThumbnailImageFile(vocabulary.getVocabularyThumbnailImageFile())
+                .writer(new WriterDto(vocabulary.getMember().getId(), vocabulary.getMember().getNickname()))
+                .category(category)
+                .thumbnailInfo(thumbnailInfo)
                 .title(vocabulary.getTitle())
                 .mainLanguage(vocabulary.getMainLanguage())
                 .subLanguage(vocabulary.getSubLanguage())
@@ -82,6 +105,7 @@ public class PersonalVocabularyDetailResponseDto {
                 .difficulty(vocabulary.getDifficulty())
                 .memorisedCount(vocabulary.getMemorisedCount())
                 .totalWordCount(vocabulary.getTotalWordCount())
+                .registerDate(vocabulary.getRegisterDate())
                 .build();
     }
 }

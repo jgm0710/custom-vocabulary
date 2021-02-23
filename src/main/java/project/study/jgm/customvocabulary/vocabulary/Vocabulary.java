@@ -153,7 +153,9 @@ public class Vocabulary {
                 .build();
 
         vocabulary.getMember().addSharedVocabulary();
-        vocabulary.getCategory().addVocabulary();
+        if (sharedCategory != null) {
+            sharedCategory.addVocabulary();
+        }
 
         return vocabulary;
     }

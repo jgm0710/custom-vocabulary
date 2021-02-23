@@ -27,9 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class FileApiControllerTest extends BaseControllerTest {
 
-    private final String testImageFilePath = "/static/test/사진1.jpg";
-    private final String testTextFilePath = "/static/test/text.txt";
-
     @Test
     @DisplayName("게시글에 첨부 파일 목록 등록")
     public void uploadBbsMultipleFiles() throws Exception {

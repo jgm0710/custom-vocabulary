@@ -83,29 +83,29 @@ public class VocabularyService {
 
     }
 
+//    @Transactional
+//    public void addWordListToPersonalVocabulary(Long vocabularyId, List<WordRequestDto> wordRequestDtoList) {
+//        Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+//
+//        if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
+//            throw new BadRequestByDivision("개인 단어장 이외에는 단어 목록을 추가할 수 없습니다.");
+//        }
+//
+//        List<Word> wordList = new ArrayList<>();
+//        for (WordRequestDto wordRequestDto :
+//                wordRequestDtoList) {
+//            wordRequestDto.setMemorisedCheck(false);
+//            WordImageFile wordImageFile = getWordImageFile(wordRequestDto);
+//            Word word = Word.createWord(wordRequestDto, wordImageFile);
+//            wordList.add(word);
+//        }
+//
+//        vocabulary.addWordList(wordList);
+//
+//    }
+
     @Transactional
-    public void addWordListToPersonalVocabulary(Long vocabularyId, List<WordRequestDto> wordRequestDtoList) {
-        Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-
-        if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision("개인 단어장 이외에는 단어 목록을 추가할 수 없습니다.");
-        }
-
-        List<Word> wordList = new ArrayList<>();
-        for (WordRequestDto wordRequestDto :
-                wordRequestDtoList) {
-            wordRequestDto.setMemorisedCheck(false);
-            WordImageFile wordImageFile = getWordImageFile(wordRequestDto);
-            Word word = Word.createWord(wordRequestDto, wordImageFile);
-            wordList.add(word);
-        }
-
-        vocabulary.addWordList(wordList);
-
-    }
-
-    @Transactional
-    public void updateWordListToPersonalVocabulary(Long vocabularyId, List<WordRequestDto> wordRequestDtoList) {
+    public void updateWordListOfPersonalVocabulary(Long vocabularyId, List<WordRequestDto> wordRequestDtoList) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
@@ -155,15 +155,20 @@ public class VocabularyService {
     @Transactional
     public Vocabulary share(Long vocabularyId, Long sharedCategoryId) {
         Vocabulary personalVocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-        Category sharedCategory = categoryRepository.findById(sharedCategoryId).orElseThrow(CategoryNotFoundException::new);
+        Category sharedCategory = null;
+        if (sharedCategoryId != null) {
+            sharedCategory = categoryRepository.findById(sharedCategoryId).orElseThrow(CategoryNotFoundException::new);
+        }
         Vocabulary sharedVocabulary = personalVocabulary.personalToShared(sharedCategory);
 
         if (personalVocabulary.getDivision() != VocabularyDivision.PERSONAL) {
             throw new BadRequestByDivision("자신이 생성한 단어장만 공유할 수 있습니다. 또한 이미 공유된 단어장은 공유할 수 없습니다.");
         }
 
-        if (sharedCategory.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
-            throw new DivisionMismatchException();
+        if (sharedCategory != null) {
+            if (sharedCategory.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
+                throw new DivisionMismatchException();
+            }
         }
 
         return vocabularyRepository.save(sharedVocabulary);

@@ -43,9 +43,6 @@ public class FileApiController {
 
     private final VocabularyFileStorageService vocabularyFileStorageService;
 
-
-    private final String AAA = "AAA";
-
     /**
      * Bbs
      */
@@ -61,8 +58,7 @@ public class FileApiController {
             List<UploadFileResponseDto> uploadFileResponseDtos = Arrays.stream(files)
                     .map(file -> {
                         BbsUploadFile bbsUploadFile = bbsFileStorageService.uploadBbsFile(file);
-                        UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
-                        return uploadFileResponseDto;
+                        return modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
                     })
                     .collect(Collectors.toList());
 

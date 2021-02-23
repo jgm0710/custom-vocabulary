@@ -15,7 +15,7 @@ import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 @NoArgsConstructor
 public class WordResponseDto {
 
-    private UploadFileResponseDto imageFile;
+    private UploadFileResponseDto imageInfo;
     private String mainWord;
     private String subWord;
     private boolean memorisedCheck;
@@ -25,7 +25,7 @@ public class WordResponseDto {
         UploadFileResponseDto uploadFileResponseDto = modelMapper.map(wordImageFile, UploadFileResponseDto.class);
 
         return WordResponseDto.builder()
-                .imageFile(uploadFileResponseDto)
+                .imageInfo(uploadFileResponseDto)
                 .mainWord(word.getMainWord())
                 .subWord(word.getSubWord())
                 .memorisedCheck(word.isMemorisedCheck())

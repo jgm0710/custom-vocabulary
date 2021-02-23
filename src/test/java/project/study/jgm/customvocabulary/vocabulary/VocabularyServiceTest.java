@@ -115,7 +115,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         }
 
         //when
-        vocabularyService.addWordListToPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList);
+        vocabularyService.updateWordListOfPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList);
 
         em.flush();
         em.clear();
@@ -142,7 +142,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         List<WordRequestDto> wordRequestDtoList1 = getWordRequestDtos1();
 
 
-        vocabularyService.addWordListToPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList1);
+        vocabularyService.updateWordListOfPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList1);
 
         Vocabulary tmpFindVocabulary = vocabularyService.getVocabulary(personalVocabulary.getId());
         System.out.println("tmpFindVocabulary = " + tmpFindVocabulary);
@@ -152,7 +152,7 @@ class VocabularyServiceTest extends BaseServiceTest {
 
 
         //when
-        vocabularyService.updateWordListToPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList2);
+        vocabularyService.updateWordListOfPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList2);
 
         //then
         Vocabulary findVocabulary = vocabularyService.getVocabulary(personalVocabulary.getId());
@@ -308,7 +308,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         Vocabulary vocabulary = createVocabularyByService(user1, category);
 
         List<WordRequestDto> wordRequestDtos1 = getWordRequestDtos1();
-        vocabularyService.addWordListToPersonalVocabulary(vocabulary.getId(), wordRequestDtos1);
+        vocabularyService.updateWordListOfPersonalVocabulary(vocabulary.getId(), wordRequestDtos1);
 
         em.flush();
         em.clear();

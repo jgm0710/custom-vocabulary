@@ -141,6 +141,11 @@ public abstract class BaseControllerTest {
     @Autowired
     protected BbsUploadFileRepository bbsUploadFileRepository;
 
+    protected final String X_AUTH_TOKEN = "X-AUTH-TOKEN";
+
+    protected final String testImageFilePath = "/static/test/사진1.jpg";
+
+    protected final String testTextFilePath = "/static/test/text.txt";
 
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {
@@ -161,10 +166,6 @@ public abstract class BaseControllerTest {
         bbsRepository.deleteAll();
         memberRepository.deleteAll();
     }
-
-    protected final String X_AUTH_TOKEN = "X-AUTH-TOKEN";
-
-    protected final String MEMBER_API_CONTROLLER_REQUEST_VALUE = "http://localhost/api/members";
 
     protected LoginDto getLoginDto(MemberCreateDto memberCreateDto) {
         LoginDto loginDto = new LoginDto();

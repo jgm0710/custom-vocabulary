@@ -136,6 +136,12 @@ public class MessageVo {
 
     public static final String UPLOAD_VOCABULARY_THUMBNAIL_IMAGE_FILE_SUCCESSFULLY = "단어장 이미지 파일이 정상적으로 업로드되었습니다.";
 
+    public static final String ADD_VOCABULARY_SUCCESSFULLY = "단어장이 성공적으로 추가되었습니다.";
+
+    public static final String UPDATE_WORD_LIST_OF_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 단어장에는 단어 목록을 변경할 수 없습니다.";
+
+    public static final String UPDATE_WORD_LIST_OF_PERSONAL_VOCABULARY_SUCCESSFULLY = "단어장에 단어 목록이 성공적으로 변경되었습니다.";
+
 
     /**
      * Common
