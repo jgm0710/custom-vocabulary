@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
@@ -71,7 +71,7 @@ public class Vocabulary {
 
     private LocalDateTime registerDate;     //division에 따라 다르게 해석 : 개인 단어장{생성 날짜, 복사 날짜 저장} 단어장 공유{공유 날짜 저장}
 
-    public static Vocabulary createPersonalVocabulary(Member member, Category category, PersonalVocabularyCreateDto createDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
+    public static Vocabulary createPersonalVocabulary(Member member, Category category, VocabularyCreateDto createDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
         Vocabulary vocabulary = Vocabulary.builder()
                 .member(member)
                 .category(category)
@@ -114,7 +114,7 @@ public class Vocabulary {
         this.memorisedCount = 0;
     }
 
-    public void modify(PersonalVocabularyUpdateDto updateDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
+    public void modify(VocabularyUpdateDto updateDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
         this.vocabularyThumbnailImageFile = vocabularyThumbnailImageFile;
         this.title = updateDto.getTitle();
         this.difficulty = updateDto.getDifficulty();

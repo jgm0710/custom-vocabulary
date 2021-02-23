@@ -42,6 +42,7 @@ public class WordFileStorageService extends FileStorage {
                 .fileStoredPath(fileStoredPathValue)
                 .fileDownloadUri(fileDownloadUri)
                 .fileType(contentType)
+                .size(file.getSize())
                 .word(null)
                 .build();
 

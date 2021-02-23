@@ -16,14 +16,11 @@ import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
 import project.study.jgm.customvocabulary.bbs.upload.exception.BbsUploadFileNotFoundException;
 import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.common.upload.*;
-import project.study.jgm.customvocabulary.common.upload.exception.FileStorageException;
-import project.study.jgm.customvocabulary.common.upload.exception.MyFileNotFoundException;
-import project.study.jgm.customvocabulary.common.upload.exception.OriginalFilenameNotFoundException;
+import project.study.jgm.customvocabulary.common.upload.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
-import project.study.jgm.customvocabulary.common.upload.exception.NotImageTypeException;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
 import java.util.Arrays;
@@ -54,40 +51,25 @@ public class FileApiController {
      */
 
     @CrossOrigin
-    @PostMapping(value = "/bbs/uploadFile")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<ResponseDto<UploadFileResponseDto>> uploadBbsFile(
-            @RequestParam("file") MultipartFile file
-    ) {
-        BbsUploadFile bbsUploadFile;
-        try {
-            bbsUploadFile = bbsFileStorageService.uploadBbsFile(file);
-        } catch (OriginalFilenameNotFoundException | FileStorageException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        }
-
-        UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
-
-        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDto, UPLOAD_BBS_FILE_SUCCESSFULLY));
-    }
-
-
-    @CrossOrigin
     @PostMapping(value = "/bbs/uploadMultipleFiles")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ResponseDto<List<UploadFileResponseDto>>> uploadBbsMultipleFiles(
             @RequestParam("files") MultipartFile[] files
     ) {
 
-        List<UploadFileResponseDto> uploadFileResponseDtos = Arrays.stream(files)
-                .map(file -> {
-                    ResponseEntity<ResponseDto<UploadFileResponseDto>> responseDtoResponseEntity = uploadBbsFile(file);
-                    ResponseDto<UploadFileResponseDto> responseDto = responseDtoResponseEntity.getBody();
-                    return responseDto != null ? responseDto.getData() != null ? responseDto.getData() : null : null;
-                })
-                .collect(Collectors.toList());
+        try {
+            List<UploadFileResponseDto> uploadFileResponseDtos = Arrays.stream(files)
+                    .map(file -> {
+                        BbsUploadFile bbsUploadFile = bbsFileStorageService.uploadBbsFile(file);
+                        UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
+                        return uploadFileResponseDto;
+                    })
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDtos, UPLOAD_BBS_FILE_LIST_SUCCESSFULLY));
+            return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDtos, UPLOAD_BBS_FILE_LIST_SUCCESSFULLY));
+        }catch (OriginalFilenameNotFoundException | FileStorageException | DeniedFileExtensionException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
     }
 
     @GetMapping(value = "/bbs/downloadFile/{fileName:.+}")
@@ -149,7 +131,7 @@ public class FileApiController {
         WordImageFile wordImageFile;
         try {
             wordImageFile = wordFileStorageService.uploadWordImageFile(file);
-        } catch (NotImageTypeException | OriginalFilenameNotFoundException | FileStorageException e) {
+        } catch (NotImageTypeException | OriginalFilenameNotFoundException | DeniedFileExtensionException | FileStorageException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
@@ -217,7 +199,7 @@ public class FileApiController {
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile;
         try {
             vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(file);
-        } catch (NotImageTypeException | OriginalFilenameNotFoundException | FileStorageException e) {
+        } catch (NotImageTypeException | DeniedFileExtensionException | OriginalFilenameNotFoundException | FileStorageException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 

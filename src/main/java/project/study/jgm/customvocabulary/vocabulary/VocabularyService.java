@@ -12,8 +12,8 @@ import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryRepository;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFileRepository;
@@ -54,7 +54,7 @@ public class VocabularyService {
      */
 
     @Transactional
-    public Vocabulary createPersonalVocabulary(Long memberId, Long categoryId, PersonalVocabularyCreateDto createDto) {
+    public Vocabulary addPersonalVocabulary(Long memberId, Long categoryId, VocabularyCreateDto createDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
 
         Category category = null;
@@ -88,7 +88,7 @@ public class VocabularyService {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("개인 단어장 이외에는 단어 목록을 추가할 수 없습니다.");
         }
 
         List<Word> wordList = new ArrayList<>();
@@ -109,7 +109,7 @@ public class VocabularyService {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("개인 단어장 이외에는 단어 목록을 수정할 수 없습니다.");
         }
 
         vocabulary.removeWordList();
@@ -132,7 +132,7 @@ public class VocabularyService {
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
             if (vocabulary.getDivision() != VocabularyDivision.COPIED) {
-                throw new BadRequestByDivision();
+                throw new BadRequestByDivision("개인 단어장 이외에는 암기 체크를 할 수 없습니다.");
             }
         }
 
@@ -140,13 +140,13 @@ public class VocabularyService {
     }
 
     @Transactional
-    public void modifyPersonalVocabulary(Long vocabularyId, PersonalVocabularyUpdateDto updateDto) {
+    public void modifyPersonalVocabulary(Long vocabularyId, VocabularyUpdateDto updateDto) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
                 .findById(updateDto.getImageFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("개인 단어장 외에는 수정할 수 없습니다.");
         }
 
         vocabulary.modify(updateDto, vocabularyThumbnailImageFile);
@@ -159,7 +159,7 @@ public class VocabularyService {
         Vocabulary sharedVocabulary = personalVocabulary.personalToShared(sharedCategory);
 
         if (personalVocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("자신이 생성한 단어장만 공유할 수 있습니다. 또한 이미 공유된 단어장은 공유할 수 없습니다.");
         }
 
         if (sharedCategory.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
@@ -241,12 +241,12 @@ public class VocabularyService {
         Vocabulary personalVocabulary = sharedVocabulary.sharedToPersonal(member, personalCategory);
 
         if (sharedVocabulary.getDivision() != VocabularyDivision.SHARED) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("공유 단어장이 아닐 경우 다운로드가 불가능합니다.");
         }
 
         if (personalCategory != null) {
             if (personalCategory.getDivision() != CategoryDivision.PERSONAL) {
-                throw new BadRequestByDivision();
+                throw new BadRequestByDivision("공유 카테고리에는 공유 단어장을 다운로드 할 수 없습니다. 카테고리를 다시 확인해주세요.");
             }
         }
 
@@ -258,7 +258,7 @@ public class VocabularyService {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.SHARED) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("공유 단어장 외에는 공유를 취소할 수 없습니다.");
         }
 
         vocabulary.unshared();

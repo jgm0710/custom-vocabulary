@@ -14,8 +14,8 @@ import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryStatus;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
@@ -50,7 +50,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         LanguageType subLanguage = LanguageType.ENGLISH;
         Long imageFileId = vocabularyThumbnailImageFile.getId();
 
-        PersonalVocabularyCreateDto createDto = PersonalVocabularyCreateDto.builder()
+        VocabularyCreateDto createDto = VocabularyCreateDto.builder()
                 .title(title)
                 .difficulty(difficulty)
                 .mainLanguage(mainLanguage)
@@ -60,7 +60,7 @@ class VocabularyServiceTest extends BaseServiceTest {
 
 
         //when
-        Vocabulary personalVocabulary = vocabularyService.createPersonalVocabulary(userMember.getId(), category.getId(), createDto);
+        Vocabulary personalVocabulary = vocabularyService.addPersonalVocabulary(userMember.getId(), category.getId(), createDto);
 
         //then
         assertEquals(title, personalVocabulary.getTitle());
@@ -93,7 +93,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         LanguageType subLanguage = LanguageType.ENGLISH;
         Long imageFileId = vocabularyThumbnailImageFile.getId();
 
-        PersonalVocabularyCreateDto createDto = PersonalVocabularyCreateDto.builder()
+        VocabularyCreateDto createDto = VocabularyCreateDto.builder()
                 .title(title)
                 .difficulty(difficulty)
                 .mainLanguage(mainLanguage)
@@ -101,7 +101,7 @@ class VocabularyServiceTest extends BaseServiceTest {
                 .imageFileId(imageFileId)
                 .build();
 
-        Vocabulary personalVocabulary = vocabularyService.createPersonalVocabulary(userMember.getId(), category.getId(), createDto);
+        Vocabulary personalVocabulary = vocabularyService.addPersonalVocabulary(userMember.getId(), category.getId(), createDto);
 
         List<WordRequestDto> wordRequestDtoList = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -214,14 +214,14 @@ class VocabularyServiceTest extends BaseServiceTest {
         LanguageType mainLanguage = LanguageType.KOREAN;
         LanguageType subLanguage = LanguageType.ENGLISH;
 
-        PersonalVocabularyCreateDto vocabularyCreateDto = PersonalVocabularyCreateDto.builder()
+        VocabularyCreateDto vocabularyCreateDto = VocabularyCreateDto.builder()
                 .title(title)
                 .difficulty(difficulty)
                 .mainLanguage(mainLanguage)
                 .subLanguage(subLanguage)
                 .build();
 
-        return vocabularyService.createPersonalVocabulary(user1.getId(), category.getId(), vocabularyCreateDto);
+        return vocabularyService.addPersonalVocabulary(user1.getId(), category.getId(), vocabularyCreateDto);
     }
 
     private Vocabulary createVocabularyByService(Member user1, Category category) {
@@ -230,7 +230,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         LanguageType mainLanguage = LanguageType.KOREAN;
         LanguageType subLanguage = LanguageType.ENGLISH;
 
-        PersonalVocabularyCreateDto vocabularyCreateDto = PersonalVocabularyCreateDto.builder()
+        VocabularyCreateDto vocabularyCreateDto = VocabularyCreateDto.builder()
                 .title(title)
                 .difficulty(difficulty)
                 .mainLanguage(mainLanguage)
@@ -242,7 +242,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         if (category != null) {
             categoryId = category.getId();
         }
-        return vocabularyService.createPersonalVocabulary(user1.getId(), categoryId, vocabularyCreateDto);
+        return vocabularyService.addPersonalVocabulary(user1.getId(), categoryId, vocabularyCreateDto);
     }
 
     private Category createPersonalCategoryByService(Member user1, int orders, String name) {
@@ -345,7 +345,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         String updateTitle = "update vocabulary";
         int updateDifficulty = 5;
         Long imageFileId = vocabularyThumbnailImageFile.getId();
-        PersonalVocabularyUpdateDto vocabularyUpdateDto = PersonalVocabularyUpdateDto.builder()
+        VocabularyUpdateDto vocabularyUpdateDto = VocabularyUpdateDto.builder()
                 .title(updateTitle)
                 .difficulty(updateDifficulty)
                 .imageFileId(imageFileId)
@@ -382,7 +382,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         LanguageType subLanguage = LanguageType.ENGLISH;
         Long imageFileId = vocabularyThumbnailImageFile.getId();
 
-        PersonalVocabularyCreateDto vocabularyCreateDto = PersonalVocabularyCreateDto.builder()
+        VocabularyCreateDto vocabularyCreateDto = VocabularyCreateDto.builder()
                 .title(title)
                 .difficulty(difficulty)
                 .mainLanguage(mainLanguage)
@@ -390,7 +390,7 @@ class VocabularyServiceTest extends BaseServiceTest {
                 .imageFileId(imageFileId)
                 .build();
 
-        Vocabulary personalVocabulary = vocabularyService.createPersonalVocabulary(user1.getId(), personalCategory.getId(), vocabularyCreateDto);
+        Vocabulary personalVocabulary = vocabularyService.addPersonalVocabulary(user1.getId(), personalCategory.getId(), vocabularyCreateDto);
 
 
         Category sharedCategory = createSharedCategoryByService();

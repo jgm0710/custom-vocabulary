@@ -6,10 +6,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import project.study.jgm.customvocabulary.common.upload.exception.FileStorageException;
-import project.study.jgm.customvocabulary.common.upload.exception.MyFileNotFoundException;
-import project.study.jgm.customvocabulary.common.upload.exception.OriginalFilenameNotFoundException;
-import project.study.jgm.customvocabulary.common.upload.exception.NotImageTypeException;
+import project.study.jgm.customvocabulary.common.upload.exception.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +31,10 @@ public abstract class FileStorage {
     }
 
     protected StoreFileDto storeFile(MultipartFile file) {
+
+        if (isDeniedFileExtension(file)) {
+            throw new DeniedFileExtensionException();
+        }
 
         String originalFilename;
 
@@ -65,6 +66,22 @@ public abstract class FileStorage {
         } catch (IOException e) {
             throw new FileStorageException("Could not store file " + fileName + ". Please try again!", e);
         }
+    }
+
+    private boolean isDeniedFileExtension(MultipartFile file) {
+        final String[] deniedFileExtension = {"exe", "sh", "zip", "alz"};
+        String fileName = file.getOriginalFilename();
+
+        boolean deniedExistFlag = false;
+        for (String dfe : deniedFileExtension) {
+            deniedExistFlag = fileName.toLowerCase().endsWith(dfe);
+
+            if (deniedExistFlag == true) {
+                break;
+            }
+        }
+
+        return deniedExistFlag;
     }
 
     protected StoreFileDto storeImageFile(MultipartFile file) {

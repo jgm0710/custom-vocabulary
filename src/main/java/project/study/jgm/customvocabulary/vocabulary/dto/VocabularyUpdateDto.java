@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PersonalVocabularyUpdateDto {
+public class VocabularyUpdateDto {
     @NotBlank(message = "수정할 제목을 입력해주세요.")
     private String title;
     @NotNull(message = "수정할 난이도를 입력해주세요")

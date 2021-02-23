@@ -30,6 +30,8 @@ public class WordImageFile {
 
     private String fileType;
 
+    private Long size;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "word_id")
     private Word word;

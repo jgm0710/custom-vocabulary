@@ -37,6 +37,7 @@ public class VocabularyFileStorageService extends FileStorage {
                 .fileStoredPath(fileStoredPathValue)
                 .fileDownloadUri(fileDownloadUri)
                 .fileType(contentType)
+                .size(file.getSize())
                 .vocabulary(null)
                 .build();
 

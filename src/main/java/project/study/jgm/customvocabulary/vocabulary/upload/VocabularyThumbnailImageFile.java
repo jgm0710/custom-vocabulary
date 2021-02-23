@@ -29,6 +29,8 @@ public class VocabularyThumbnailImageFile {
 
     private String fileType;
 
+    private Long size;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vocabulary_id")
     private Vocabulary vocabulary;

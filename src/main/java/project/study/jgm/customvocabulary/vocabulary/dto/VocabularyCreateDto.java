@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PersonalVocabularyCreateDto {
+public class VocabularyCreateDto {
     @NotBlank(message = "단어장의 제목을 입력해주세요.")
     private String title;
     @NotNull(message = "단어장의 난이도를 입력해주세요.")
