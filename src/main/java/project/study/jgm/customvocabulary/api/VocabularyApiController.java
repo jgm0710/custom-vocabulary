@@ -22,7 +22,6 @@ import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.like.VocabularyLikeService;
-import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.upload.exception.VocabularyThumbnailImageFileNotFoundException;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.OnlyWordRequestListDto;
@@ -110,9 +109,9 @@ public class VocabularyApiController {
         }
     }
 
-    @PostMapping("/personal/memorisedCheck/{vocabularyId}/{wordId}")
+    @PutMapping("/personal/memorisedCheck/{vocabularyId}/{wordId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity checkMemorise(
+    public ResponseEntity<?> checkMemorise(
             @PathVariable Long vocabularyId,
             @PathVariable Long wordId,
             @CurrentUser Member member
@@ -122,12 +121,12 @@ public class VocabularyApiController {
 
             Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
             if (!findVocabulary.getMember().getId().equals(member.getId())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("다른 회원의 단어에는 암기 체크를 할 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CHECK_MEMORIZE_OF_VOCABULARY_OF_DIFFERENT_MEMBER);
             }
             vocabularyService.checkMemorise(wordId);
             Word word = vocabularyService.getWord(wordId);
             WordResponseDto wordResponseDto = WordResponseDto.wordToResponse(word, modelMapper);
-            return ResponseEntity.ok(new ResponseDto<>(wordResponseDto, "암기 체크가 정상적이로 이루어졌습니다."));
+            return ResponseEntity.ok(new ResponseDto<>(wordResponseDto, CHECK_MEMORIZE_SUCCESSFULLY));
 
         } catch (VocabularyNotFoundException | WordNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
@@ -138,7 +137,7 @@ public class VocabularyApiController {
 
     @PutMapping("/personal/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity modifyPersonalVocabulary(
+    public ResponseEntity<?> modifyPersonalVocabulary(
             @PathVariable Long vocabularyId,
             @RequestBody @Valid VocabularyUpdateDto vocabularyUpdateDto,
             Errors errors,
@@ -168,7 +167,7 @@ public class VocabularyApiController {
 
     @PostMapping("/personal/share/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity sharePersonalVocabulary(
+    public ResponseEntity<? extends ResponseDto<?>> sharePersonalVocabulary(
             @PathVariable Long vocabularyId,
             @RequestParam Long categoryId,
             @CurrentUser Member member
@@ -200,7 +199,7 @@ public class VocabularyApiController {
 
     @PutMapping("/moveCategory/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity moveCategory(
+    public ResponseEntity<? extends ResponseDto<?>> moveCategory(
             @PathVariable Long vocabularyId,
             @RequestParam Long categoryId,
             @CurrentUser Member member
@@ -234,7 +233,7 @@ public class VocabularyApiController {
 
     @GetMapping("/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity getVocabulary(
+    public ResponseEntity<? extends ResponseDto<?>> getVocabulary(
             @PathVariable Long vocabularyId,
             @CurrentUser Member member
     ) {

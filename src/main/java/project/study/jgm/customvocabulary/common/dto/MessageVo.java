@@ -142,6 +142,11 @@ public class MessageVo {
 
     public static final String UPDATE_WORD_LIST_OF_PERSONAL_VOCABULARY_SUCCESSFULLY = "단어장에 단어 목록이 성공적으로 변경되었습니다.";
 
+    public static final  String CHECK_MEMORIZE_OF_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 단어에는 암기 체크를 할 수 없습니다.";
+
+    public static final String CHECK_MEMORIZE_SUCCESSFULLY = "암기 체크가 정상적으로 이루어졌습니다.";
+
+
 
     /**
      * Common

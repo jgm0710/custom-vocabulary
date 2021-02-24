@@ -22,16 +22,19 @@ import project.study.jgm.customvocabulary.vocabulary.exception.VocabularyNotFoun
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.upload.exception.VocabularyThumbnailImageFileNotFoundException;
 import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
+import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.OnlyWordRequestListDto;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -801,5 +804,218 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         ;
 
 
+    }
+
+    @Test
+    @DisplayName("개인 단어장 단어에 암기 체크")
+    public void checkMemorise() throws Exception {
+        //given
+        final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        final Member user1 = memberService.userJoin(memberCreateDto);
+
+        final OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        final TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        Category personalCategory = createPersonalCategorySample(user1);
+
+        final Vocabulary personalVocabulary = createPersonalVocabularySample(user1, personalCategory);
+
+        List<WordRequestDto> wordRequestDtoList = createWordListSample();
+
+        vocabularyService.updateWordListOfPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList);
+
+        em.flush();
+        em.clear();
+
+        final Vocabulary findVocabulary = vocabularyService.getVocabulary(personalVocabulary.getId());
+
+        final Word findWord = findVocabulary.getWordList().get(1);
+
+        //when
+        final ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/personal/memorisedCheck/" + personalVocabulary.getId() + "/" + findWord.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.imageInfo.fileId").value(findWord.getWordImageFile().getId()))
+                .andExpect(jsonPath("data.imageInfo.fileName").value(findWord.getWordImageFile().getFileName()))
+                .andExpect(jsonPath("data.imageInfo.fileDownloadUri").value(findWord.getWordImageFile().getFileDownloadUri()))
+                .andExpect(jsonPath("data.imageInfo.fileType").value(findWord.getWordImageFile().getFileType()))
+                .andExpect(jsonPath("data.imageInfo.size").value(findWord.getWordImageFile().getSize()))
+                .andExpect(jsonPath("data.mainWord").value(findWord.getMainWord()))
+                .andExpect(jsonPath("data.subWord").value(findWord.getSubWord()))
+                .andExpect(jsonPath("data.memorisedCheck").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.CHECK_MEMORIZE_SUCCESSFULLY))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("좋아요가 등록되 있는 단어에 암기 체크를 하는 경우")
+    public void checkMemorise_TrueToFalse() throws Exception {
+        //given
+        final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        final Member user1 = memberService.userJoin(memberCreateDto);
+
+        final OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        final TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        Category personalCategory = createPersonalCategorySample(user1);
+
+        final Vocabulary personalVocabulary = createPersonalVocabularySample(user1, personalCategory);
+
+        List<WordRequestDto> wordRequestDtoList = createWordListSample();
+
+        vocabularyService.updateWordListOfPersonalVocabulary(personalVocabulary.getId(), wordRequestDtoList);
+
+        em.flush();
+        em.clear();
+
+        final Vocabulary findVocabulary = vocabularyService.getVocabulary(personalVocabulary.getId());
+
+        final Word findWord = findVocabulary.getWordList().get(1);
+
+        vocabularyService.checkMemorise(findWord.getId());
+
+        em.flush();
+        em.clear();
+
+        assertTrue(findWord.isMemorisedCheck());
+
+        //when
+        final ResultActions perform = mockMvc
+                .perform(
+                        put("/api/vocabulary/personal/memorisedCheck/" + personalVocabulary.getId() + "/" + findWord.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.imageInfo.fileId").value(findWord.getWordImageFile().getId()))
+                .andExpect(jsonPath("data.imageInfo.fileName").value(findWord.getWordImageFile().getFileName()))
+                .andExpect(jsonPath("data.imageInfo.fileDownloadUri").value(findWord.getWordImageFile().getFileDownloadUri()))
+                .andExpect(jsonPath("data.imageInfo.fileType").value(findWord.getWordImageFile().getFileType()))
+                .andExpect(jsonPath("data.imageInfo.size").value(findWord.getWordImageFile().getSize()))
+                .andExpect(jsonPath("data.mainWord").value(findWord.getMainWord()))
+                .andExpect(jsonPath("data.subWord").value(findWord.getSubWord()))
+                .andExpect(jsonPath("data.memorisedCheck").value(false))
+                .andExpect(jsonPath("message").value(MessageVo.CHECK_MEMORIZE_SUCCESSFULLY))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 단어에 암기 체크를 하는 경우")
+    public void checkMemorise_UnAuthentication() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("다른 회원의 단어장의 단어에 암기 체크를 하는 경우")
+    public void checkMemorise_Of_DifferentMember() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("단어 암기 체크 시 단어장을 찾을 수 없는 경우")
+    public void checkMemorise_VocabularyNotFound() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("단어 암기 체크 시 단어를 찾을 수 없는 경우")
+    public void checkMemorise_WordNotFound() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("공유 단어장에 암기 체크를 하는 경우")
+    public void checkMemorise_Of_ShardVocabulary() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    @Test
+    @DisplayName("삭제된 단어장의 단어에 암기 체크를 하는 경우")
+    public void checkMemorise_Of_DeletedVocabulary() throws Exception {
+        //given
+
+        //when
+
+        //then
+
+    }
+
+    private List<WordRequestDto> createWordListSample() throws IOException {
+        List<WordRequestDto> wordRequestDtoList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            MockMultipartFile mockMultipartFile1 = getMockMultipartFile("file", testImageFilePath);
+            WordImageFile wordImageFile = wordFileStorageService.uploadWordImageFile(mockMultipartFile1);
+
+            WordRequestDto wordRequestDto = WordRequestDto.builder()
+                    .imageFileId(wordImageFile.getId())
+                    .mainWord("main" + i)
+                    .subWord("sub" + i)
+                    .memorisedCheck(false)
+                    .build();
+
+            wordRequestDtoList.add(wordRequestDto);
+        }
+        return wordRequestDtoList;
+    }
+
+    private Vocabulary createPersonalVocabularySample(Member user1, Category personalCategory) throws IOException {
+        MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
+        VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(mockMultipartFile);
+
+        int difficulty = 5;
+        String title = "sample vocabulary";
+        LanguageType mainLanguage = LanguageType.KOREAN;
+        LanguageType subLanguage = LanguageType.ENGLISH;
+        VocabularyCreateDto vocabularyCreateDto = VocabularyCreateDto.builder()
+                .title(title)
+                .difficulty(difficulty)
+                .mainLanguage(mainLanguage)
+                .subLanguage(subLanguage)
+                .imageFileId(vocabularyThumbnailImageFile.getId())
+                .build();
+
+        final Vocabulary personalVocabulary = vocabularyService.addPersonalVocabulary(user1.getId(), personalCategory.getId(), vocabularyCreateDto);
+        return personalVocabulary;
+    }
+
+    private Category createPersonalCategorySample(Member user1) {
+        return createCategory(user1, CategoryDivision.PERSONAL, "personal category", null, 1, CategoryStatus.REGISTER);
     }
 }
