@@ -7,30 +7,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
+import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.CurrentUser;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
+import project.study.jgm.customvocabulary.vocabulary.VocabularyDivision;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyDetailResponseDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyDetailDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.SharedVocabularyDetailDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.exception.BadRequestByDivision;
-import project.study.jgm.customvocabulary.vocabulary.exception.DivisionMismatchException;
-import project.study.jgm.customvocabulary.vocabulary.exception.VocabularyNotFoundException;
+import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.like.VocabularyLikeService;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.upload.exception.VocabularyThumbnailImageFileNotFoundException;
+import project.study.jgm.customvocabulary.vocabulary.word.Word;
 import project.study.jgm.customvocabulary.vocabulary.word.dto.OnlyWordRequestListDto;
-import project.study.jgm.customvocabulary.vocabulary.word.dto.WordRequestDto;
+import project.study.jgm.customvocabulary.vocabulary.word.dto.WordResponseDto;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static project.study.jgm.customvocabulary.common.dto.MessageVo.*;
@@ -42,16 +42,18 @@ public class VocabularyApiController {
 
     private final VocabularyService vocabularyService;
 
-    private final VocabularyFileStorageService vocabularyFileStorageService;
-
     private final VocabularyLikeService vocabularyLikeService;
 
     private final ModelMapper modelMapper;
 
-    @PostMapping("/{categoryId}")
+
+    /**
+     * Personal
+     */
+
+    @PostMapping("/personal")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> addPersonalVocabulary(
-            @PathVariable Long categoryId,
             @RequestBody @Valid VocabularyCreateDto createDto,
             Errors errors,
             @CurrentUser Member member
@@ -63,12 +65,12 @@ public class VocabularyApiController {
 
         try {
 
-            Vocabulary savedVocabulary = vocabularyService.addPersonalVocabulary(member.getId(), categoryId, createDto);
-            PersonalVocabularyDetailResponseDto personalVocabularyDetailResponseDto = PersonalVocabularyDetailResponseDto.vocabularyToDetail(savedVocabulary, modelMapper);
-            URI getVocabularyUri = linkTo(VocabularyApiController.class).slash(savedVocabulary.getId()).toUri();
+            Vocabulary savedVocabulary = vocabularyService.addPersonalVocabulary(member.getId(), createDto.getCategoryId(), createDto);
+            PersonalVocabularyDetailDto personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(savedVocabulary, modelMapper);
+            URI getVocabularyUri = linkTo(VocabularyApiController.class).slash("personal").slash(savedVocabulary.getId()).toUri();
 
             return ResponseEntity.created(getVocabularyUri)
-                    .body(new ResponseDto<>(personalVocabularyDetailResponseDto, ADD_VOCABULARY_SUCCESSFULLY));
+                    .body(new ResponseDto<>(personalVocabularyDetailDto, ADD_VOCABULARY_SUCCESSFULLY));
 
         } catch (MemberNotFoundException | CategoryNotFoundException | VocabularyThumbnailImageFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
@@ -77,7 +79,7 @@ public class VocabularyApiController {
         }
     }
 
-    @PostMapping("/updateWords/{vocabularyId}")
+    @PostMapping("/personal/updateWords/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateWordListOfPersonalVocabulary(
             @PathVariable Long vocabularyId,
@@ -97,9 +99,9 @@ public class VocabularyApiController {
             if (!findVocabulary.getMember().getId().equals(member.getId())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(UPDATE_WORD_LIST_OF_VOCABULARY_OF_DIFFERENT_MEMBER));
             }
-            PersonalVocabularyDetailResponseDto personalVocabularyDetailResponseDto = PersonalVocabularyDetailResponseDto.vocabularyToDetail(findVocabulary, modelMapper);
+            PersonalVocabularyDetailDto personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(findVocabulary, modelMapper);
 
-            return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailResponseDto, UPDATE_WORD_LIST_OF_PERSONAL_VOCABULARY_SUCCESSFULLY));
+            return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, UPDATE_WORD_LIST_OF_PERSONAL_VOCABULARY_SUCCESSFULLY));
 
         } catch (VocabularyNotFoundException | WordImageFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
@@ -107,4 +109,177 @@ public class VocabularyApiController {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
     }
+
+    @PostMapping("/personal/memorisedCheck/{vocabularyId}/{wordId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity checkMemorise(
+            @PathVariable Long vocabularyId,
+            @PathVariable Long wordId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+
+            Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
+            if (!findVocabulary.getMember().getId().equals(member.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("다른 회원의 단어에는 암기 체크를 할 수 없습니다.");
+            }
+            vocabularyService.checkMemorise(wordId);
+            Word word = vocabularyService.getWord(wordId);
+            WordResponseDto wordResponseDto = WordResponseDto.wordToResponse(word, modelMapper);
+            return ResponseEntity.ok(new ResponseDto<>(wordResponseDto, "암기 체크가 정상적이로 이루어졌습니다."));
+
+        } catch (VocabularyNotFoundException | WordNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        } catch (BadRequestByDivision e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/personal/{vocabularyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity modifyPersonalVocabulary(
+            @PathVariable Long vocabularyId,
+            @RequestBody @Valid VocabularyUpdateDto vocabularyUpdateDto,
+            Errors errors,
+            @CurrentUser Member member
+    ) {
+
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        try {
+            Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
+            if (!findVocabulary.getMember().getId().equals(member.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>("다른 회원의 단어장은 수정할 수 없습니다."));
+            }
+            vocabularyService.modifyPersonalVocabulary(vocabularyId, vocabularyUpdateDto);
+
+            PersonalVocabularyDetailDto personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(findVocabulary, modelMapper);
+
+            return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, "단어장이 정상적으로 수정되었습니다."));
+        } catch (VocabularyNotFoundException | VocabularyThumbnailImageFileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        } catch (BadRequestByDivision e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/personal/share/{vocabularyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity sharePersonalVocabulary(
+            @PathVariable Long vocabularyId,
+            @RequestParam Long categoryId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+
+            Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
+            if (!findVocabulary.getMember().getId().equals(member.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>("다른 회원의 단어장은 공유할 수 없습니다."));
+            }
+            Vocabulary sharedVocabulary = vocabularyService.share(vocabularyId, categoryId);
+            SharedVocabularyDetailDto sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(sharedVocabulary, modelMapper);
+            URI getSharedVocabularyUri = linkTo(VocabularyApiController.class).slash("shared").slash(sharedVocabulary.getId()).toUri();
+
+            return ResponseEntity.created(getSharedVocabularyUri)
+                    .body(new ResponseDto<>(sharedVocabularyDetailDto, "단어장이 성공적으로 공유되었습니다."));
+        } catch (VocabularyNotFoundException | CategoryNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        } catch (BadRequestByDivision | DivisionMismatchException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
+    }
+
+
+    /**
+     * Common
+     */
+
+    @PutMapping("/moveCategory/{vocabularyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity moveCategory(
+            @PathVariable Long vocabularyId,
+            @RequestParam Long categoryId,
+            @CurrentUser Member member
+    ) {
+
+
+        try {
+
+            Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
+            if (!findVocabulary.getMember().getId().equals(member.getId())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>("다른 회원의 단어장의 카테고리는 이동시킬 수 없습니다."));
+            }
+
+            vocabularyService.moveCategory(vocabularyId, categoryId);
+
+            if (findVocabulary.getDivision() == VocabularyDivision.PERSONAL || findVocabulary.getDivision() == VocabularyDivision.COPIED) {
+                PersonalVocabularyDetailDto personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(findVocabulary, modelMapper);
+                return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, "개인 단어장의 카테고리가 정상적으로 변경되었습니다."));
+            } else { //findVocabulary.getDivision() == SHARED
+                SharedVocabularyDetailDto sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(findVocabulary, modelMapper);
+                return ResponseEntity.ok(new ResponseDto<>(sharedVocabularyDetailDto, "공유 단어장의 카테고리가 정상적으로 변경되었습니다."));
+            }
+
+        } catch (VocabularyNotFoundException | CategoryNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        } catch (DoNotMoveException | DivisionMismatchException |
+                MemberMismatchAfterMovingWithCurrentMemberException | BadRequestByDivision e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{vocabularyId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity getVocabulary(
+            @PathVariable Long vocabularyId,
+            @CurrentUser Member member
+    ) {
+
+        try {
+
+            Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
+            PersonalVocabularyDetailDto personalVocabularyDetailDto;
+            SharedVocabularyDetailDto sharedVocabularyDetailDto;
+
+            switch (findVocabulary.getDivision()) {
+                case COPIED:
+                case PERSONAL:
+                    if (!member.getRoles().contains(MemberRole.ADMIN)) {
+                        if (!findVocabulary.getMember().getId().equals(member.getId())) {
+                            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>("다른 회원의 개인 단어장은 조회할 수 없습니다."));
+                        }
+                    }
+                    personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(findVocabulary, modelMapper);
+                    return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, "개인 단어장이 정상적으로 조회되었습니다."));
+                case SHARED:
+                    sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(findVocabulary, modelMapper);
+                    return ResponseEntity.ok(new ResponseDto<>(sharedVocabularyDetailDto, "공유 단어장이 정상적으로 조회되었습니다."));
+
+                case DELETE:
+                    if (!member.getRoles().contains(MemberRole.ADMIN)) {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>("삭제된 단어장은 조회가 불가능합니다."));
+                    } else {
+                        personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(findVocabulary, modelMapper);
+                        return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, "관리자 권한으로 삭제된 단어장이 조회되었습니다."));
+                    }
+                case UNSHARED:
+                    if (!member.getRoles().contains(MemberRole.ADMIN)) {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>("공유가 취소된 단어장은 조회가 불가능합니다."));
+                    } else {
+                        sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(findVocabulary, modelMapper);
+                        return ResponseEntity.ok(new ResponseDto<>(sharedVocabularyDetailDto, "관리자 권한으로 공유가 취소된 단어장이 조회되었습니다."));
+                    }
+                default:
+                    return ResponseEntity.status(500).body(new ResponseDto<>("해당 구분의 단어장은 존재하지 않습니다."));
+            }
+
+        } catch (VocabularyNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
+        }
+    }
+
 }

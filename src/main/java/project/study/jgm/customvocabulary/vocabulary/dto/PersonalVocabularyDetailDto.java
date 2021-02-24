@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 import project.study.jgm.customvocabulary.common.upload.UploadFileResponseDto;
-import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
-import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
@@ -22,7 +20,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PersonalVocabularyDetailResponseDto {
+public class PersonalVocabularyDetailDto {
 
     private Long id;
 
@@ -61,22 +59,8 @@ public class PersonalVocabularyDetailResponseDto {
 //.memorisedCount
 //.totalWordCount
 
-    @Getter
-    @AllArgsConstructor
-    static class WriterDto {
-        private Long id;
-        private String nickname;
-    }
 
-    @Getter
-    @AllArgsConstructor
-    static class CategoryDto{
-        private Long id;
-        private String name;
-    }
-
-
-    public static PersonalVocabularyDetailResponseDto vocabularyToDetail(Vocabulary vocabulary, ModelMapper modelMapper) {
+    public static PersonalVocabularyDetailDto personalVocabularyToDetail(Vocabulary vocabulary, ModelMapper modelMapper) {
         List<Word> wordList = vocabulary.getWordList();
 
         List<WordResponseDto> wordResponseDtos = new ArrayList<>();
@@ -93,7 +77,7 @@ public class PersonalVocabularyDetailResponseDto {
             category = new CategoryDto(vocabulary.getCategory().getId(), vocabulary.getCategory().getName());
         }
 
-        return PersonalVocabularyDetailResponseDto.builder()
+        return PersonalVocabularyDetailDto.builder()
                 .id(vocabulary.getId())
                 .writer(new WriterDto(vocabulary.getMember().getId(), vocabulary.getMember().getNickname()))
                 .category(category)

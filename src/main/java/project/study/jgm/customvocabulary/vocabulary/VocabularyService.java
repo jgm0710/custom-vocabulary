@@ -139,6 +139,10 @@ public class VocabularyService {
         findWord.checkMemorise();
     }
 
+    public Word getWord(Long wordId) {
+        return wordRepository.findById(wordId).orElseThrow(WordNotFoundException::new);
+    }
+
     @Transactional
     public void modifyPersonalVocabulary(Long vocabularyId, VocabularyUpdateDto updateDto) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
@@ -217,6 +221,7 @@ public class VocabularyService {
 
     public Vocabulary getVocabulary(Long vocabularyId) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+
         if (vocabulary.getDivision() == VocabularyDivision.SHARED) {
             vocabulary.increaseViews();
         }

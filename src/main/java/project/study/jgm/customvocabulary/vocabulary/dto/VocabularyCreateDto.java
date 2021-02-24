@@ -16,6 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VocabularyCreateDto {
+
+    private Long categoryId;
     @NotBlank(message = "단어장의 제목을 입력해주세요.")
     private String title;
     @NotNull(message = "단어장의 난이도를 입력해주세요.")

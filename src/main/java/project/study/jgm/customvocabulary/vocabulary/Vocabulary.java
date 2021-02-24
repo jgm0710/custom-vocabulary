@@ -137,22 +137,31 @@ public class Vocabulary {
     }
 
     public Vocabulary personalToShared(Category sharedCategory) {
+        List<Word> copiedWordList = new ArrayList<>();
+        for (Word word : this.wordList) {
+            copiedWordList.add(word);
+        }
+
         Vocabulary vocabulary = Vocabulary.builder()
                 .member(this.member)
                 .category(sharedCategory)
                 .vocabularyThumbnailImageFile(this.vocabularyThumbnailImageFile)
                 .title(this.title)
+                .mainLanguage(this.mainLanguage)
+                .subLanguage(this.subLanguage)
+                .wordList(copiedWordList)
                 .difficulty(this.difficulty)
                 .views(0)
                 .likeCount(0)
                 .downloadCount(0)
                 .memorisedCount(0)
-                .totalWordCount(0)
+                .totalWordCount(this.totalWordCount)
                 .division(VocabularyDivision.SHARED)
                 .registerDate(LocalDateTime.now())
                 .build();
 
-        vocabulary.getMember().addSharedVocabulary();
+        this.member.addSharedVocabulary();
+
         if (sharedCategory != null) {
             sharedCategory.addVocabulary();
         }
