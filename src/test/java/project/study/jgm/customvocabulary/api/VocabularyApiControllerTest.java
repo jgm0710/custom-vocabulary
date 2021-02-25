@@ -377,7 +377,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + vocabulary.getId())
+                put("/api/vocabulary/words/" + vocabulary.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -467,7 +467,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + vocabulary.getId())
+                post("/api/vocabulary/words/" + vocabulary.getId())
 //                        .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -528,7 +528,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + vocabulary.getId())
+                put("/api/vocabulary/words/" + vocabulary.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -597,7 +597,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + vocabulary.getId())
+                put("/api/vocabulary/words/" + vocabulary.getId())
                         .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -660,7 +660,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + 10000L)
+                put("/api/vocabulary/words/" + 10000L)
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -724,7 +724,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + vocabulary.getId())
+                put("/api/vocabulary/words/" + vocabulary.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -790,7 +790,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         //when
         ResultActions perform = mockMvc.perform(
-                post("/api/vocabulary/updateWords/" + sharedVocabulary.getId())
+                put("/api/vocabulary/words/" + sharedVocabulary.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(onlyWordRequestListDto))
@@ -834,7 +834,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //when
         final ResultActions perform = mockMvc
                 .perform(
-                        put("/api/vocabulary/personal/memorisedCheck/" + personalVocabulary.getId() + "/" + findWord.getId())
+                        put("/api/vocabulary/personal/memorized/" + personalVocabulary.getId() + "/" + findWord.getId())
                                 .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -890,7 +890,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //when
         final ResultActions perform = mockMvc
                 .perform(
-                        put("/api/vocabulary/personal/memorisedCheck/" + personalVocabulary.getId() + "/" + findWord.getId())
+                        put("/api/vocabulary/personal/memorized/" + personalVocabulary.getId() + "/" + findWord.getId())
                                 .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                 )
                 .andDo(print());

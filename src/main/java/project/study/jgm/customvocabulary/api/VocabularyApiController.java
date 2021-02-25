@@ -1,5 +1,6 @@
 package project.study.jgm.customvocabulary.api;
 
+import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
+import project.study.jgm.customvocabulary.common.dto.ListResponseDto;
+import project.study.jgm.customvocabulary.common.dto.PaginationDto;
 import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
@@ -16,10 +20,7 @@ import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyDivision;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularyDetailDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.SharedVocabularyDetailDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
+import project.study.jgm.customvocabulary.vocabulary.dto.*;
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.like.VocabularyLikeService;
 import project.study.jgm.customvocabulary.vocabulary.upload.exception.VocabularyThumbnailImageFileNotFoundException;
@@ -30,6 +31,8 @@ import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordI
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static project.study.jgm.customvocabulary.common.dto.MessageVo.*;
@@ -78,7 +81,7 @@ public class VocabularyApiController {
         }
     }
 
-    @PostMapping("/personal/updateWords/{vocabularyId}")
+    @PutMapping("/personal/words/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateWordListOfPersonalVocabulary(
             @PathVariable Long vocabularyId,
@@ -109,7 +112,7 @@ public class VocabularyApiController {
         }
     }
 
-    @PutMapping("/personal/memorisedCheck/{vocabularyId}/{wordId}")
+    @PutMapping("/personal/memorized/{vocabularyId}/{wordId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> checkMemorise(
             @PathVariable Long vocabularyId,
@@ -165,7 +168,7 @@ public class VocabularyApiController {
         }
     }
 
-    @PostMapping("/personal/share/{vocabularyId}")
+    @PostMapping("/shared/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<? extends ResponseDto<?>> sharePersonalVocabulary(
             @PathVariable Long vocabularyId,
@@ -192,12 +195,48 @@ public class VocabularyApiController {
         }
     }
 
+    @GetMapping("/personal/{memberId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<?> getPersonalVocabularyList(
+            @PathVariable Long memberId,
+            @ModelAttribute CriteriaDto criteriaDto,
+            @RequestParam Long categoryId,
+            @CurrentUser Member member
+    ) {
+
+        if (!member.getRoles().contains(MemberRole.ADMIN)) {
+            if (!member.getId().equals(memberId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("다른 회원의 개인 단어장 목록은 조회할 수 없습니다.");
+            }
+        }
+
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, VocabularyDivision.PERSONAL, memberId, categoryId);
+        List<Vocabulary> findVocabularyList = results.getResults();
+
+        List<PersonalVocabularySimpleDto> personalVocabularySimpleDtos = new ArrayList<>();
+        for (Vocabulary findVocabulary : findVocabularyList) {
+            PersonalVocabularySimpleDto personalVocabularySimpleDto = PersonalVocabularySimpleDto.personalVocabularyToSimple(findVocabulary, modelMapper);
+            personalVocabularySimpleDtos.add(personalVocabularySimpleDto);
+        }
+
+        long totalCount = results.getTotal();
+
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+
+        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+                .list(personalVocabularySimpleDtos)
+                .paging(paginationDto)
+                .build();
+
+        return ResponseEntity.ok(new ResponseDto<>(listResponseDto, "개인 단어장 목록이 정상적으로 조회되었습니다."));
+    }
+
 
     /**
      * Common
      */
 
-    @PutMapping("/moveCategory/{vocabularyId}")
+    @PutMapping("/category/{vocabularyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<? extends ResponseDto<?>> moveCategory(
             @PathVariable Long vocabularyId,
@@ -279,6 +318,36 @@ public class VocabularyApiController {
         } catch (VocabularyNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }
+    }
+
+    /**
+     * Shared
+     */
+
+    @GetMapping("/shared/{memberId}")
+    public ResponseEntity<ResponseDto<ListResponseDto<Object>>> getSharedVocabularyListByMember(
+            @PathVariable Long memberId,
+            @RequestParam CriteriaDto criteriaDto
+    ) {
+
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, VocabularyDivision.SHARED, memberId, null);
+
+        List<Vocabulary> findVocabularyList = results.getResults();
+        List<SharedVocabularySimpleDto> sharedVocabularySimpleDtos = new ArrayList<>();
+        for (Vocabulary findVocabulary : findVocabularyList) {
+            SharedVocabularySimpleDto sharedVocabularySimpleDto = SharedVocabularySimpleDto.sharedVocabularyToSimple(findVocabulary, modelMapper);
+            sharedVocabularySimpleDtos.add(sharedVocabularySimpleDto);
+        }
+
+        long totalCount = results.getTotal();
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+
+        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+                .list(sharedVocabularySimpleDtos)
+                .paging(paginationDto)
+                .build();
+
+        return ResponseEntity.ok(new ResponseDto<>(listResponseDto, "해당 회원이 공유한 단어 목록이 정상적으로 조회되었습니다."));
     }
 
 }
