@@ -37,14 +37,14 @@ public class VocabularyLikeService {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.SHARED) {
-            throw new BadRequestByDivision();
+            throw new BadRequestByDivision("공유 단어장 외에는 좋아요를 등록하는 것이 불가능합니다. 공유가 해제된 단어장 또한 좋아요 등록이 불가능합니다.");
         }
 
         if (checkExistLike(memberId, vocabularyId)) {
             throw new ExistLikeException();
         }
 
-        if (vocabulary.getMember().getId().equals(memberId)) {
+        if (vocabulary.getWriter().getId().equals(memberId)) {
             throw new SelfLikeException();
         }
 

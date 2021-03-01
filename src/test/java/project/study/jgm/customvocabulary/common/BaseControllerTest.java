@@ -37,8 +37,9 @@ import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyRepository;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.*;
+import project.study.jgm.customvocabulary.vocabulary.like.VocabularyLikeRepository;
+import project.study.jgm.customvocabulary.vocabulary.like.VocabularyLikeService;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
-import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFileRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
@@ -62,6 +63,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Disabled
 @Transactional
 public abstract class BaseControllerTest {
+
+    @Autowired
+    protected VocabularyLikeService vocabularyLikeService;
+
+    @Autowired
+    protected VocabularyLikeRepository vocabularyLikeRepository;
 
     @Autowired
     protected VocabularyThumbnailImageFileRepository vocabularyThumbnailImageFileRepository;
@@ -147,6 +154,8 @@ public abstract class BaseControllerTest {
 
     protected final String testTextFilePath = "/static/test/text.txt";
 
+    protected final String testImageFilePath2 = "/static/test/사진2.jpg";
+
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
@@ -155,6 +164,7 @@ public abstract class BaseControllerTest {
                 .alwaysDo(print())
                 .build();
 
+        vocabularyLikeRepository.deleteAll();
         vocabularyThumbnailImageFileRepository.deleteAll();
         wordImageFileRepository.deleteAll();
         bbsUploadFileRepository.deleteAll();
@@ -213,18 +223,18 @@ public abstract class BaseControllerTest {
     }
 
     protected List<Category> createCategoryList(Member member,CategoryDivision division) {
-        Category sub1 = createCategory(member, division, "sub1", null, 2, CategoryStatus.REGISTER);
-        Category sub2 = createCategory(member, division, "sub2", null, 3, CategoryStatus.REGISTER);
-        Category sub3 = createCategory(member, division, "sub3", null, 1, CategoryStatus.REGISTER);
-        Category sub11 = createCategory(member, division, "sub1-1", sub1, 3, CategoryStatus.REGISTER);
-        Category sub12 = createCategory(member, division, "sub1-2", sub1, 2, CategoryStatus.REGISTER);
-        Category sub13 = createCategory(member, division, "sub1-3", sub1, 1, CategoryStatus.REGISTER);
-        Category sub21 = createCategory(member, division, "sub2-1", sub2, 2, CategoryStatus.REGISTER);
-        Category sub22 = createCategory(member, division, "sub2-2", sub2, 1, CategoryStatus.REGISTER);
-        Category sub23 = createCategory(member, division, "sub2-2", sub2, 3, CategoryStatus.REGISTER);
-        Category sub31 = createCategory(member, division, "sub3-1", sub3, 1, CategoryStatus.REGISTER);
-        Category sub32 = createCategory(member, division, "sub3-2", sub3, 3, CategoryStatus.REGISTER);
-        Category sub33 = createCategory(member, division, "sub3-3", sub3, 2, CategoryStatus.REGISTER);
+        Category sub1 = createCategory(member, division, "sub1", null, 2);
+        Category sub2 = createCategory(member, division, "sub2", null, 3);
+        Category sub3 = createCategory(member, division, "sub3", null, 1);
+        Category sub11 = createCategory(member, division, "sub1-1", sub1, 3);
+        Category sub12 = createCategory(member, division, "sub1-2", sub1, 2);
+        Category sub13 = createCategory(member, division, "sub1-3", sub1, 1);
+        Category sub21 = createCategory(member, division, "sub2-1", sub2, 2);
+        Category sub22 = createCategory(member, division, "sub2-2", sub2, 1);
+        Category sub23 = createCategory(member, division, "sub2-2", sub2, 3);
+        Category sub31 = createCategory(member, division, "sub3-1", sub3, 1);
+        Category sub32 = createCategory(member, division, "sub3-2", sub3, 3);
+        Category sub33 = createCategory(member, division, "sub3-3", sub3, 2);
 
         categoryRepository.save(sub1);
         categoryRepository.save(sub2);
@@ -242,7 +252,7 @@ public abstract class BaseControllerTest {
         return List.of(sub1, sub2, sub11, sub12, sub21, sub22);
     }
 
-    protected Category createCategory(Member userMember, CategoryDivision division, String name, Category parent, int orders, CategoryStatus status) {
+    protected Category createCategory(Member userMember, CategoryDivision division, String name, Category parent, int orders) {
         Category category = Category.builder()
                 .name(name)
                 .member(userMember)
@@ -250,7 +260,6 @@ public abstract class BaseControllerTest {
                 .vocabularyCount(0)
                 .division(division)
                 .orders(orders)
-                .status(status)
                 .build();
 
         categoryRepository.save(category);

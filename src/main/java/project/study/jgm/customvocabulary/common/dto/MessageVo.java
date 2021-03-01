@@ -146,7 +146,61 @@ public class MessageVo {
 
     public static final String CHECK_MEMORIZE_SUCCESSFULLY = "암기 체크가 정상적으로 이루어졌습니다.";
 
+    public static final String MODIFY_PERSONAL_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 단어장은 수정할 수 없습니다.";
 
+    public static final String MODIFY_PERSONAL_VOCABULARY_SUCCESSFULLY = "단어장이 정상적으로 수정되었습니다.";
+
+    public static final String SHARE_VOCABULARY_SUCCESSFULLY = "단어장이 성공적으로 공유되었습니다.";
+
+    public static final String SHARE_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 단어장은 공유할 수 없습니다.";
+
+    public static final String GET_PERSONAL_VOCABULARY_LIST_OF_DIFFERENT_MEMBER = "다른 회원의 개인 단어장 목록은 조회할 수 없습니다.";
+
+    public static final String GET_PERSONAL_VOCABULARY_LIST_SUCCESSFULLY = "개인 단어장 목록이 정상적으로 조회되었습니다.";
+
+    public static final String MOVE_CATEGORY_OF_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 단어장의 카테고리는 이동시킬 수 없습니다.";
+
+    public static final String MOVE_CATEGORY_OF_PERSONAL_VOCABULARY_SUCCESSFULLY = "개인 단어장의 카테고리가 정상적으로 변경되었습니다.";
+
+    public static final String MOVE_CATEGORY_OF_SHARED_VOCABULARY_SUCCESSFULLY = "공유 단어장의 카테고리가 정상적으로 변경되었습니다.";
+
+    public static final String GET_PERSONAL_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 개인 단어장은 조회할 수 없습니다.";
+
+    public static final String GET_PERSONAL_VOCABULARY_SUCCESSFULLY = "개인 단어장이 정상적으로 조회되었습니다.";
+
+    public static final String GET_SHARED_VOCABULARY_SUCCESSFULLY = "공유 단어장이 정상적으로 조회되었습니다.";
+
+    public static final String GET_DELETED_VOCABULARY_BY_USER = "삭제된 단어장은 조회가 불가능합니다.";
+
+    public static final String GET_DELETED_VOCABULARY_BY_ADMIN = "관리자 권한으로 삭제된 단어장이 조회되었습니다.";
+
+    public static final String GET_UNSHARED_VOCABULARY_BY_USER = "공유가 취소된 단어장은 조회가 불가능합니다.";
+
+    public static final String GET_UNSHARED_VOCABULARY_BY_ADMIN = "관리자 권한으로 공유가 취소된 단어장이 조회되었습니다.";
+
+    public static final String ACCESS_TO_SENSITIVE_VOCABULARY_BY_UNAUTHORIZED_USER = "인증되지 않은 사용자는 해당 항목에 접근할 수 없습니다.";
+
+    public static final String GET_SHARED_VOCABULARY_LIST_BY_MEMBER_SUCCESSFULLY = "해당 회원이 공유한 단어 목록이 정상적으로 조회되었습니다.";
+
+    public static final String GET_SHARED_VOCABULARY_LIST_SUCCESSFULLY = "공유 단어장 목록이 정상적으로 조회되었습니다.";
+
+    public static final String DOWNLOAD_SHARED_VOCABULARY_SUCCESSFULLY = "공유 단어장을 성공적으로 다운로드하였습니다.";
+
+    public static final String UNSHARED_SHARED_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 공유 단어장은 공유 해제가 불가능합니다.";
+
+    public static final String UNSHARED_SHARED_VOCABULARY_SUCCESSFULLY = "단어장의 공유 해제가 정상적으로 완료되었습니다.";
+
+    public static final String ADD_LIKE_TO_SHARED_VOCABULARY_SUCCESSFULLY = "공유 단어장에 좋아요가 성공적으로 등록되었습니다.";
+
+    public static final String UNLIKE_SHARED_VOCABULARY_SUCCESSFULLY = "공유 단어장에 등록된 좋아요가 정상적으로 해제되었습니다.";
+
+    public static final String GET_DELETED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY = "해당 회원의 삭제된 단어장 목록이 정상적으로 조회되었습니다.";
+
+    public static final String GET_UNSHARED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY = "해당 회원의 공유 해제 단어장 목록을 정상적으로 조회하였습니다.";
+
+    public static final String DELETE_PERSONAL_VOCABULARY_OF_DIFFERENT_MEMBER = "다른 회원의 개인 단어장은 삭제할 수 없습니다.";
+
+    public static final String DELETE_PERSONAL_VOCABULARY_SUCCESSFULLY = "개인 단어장이 정상적으로 삭제되었습니다.";
 
     /**
      * Common

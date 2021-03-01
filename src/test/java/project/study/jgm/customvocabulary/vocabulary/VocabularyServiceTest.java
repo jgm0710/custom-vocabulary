@@ -12,7 +12,6 @@ import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
-import project.study.jgm.customvocabulary.vocabulary.category.CategoryStatus;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
@@ -39,7 +38,7 @@ class VocabularyServiceTest extends BaseServiceTest {
     public void createPersonalVocabulary() throws Exception {
         //given
         Member userMember = createUserMember("user1", "user1");
-        Category category = createCategory(userMember, CategoryDivision.PERSONAL, "test category", null, 0, CategoryStatus.REGISTER);
+        Category category = createCategory(userMember, CategoryDivision.PERSONAL, "test category", null, 0);
 
         MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(mockMultipartFile);
@@ -82,7 +81,7 @@ class VocabularyServiceTest extends BaseServiceTest {
     public void addWordListToPersonalVocabulary() throws Exception {
         //given
         Member userMember = createUserMember("user1", "user1");
-        Category category = createCategory(userMember, CategoryDivision.PERSONAL, "test category", null, 0, CategoryStatus.REGISTER);
+        Category category = createCategory(userMember, CategoryDivision.PERSONAL, "test category", null, 0);
 
         MockMultipartFile mockMultipartFile = getMockMultipartFile("file", testImageFilePath);
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyFileStorageService.uploadVocabularyThumbnailImageFile(mockMultipartFile);
@@ -403,10 +402,11 @@ class VocabularyServiceTest extends BaseServiceTest {
         //then
         assertNotEquals(personalVocabulary.getId(), sharedVocabulary.getId());
         assertEquals(VocabularyDivision.SHARED, sharedVocabulary.getDivision());
-        assertEquals(personalVocabulary.getMember().getId(), sharedVocabulary.getMember().getId());
+        assertEquals(personalVocabulary.getProprietor().getId(), sharedVocabulary.getProprietor().getId());
+        assertEquals(personalVocabulary.getWriter().getId(), sharedVocabulary.getWriter().getId());
         assertEquals(personalVocabulary.getTitle(), sharedVocabulary.getTitle());
         assertEquals(sharedCategory.getId(), sharedVocabulary.getCategory().getId());
-        assertEquals(vocabularyThumbnailImageFile.getId(), sharedVocabulary.getVocabularyThumbnailImageFile().getId());
+        assertNotEquals(vocabularyThumbnailImageFile.getId(), sharedVocabulary.getVocabularyThumbnailImageFile().getId());
         assertEquals(vocabularyThumbnailImageFile.getFileName(), sharedVocabulary.getVocabularyThumbnailImageFile().getFileName());
         assertEquals(vocabularyThumbnailImageFile.getFileDownloadUri(), sharedVocabulary.getVocabularyThumbnailImageFile().getFileDownloadUri());
 
@@ -495,16 +495,28 @@ class VocabularyServiceTest extends BaseServiceTest {
             createVocabularyByService(user1, category2, "category2 vocabulary" + i);
         }
 
+        final Vocabulary copiedVocabulary = createVocabularyByService(user1, category1, "copiedVocabulary");
+        final Vocabulary sharedVocabulary = vocabularyService.share(copiedVocabulary.getId(), null);
+
+        vocabularyService.download(sharedVocabulary.getId(), user1.getId(), category1.getId());
+        vocabularyService.download(sharedVocabulary.getId(), user1.getId(), category2.getId());
+
+        em.flush();
+        em.clear();
+
         //when
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(new CriteriaDto(), VocabularyDivision.PERSONAL, user1.getId(), category1.getId());
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(new CriteriaDto(), user1.getId(), category1.getId(), VocabularyDivision.PERSONAL,VocabularyDivision.COPIED);
         List<Vocabulary> findVocabularyList = results.getResults();
 
 
         //then
         findVocabularyList.forEach(vocabulary -> {
-            System.out.println("vocabulary.getMember().getNickname() = " + vocabulary.getMember().getNickname());
+            System.out.println("vocabulary.getProprietor().getNickname() = " + vocabulary.getProprietor().getNickname());
+            System.out.println("vocabulary.getWriter().getNickname() = " + vocabulary.getWriter().getNickname());
             System.out.println("vocabulary.getCategory().getName() = " + vocabulary.getCategory().getName());
             System.out.println("vocabulary.getTitle() = " + vocabulary.getTitle());
+            System.out.println("vocabulary.getDivision() = " + vocabulary.getDivision());
+            System.out.println("=====================================================================================================================");
         });
 
     }
@@ -563,7 +575,8 @@ class VocabularyServiceTest extends BaseServiceTest {
         assertNotEquals(downloadVocabulary.getId(), personalVocabulary.getId());
         assertEquals(VocabularyDivision.COPIED, downloadVocabulary.getDivision());
         assertEquals(downloadVocabulary.getTitle(), sharedVocabulary.getTitle());
-        assertNotEquals(downloadVocabulary.getMember().getId(), sharedVocabulary.getMember().getId());
+        assertEquals(downloadVocabulary.getProprietor().getId(), user2.getId());
+        assertEquals(downloadVocabulary.getWriter().getId(), sharedVocabulary.getWriter().getId());
 
     }
 
@@ -581,7 +594,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         assertEquals(VocabularyDivision.SHARED, sharedVocabulary.getDivision());
 
         //when
-        vocabularyService.sharedVocabularyToUnshared(sharedVocabulary.getId());
+        vocabularyService.unshared(sharedVocabulary.getId());
 
 
         //then

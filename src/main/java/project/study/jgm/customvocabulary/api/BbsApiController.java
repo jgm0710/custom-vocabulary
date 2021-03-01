@@ -231,7 +231,7 @@ public class BbsApiController {
         return ResponseEntity.ok(new ResponseDto<>(DELETE_BBS_SUCCESSFULLY));
     }
 
-    @GetMapping("/like/{bbsId}")
+    @PostMapping("/like/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ResponseDto<Object>> addLikeToBbs(
             @PathVariable("bbsId") Long bbsId,
@@ -249,7 +249,7 @@ public class BbsApiController {
         return ResponseEntity.ok(new ResponseDto<>(ADD_LIKE_TO_BBS_SUCCESSFULLY));
     }
 
-    @GetMapping("/unlike/{bbsId}")
+    @DeleteMapping("/like/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ResponseDto<Object>> unLikeBbs(
             @PathVariable("bbsId") Long bbsId,

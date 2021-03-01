@@ -35,7 +35,6 @@ public class CategoryQueryRepository {
                 .where(
                         category.member.id.eq(memberId),
                         category.division.eq(CategoryDivision.PERSONAL),
-                        category.status.eq(CategoryStatus.REGISTER),
                         category.parent.isNull()
                 )
                 .fetch();
@@ -49,8 +48,7 @@ public class CategoryQueryRepository {
         return queryFactory
                 .selectFrom(category)
                 .where(
-                        whereFrom(memberId, parentId, orders, categoryDivision),
-                        category.status.eq(CategoryStatus.REGISTER)
+                        whereFrom(memberId, parentId, orders, categoryDivision)
                 )
                 .fetchOne();
     }
@@ -94,7 +92,6 @@ public class CategoryQueryRepository {
                 .from(category)
                 .where(
                         category.division.eq(CategoryDivision.SHARED),
-                        category.status.eq(CategoryStatus.REGISTER),
                         category.parent.isNull()
                 )
                 .fetch();

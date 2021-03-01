@@ -33,7 +33,11 @@ public class Vocabulary {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
-    private Member member;  //개인 단어장 생성 Member, 공유 단어장 공유자
+    private Member proprietor;  //개인 단어장 생성 Member, 공유 단어장 공유자
+
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "writer_id")
+    private Member writer;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "category_id")
@@ -73,7 +77,8 @@ public class Vocabulary {
 
     public static Vocabulary createPersonalVocabulary(Member member, Category category, VocabularyCreateDto createDto, VocabularyThumbnailImageFile vocabularyThumbnailImageFile) {
         Vocabulary vocabulary = Vocabulary.builder()
-                .member(member)
+                .proprietor(member)
+                .writer(member)
                 .category(category)
                 .vocabularyThumbnailImageFile(vocabularyThumbnailImageFile)
                 .title(createDto.getTitle())
@@ -130,26 +135,25 @@ public class Vocabulary {
         if (this.category != null) {
             this.category.deleteVocabulary();
         }
+
+        this.category = category;
         if (category != null) {
-            this.category = category;
             category.addVocabulary();
         }
     }
 
     public Vocabulary personalToShared(Category sharedCategory) {
-        List<Word> copiedWordList = new ArrayList<>();
-        for (Word word : this.wordList) {
-            copiedWordList.add(word);
-        }
 
-        Vocabulary vocabulary = Vocabulary.builder()
-                .member(this.member)
+        VocabularyThumbnailImageFile copiedThumbnailImageFile = createCopiedThumbnailImageFile();
+
+        Vocabulary sharedVocabulary = Vocabulary.builder()
+                .proprietor(this.proprietor)
+                .writer(this.writer)
                 .category(sharedCategory)
-                .vocabularyThumbnailImageFile(this.vocabularyThumbnailImageFile)
+                .vocabularyThumbnailImageFile(copiedThumbnailImageFile)
                 .title(this.title)
                 .mainLanguage(this.mainLanguage)
                 .subLanguage(this.subLanguage)
-                .wordList(copiedWordList)
                 .difficulty(this.difficulty)
                 .views(0)
                 .likeCount(0)
@@ -160,18 +164,43 @@ public class Vocabulary {
                 .registerDate(LocalDateTime.now())
                 .build();
 
-        this.member.addSharedVocabulary();
+        if (copiedThumbnailImageFile != null) {
+            copiedThumbnailImageFile.setVocabulary(sharedVocabulary);
+        }
+
+        List<Word> copiedWordList = createCopiedWordList();
+
+        sharedVocabulary.addWordList(copiedWordList);
+
+        this.proprietor.addSharedVocabulary();
 
         if (sharedCategory != null) {
             sharedCategory.addVocabulary();
         }
 
-        return vocabulary;
+        return sharedVocabulary;
+    }
+
+    private List<Word> createCopiedWordList() {
+        List<Word> copiedWordList = new ArrayList<>();
+        for (Word word : this.wordList) {
+            final Word copiedWord = word.createCopiedWord();
+            copiedWordList.add(copiedWord);
+        }
+        return copiedWordList;
+    }
+
+    private VocabularyThumbnailImageFile createCopiedThumbnailImageFile() {
+        VocabularyThumbnailImageFile copiedThumbnailImageFile = null;
+        if (this.vocabularyThumbnailImageFile != null) {
+            copiedThumbnailImageFile = this.vocabularyThumbnailImageFile.createCopiedThumbnailImageFile();
+        }
+        return copiedThumbnailImageFile;
     }
 
     public void unshared() {
         this.division = VocabularyDivision.UNSHARED;
-        this.member.deleteSharedVocabulary();
+        this.writer.deleteSharedVocabulary();
     }
 
     public void increaseMemorisedCount() {
@@ -186,12 +215,22 @@ public class Vocabulary {
         this.views++;
     }
 
-    public Vocabulary sharedToPersonal(Member member, Category personalCategory) {
-        Vocabulary vocabulary = Vocabulary.builder()
-                .member(member)
+    public void decreaseViews() {
+        this.views--;
+    }
+
+    public Vocabulary sharedToPersonal(Member proprietor, Category personalCategory) {
+        final VocabularyThumbnailImageFile copiedThumbnailImageFile = createCopiedThumbnailImageFile();
+        final List<Word> copiedWordList = createCopiedWordList();
+
+        Vocabulary copiedVocabulary = Vocabulary.builder()
+                .proprietor(proprietor)
+                .writer(this.writer)
                 .category(personalCategory)
-                .vocabularyThumbnailImageFile(this.vocabularyThumbnailImageFile)
+                .vocabularyThumbnailImageFile(copiedThumbnailImageFile)
                 .title(this.title)
+                .mainLanguage(this.mainLanguage)
+                .subLanguage(this.subLanguage)
                 .difficulty(this.difficulty)
                 .views(0)
                 .likeCount(0)
@@ -206,7 +245,9 @@ public class Vocabulary {
             personalCategory.addVocabulary();
         }
 
-        return vocabulary;
+        copiedVocabulary.addWordList(copiedWordList);
+
+        return copiedVocabulary;
     }
 
     public void increaseLikeCount() {
@@ -225,7 +266,7 @@ public class Vocabulary {
     public String toString() {
         return "Vocabulary{" +
                 "id=" + id +
-                ", member=" + member +
+                ", member=" + proprietor +
                 ", category=" + category +
                 ", vocabularyThumbnailImageFile=" + vocabularyThumbnailImageFile +
                 ", title='" + title + '\'' +

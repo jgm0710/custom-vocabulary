@@ -46,6 +46,8 @@ public class PersonalVocabularySimpleDto {
 
     private int totalWordCount; //단어 총 갯수 저장
 
+    private VocabularyDivision division;
+
     private LocalDateTime registerDate;     //division에 따라 다르게 해석 : 개인 단어장{생성 날짜, 복사 날짜 저장} 단어장 공유{공유 날짜 저장}
 
     @Override
@@ -77,7 +79,7 @@ public class PersonalVocabularySimpleDto {
 
         return PersonalVocabularySimpleDto.builder()
                 .id(vocabulary.getId())
-                .writer(new WriterDto(vocabulary.getMember().getId(), vocabulary.getMember().getNickname()))
+                .writer(new WriterDto(vocabulary.getWriter().getId(), vocabulary.getWriter().getNickname()))
                 .category(category)
                 .thumbnailInfo(thumbnailInfo)
                 .title(vocabulary.getTitle())
@@ -86,6 +88,7 @@ public class PersonalVocabularySimpleDto {
                 .difficulty(vocabulary.getDifficulty())
                 .memorisedCount(vocabulary.getMemorisedCount())
                 .totalWordCount(vocabulary.getTotalWordCount())
+                .division(vocabulary.getDivision())
                 .registerDate(vocabulary.getRegisterDate())
                 .build();
     }

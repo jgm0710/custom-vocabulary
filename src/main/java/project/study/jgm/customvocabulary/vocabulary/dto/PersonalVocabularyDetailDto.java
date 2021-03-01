@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 import project.study.jgm.customvocabulary.common.upload.UploadFileResponseDto;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
+import project.study.jgm.customvocabulary.vocabulary.VocabularyDivision;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.LanguageType;
 import project.study.jgm.customvocabulary.vocabulary.word.Word;
@@ -45,6 +46,8 @@ public class PersonalVocabularyDetailDto {
 
     private int totalWordCount; //단어 총 갯수 저장
 
+    private VocabularyDivision division;
+
     private LocalDateTime registerDate;
 
 //.id
@@ -79,7 +82,7 @@ public class PersonalVocabularyDetailDto {
 
         return PersonalVocabularyDetailDto.builder()
                 .id(vocabulary.getId())
-                .writer(new WriterDto(vocabulary.getMember().getId(), vocabulary.getMember().getNickname()))
+                .writer(new WriterDto(vocabulary.getWriter().getId(), vocabulary.getWriter().getNickname()))
                 .category(category)
                 .thumbnailInfo(thumbnailInfo)
                 .title(vocabulary.getTitle())
@@ -90,6 +93,7 @@ public class PersonalVocabularyDetailDto {
                 .memorisedCount(vocabulary.getMemorisedCount())
                 .totalWordCount(vocabulary.getTotalWordCount())
                 .registerDate(vocabulary.getRegisterDate())
+                .division(vocabulary.getDivision())
                 .build();
     }
 }

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static project.study.jgm.customvocabulary.vocabulary.QVocabulary.vocabulary;
+import static project.study.jgm.customvocabulary.vocabulary.VocabularyDivision.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,13 +27,13 @@ public class VocabularyQueryRepository {
     /**
      * personal
      */
-    public QueryResults<Vocabulary> findAllByPersonal(CriteriaDto criteriaDto, VocabularyDivision division, Long memberId, Long categoryId) {
+    public QueryResults<Vocabulary> findAllByMember(CriteriaDto criteriaDto, Long memberId, Long categoryId, VocabularyDivision... divisions) {
         return queryFactory
                 .select(vocabulary)
                 .from(vocabulary)
                 .where(
-                        divisionEq(division),
-                        memberIdEq(memberId),
+                        divisionsEq(divisions),
+                        proprietorIdEq(memberId),
                         categoryIdEq(categoryId)
                 )
                 .orderBy(vocabulary.id.desc())
@@ -41,13 +42,26 @@ public class VocabularyQueryRepository {
                 .fetchResults();
     }
 
-    public long getCountOfPersonalVocabularyWhereCategoryIsNull(Long memberId) {
+    private BooleanExpression divisionsEq(VocabularyDivision... divisions) {
+        BooleanExpression booleanExpression = null;
+        for (VocabularyDivision division : divisions) {
+            if (booleanExpression == null) {
+                booleanExpression = divisionEq(division);
+            } else {
+                booleanExpression = booleanExpression.or(divisionEq(division));
+            }
+        }
+
+        return booleanExpression;
+    }
+
+    public long getCountOfPersonalVocabularyWhereCategoryIsNull(Long proprietorId) {
         return queryFactory
                 .selectFrom(vocabulary)
                 .where(
-                        vocabulary.member.id.eq(memberId),
+                        proprietorIdEq(proprietorId),
                         vocabulary.category.isNull(),
-                        vocabulary.division.eq(VocabularyDivision.PERSONAL)
+                        divisionsEq(PERSONAL, COPIED)
                 )
                 .fetchCount();
     }
@@ -56,7 +70,7 @@ public class VocabularyQueryRepository {
         return queryFactory
                 .selectFrom(vocabulary)
                 .where(
-                        vocabulary.division.eq(VocabularyDivision.SHARED),
+                        divisionEq(SHARED),
                         vocabulary.category.isNull()
                 )
                 .fetchCount();
@@ -66,18 +80,18 @@ public class VocabularyQueryRepository {
         return categoryId != null ? vocabulary.category.id.eq(categoryId) : null;
     }
 
-    private BooleanExpression memberIdEq(Long memberId) {
-        return memberId != null ? vocabulary.member.id.eq(memberId) : null;
+    private BooleanExpression proprietorIdEq(Long proprietorId) {
+        return proprietorId != null ? vocabulary.proprietor.id.eq(proprietorId) : null;
     }
 
     private BooleanExpression divisionEq(VocabularyDivision division) {
         switch (division) {
             case PERSONAL:
-                return vocabulary.division.eq(VocabularyDivision.PERSONAL);
+                return vocabulary.division.eq(PERSONAL);
             case SHARED:
-                return vocabulary.division.eq(VocabularyDivision.SHARED);
+                return vocabulary.division.eq(SHARED);
             case COPIED:
-                return vocabulary.division.eq(VocabularyDivision.COPIED);
+                return vocabulary.division.eq(COPIED);
             default:
                 throw new BadRequestByDivision();
         }
@@ -92,7 +106,7 @@ public class VocabularyQueryRepository {
                 .from(vocabulary)
                 .where(
                         categoryIdEq(categoryId),
-                        vocabulary.division.eq(VocabularyDivision.SHARED),
+                        vocabulary.division.eq(SHARED),
                         titleLike(title)
                 )
                 .orderBy(sortConditionEq(sortCondition).toArray(OrderSpecifier[]::new))

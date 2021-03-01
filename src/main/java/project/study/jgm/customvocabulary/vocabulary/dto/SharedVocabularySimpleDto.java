@@ -51,6 +51,8 @@ public class SharedVocabularySimpleDto {
 
     private int totalWordCount; //단어 총 갯수 저장
 
+    private VocabularyDivision division;
+
     private LocalDateTime registerDate;     //division에 따라 다르게 해석 : 개인 단어장{생성 날짜, 복사 날짜 저장} 단어장 공유{공유 날짜 저장}
 
 //.id
@@ -79,7 +81,7 @@ public class SharedVocabularySimpleDto {
 
         return SharedVocabularySimpleDto.builder()
                 .id(sharedVocabulary.getId())
-                .writer(new WriterDto(sharedVocabulary.getMember().getId(), sharedVocabulary.getMember().getNickname()))
+                .writer(new WriterDto(sharedVocabulary.getWriter().getId(), sharedVocabulary.getWriter().getNickname()))
                 .category(category)
                 .thumbnailInfo(thumbnailInfo)
                 .title(sharedVocabulary.getTitle())
@@ -90,6 +92,7 @@ public class SharedVocabularySimpleDto {
                 .likeCount(sharedVocabulary.getLikeCount())
                 .downloadCount(sharedVocabulary.getDownloadCount())
                 .totalWordCount(sharedVocabulary.getTotalWordCount())
+                .division(sharedVocabulary.getDivision())
                 .registerDate(sharedVocabulary.getRegisterDate())
                 .build();
     }

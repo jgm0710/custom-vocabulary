@@ -35,19 +35,18 @@ public class VocabularyThumbnailImageFile {
     @JoinColumn(name = "vocabulary_id")
     private Vocabulary vocabulary;
 
-    @Override
-    public String toString() {
-        return "VocabularyThumbnailImageFile{" +
-                "id=" + id +
-                ", fileName='" + fileName + '\'' +
-                ", fileStoredPath='" + fileStoredPath + '\'' +
-                ", fileDownloadUri='" + fileDownloadUri + '\'' +
-                ", fileType='" + fileType + '\'' +
-//                ", vocabulary=" + vocabulary +
-                '}';
-    }
-
     public void setVocabulary(Vocabulary vocabulary) {
         this.vocabulary = vocabulary;
+    }
+
+    public VocabularyThumbnailImageFile createCopiedThumbnailImageFile() {
+
+        return VocabularyThumbnailImageFile.builder()
+                .fileName(this.fileName)
+                .fileStoredPath(this.fileStoredPath)
+                .fileDownloadUri(this.fileDownloadUri)
+                .fileType(this.fileType)
+                .size(this.size)
+                .build();
     }
 }

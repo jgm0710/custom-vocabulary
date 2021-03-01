@@ -13,7 +13,6 @@ import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
-import project.study.jgm.customvocabulary.vocabulary.category.CategoryStatus;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.*;
@@ -113,7 +112,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, 0, CategoryStatus.REGISTER);
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, 0);
 
         CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
@@ -184,7 +183,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         Member user1 = memberService.userJoin(memberCreateDto);
 
         int orders = 1;
-        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, orders, CategoryStatus.REGISTER);
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, orders);
 
         CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
@@ -219,7 +218,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category parent = createCategory(user1, CategoryDivision.SHARED, "parent", null, 0, CategoryStatus.REGISTER);
+        Category parent = createCategory(user1, CategoryDivision.SHARED, "parent", null, 0);
 
         CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
@@ -254,7 +253,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, 0, CategoryStatus.REGISTER);
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent", null, 0);
 
         CategoryCreateDto createDto = CategoryCreateDto.builder()
                 .name("test category")
@@ -463,9 +462,9 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
-        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 2, CategoryStatus.REGISTER);
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 2);
 
 
         String updateName = "update category";
@@ -614,7 +613,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto();
 
@@ -649,7 +648,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
 
@@ -682,7 +681,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
 
@@ -715,7 +714,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
 
@@ -747,7 +746,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", 10000L, 1);
 
@@ -778,8 +777,8 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
-        Category sampleCategory2 = createCategory(user1, CategoryDivision.PERSONAL, "user1 category2", null, 2, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
+        Category sampleCategory2 = createCategory(user1, CategoryDivision.PERSONAL, "user1 category2", null, 2);
 
         int orders = 2;
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, orders);
@@ -811,7 +810,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 1);
 
@@ -841,7 +840,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
         Member admin = memberService.adminJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(admin, CategoryDivision.SHARED, "shared category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(admin, CategoryDivision.SHARED, "shared category", null, 1);
 
         String updateName = "update category";
         int orders = 2;
@@ -880,7 +879,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
         Member admin = memberService.adminJoin(memberCreateDto);
 
-        Category sampleCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1);
 
         CategoryUpdateDto categoryUpdateDto = new CategoryUpdateDto("update category", null, 2);
 
@@ -913,7 +912,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         em.flush();
         em.clear();
@@ -945,7 +944,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         em.flush();
         em.clear();
@@ -978,7 +977,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         em.flush();
         em.clear();
@@ -1012,7 +1011,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         em.flush();
         em.clear();
@@ -1042,9 +1041,9 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 1, CategoryStatus.REGISTER);
-        Category child1 = createCategory(user1, CategoryDivision.PERSONAL, "child1 category", parent, 1, CategoryStatus.REGISTER);
-        Category child2 = createCategory(user1, CategoryDivision.PERSONAL, "child2 category", parent, 2, CategoryStatus.REGISTER);
+        Category parent = createCategory(user1, CategoryDivision.PERSONAL, "parent category", null, 1);
+        Category child1 = createCategory(user1, CategoryDivision.PERSONAL, "child1 category", parent, 1);
+        Category child2 = createCategory(user1, CategoryDivision.PERSONAL, "child2 category", parent, 2);
 
         em.flush();
         em.clear();
@@ -1074,7 +1073,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
-        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1, CategoryStatus.REGISTER);
+        Category user1Category = createCategory(user1, CategoryDivision.PERSONAL, "user1 category", null, 1);
 
         em.flush();
         em.clear();

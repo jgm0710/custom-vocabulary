@@ -40,7 +40,7 @@ public class WordImageFile {
         this.word = word;
     }
 
-    //.id
+//.id
 //.fileName
 //.fileStoredPath
 //.fileDownloadUri
@@ -58,5 +58,15 @@ public class WordImageFile {
                 ", fileType='" + fileType + '\'' +
 //                ", word=" + word +
                 '}';
+    }
+
+    public WordImageFile createCopiedWordImageFile() {
+
+        return WordImageFile.builder()
+                .fileName(this.fileName)
+                .fileStoredPath(this.fileStoredPath)
+                .fileDownloadUri(this.fileDownloadUri)
+                .fileType(this.fileType)
+                .build();
     }
 }

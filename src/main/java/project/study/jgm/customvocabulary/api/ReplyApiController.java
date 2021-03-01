@@ -54,7 +54,7 @@ public class ReplyApiController {
 
     @PostMapping("/{bbsId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity addReply(
+    public ResponseEntity<?> addReply(
             @PathVariable("bbsId") Long bbsId,
             @RequestBody @Valid ReplyCreateDto replyCreateDto,
             Errors errors,
@@ -74,16 +74,14 @@ public class ReplyApiController {
 
         } catch (BbsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (DeletedBbsException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (MemberNotFoundException e) {
+        } catch (DeletedBbsException | MemberNotFoundException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
     }
 
     @PostMapping("/reply/{parentId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity addReplyOfReply(
+    public ResponseEntity<?> addReplyOfReply(
             @PathVariable("parentId") Long parentId,
             @RequestBody @Valid ReplyCreateDto replyCreateDto,
             Errors errors,
@@ -100,15 +98,13 @@ public class ReplyApiController {
 
             return ResponseEntity.created(uri).body(new ResponseDto<>(replyChildResponseDto, REPLY_REGISTER_SUCCESSFULLY));
 
-        } catch (ReplyNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (MemberNotFoundException e) {
+        } catch (ReplyNotFoundException | MemberNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }
     }
 
     @GetMapping("/{bbsId}")
-    public ResponseEntity getReplyParentList(
+    public ResponseEntity<? extends ResponseDto<?>> getReplyParentList(
             @PathVariable("bbsId") Long bbsId,
             @ModelAttribute CriteriaDto criteriaDto,
             @RequestParam ReplySortType sortType,
@@ -128,7 +124,7 @@ public class ReplyApiController {
     }
 
     @GetMapping("/reply/{parentId}")
-    public ResponseEntity getReplyChildList(
+    public ResponseEntity<? extends ResponseDto<?>> getReplyChildList(
             @PathVariable("parentId") Long parentId,
             @ModelAttribute CriteriaDto criteriaDto,
             @CurrentUser Member member
@@ -148,7 +144,7 @@ public class ReplyApiController {
 
     @PutMapping("/{replyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity modifyReply(
+    public ResponseEntity<?> modifyReply(
             @PathVariable("replyId") Long replyId,
             @RequestBody @Valid ReplyUpdateDto replyUpdateDto,
             Errors errors,
@@ -159,7 +155,7 @@ public class ReplyApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Reply findReply = null;
+        Reply findReply;
 
         try {
             findReply = replyService.getReply(replyId);
@@ -188,7 +184,7 @@ public class ReplyApiController {
 
     @DeleteMapping("/{replyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity deleteReply(
+    public ResponseEntity<ResponseDto<Object>> deleteReply(
             @PathVariable("replyId") Long replyId,
             @CurrentUser Member member
     ) {
@@ -213,9 +209,9 @@ public class ReplyApiController {
         return ResponseEntity.ok(new ResponseDto<>(DELETE_REPLY_SUCCESSFULLY));
     }
 
-    @GetMapping("/like/{replyId}")
+    @PostMapping("/like/{replyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity addLikeToReply(
+    public ResponseEntity<ResponseDto<Object>> addLikeToReply(
             @PathVariable("replyId") Long replyId,
             @CurrentUser Member member
     ) {
@@ -224,24 +220,16 @@ public class ReplyApiController {
             replyLikeService.like(member.getId(), replyId);
         } catch (ReplyNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (AddLikeToChildReplyException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (ExistLikeException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (DeletedReplyException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (SelfLikeException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
-        } catch (MemberNotFoundException e) {
+        } catch (AddLikeToChildReplyException | ExistLikeException | DeletedReplyException | SelfLikeException | MemberNotFoundException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
         return ResponseEntity.ok(new ResponseDto<>(ADD_LIKE_TO_REPLY_SUCCESSFULLY));
     }
 
-    @GetMapping("/unlike/{replyId}")
+    @DeleteMapping("/like/{replyId}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity unLikeReply(
+    public ResponseEntity<ResponseDto<Object>> unLikeReply(
             @PathVariable("replyId") Long replyId,
             @CurrentUser Member member
     ) {

@@ -2,6 +2,7 @@ package project.study.jgm.customvocabulary.vocabulary;
 
 import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
@@ -25,6 +26,7 @@ import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFileRepository;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +48,10 @@ public class VocabularyService {
     private final WordImageFileRepository wordImageFileRepository;
 
     private final VocabularyThumbnailImageFileRepository vocabularyThumbnailImageFileRepository;
+
+    private final ModelMapper modelMapper;
+
+    private final EntityManager em;
 
 
 
@@ -109,7 +115,7 @@ public class VocabularyService {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision("개인 단어장 이외에는 단어 목록을 수정할 수 없습니다.");
+            throw new BadRequestByDivision("개인 단어장 이외에는 단어 목록을 수정할 수 없습니다. 다운로드 받은 단어장, 삭제된 단어장 또한 단어 목록 수정이 불가능합니다.");
         }
 
         vocabulary.removeWordList();
@@ -132,7 +138,7 @@ public class VocabularyService {
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
             if (vocabulary.getDivision() != VocabularyDivision.COPIED) {
-                throw new BadRequestByDivision("개인 단어장 이외에는 암기 체크를 할 수 없습니다.");
+                throw new BadRequestByDivision("개인 단어장 이외에는 암기 체크를 할 수 없습니다. 삭제된 단어장 또한 암기 체크를 할 수 없습니다.");
             }
         }
 
@@ -144,21 +150,21 @@ public class VocabularyService {
     }
 
     @Transactional
-    public void modifyPersonalVocabulary(Long vocabularyId, VocabularyUpdateDto updateDto) {
-        Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+    public void modifyPersonalVocabulary(Long personalVocabularyId, VocabularyUpdateDto updateDto) {
+        Vocabulary vocabulary = vocabularyRepository.findById(personalVocabularyId).orElseThrow(VocabularyNotFoundException::new);
         VocabularyThumbnailImageFile vocabularyThumbnailImageFile = vocabularyThumbnailImageFileRepository
                 .findById(updateDto.getImageFileId()).orElseThrow(VocabularyThumbnailImageFileNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision("개인 단어장 외에는 수정할 수 없습니다.");
+            throw new BadRequestByDivision("개인 단어장 외에는 수정할 수 없습니다. 다운로드 받은 단어장, 삭제된 단어장 또한 수정할 수 없습니다.");
         }
 
         vocabulary.modify(updateDto, vocabularyThumbnailImageFile);
     }
 
     @Transactional
-    public Vocabulary share(Long vocabularyId, Long sharedCategoryId) {
-        Vocabulary personalVocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+    public Vocabulary share(Long personalVocabularyId, Long sharedCategoryId) {
+        Vocabulary personalVocabulary = vocabularyRepository.findById(personalVocabularyId).orElseThrow(VocabularyNotFoundException::new);
         Category sharedCategory = null;
         if (sharedCategoryId != null) {
             sharedCategory = categoryRepository.findById(sharedCategoryId).orElseThrow(CategoryNotFoundException::new);
@@ -166,12 +172,12 @@ public class VocabularyService {
         Vocabulary sharedVocabulary = personalVocabulary.personalToShared(sharedCategory);
 
         if (personalVocabulary.getDivision() != VocabularyDivision.PERSONAL) {
-            throw new BadRequestByDivision("자신이 생성한 단어장만 공유할 수 있습니다. 또한 이미 공유된 단어장은 공유할 수 없습니다.");
+            throw new BadRequestByDivision("자신이 생성한 단어장만 공유할 수 있습니다. 삭제된 단어장, 다운로드 받은 단어장, 이미 공유된 단어장은 공유할 수 없습니다.");
         }
 
         if (sharedCategory != null) {
-            if (sharedCategory.getDivision().toString().equals(personalVocabulary.getDivision().toString())) {
-                throw new DivisionMismatchException();
+            if (sharedCategory.getDivision() != CategoryDivision.SHARED) {
+                throw new BadRequestByDivision("단어를 공유할 카테고리가 공유 카테고리가 아닙니다.");
             }
         }
 
@@ -180,6 +186,11 @@ public class VocabularyService {
 
     public void deletePersonalVocabulary(Long vocabularyId) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+
+        if (vocabulary.getDivision() != VocabularyDivision.PERSONAL && vocabulary.getDivision() != VocabularyDivision.COPIED) {
+            throw new BadRequestByDivision("개인 단어장에 속한 단어장이 아니면 삭제가 불가능합니다.");
+        }
+
         vocabulary.delete();
     }
 
@@ -190,30 +201,35 @@ public class VocabularyService {
     @Transactional
     public void moveCategory(Long vocabularyId, Long newCategoryId) {
         Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
-        Category newCategory = categoryRepository.findById(newCategoryId).orElseThrow(CategoryNotFoundException::new);
 
-        if (vocabulary.getCategory().getId().equals(newCategoryId)) {
-            throw new DoNotMoveException();
-        }
-
-        if (vocabulary.getDivision() == VocabularyDivision.SHARED) {
-            if (newCategory.getDivision() != CategoryDivision.SHARED) {
-                throw new DivisionMismatchException("공유단어장은 공유카테고리로만 이동시킬 수 있습니다.");
-            }
-        } else if (vocabulary.getDivision() == VocabularyDivision.PERSONAL) {
-            if (newCategory.getDivision() != CategoryDivision.PERSONAL) {
-                throw new DivisionMismatchException("개인단어장은 개인카테고리로만 이동시킬 수 있습니다.");
-            } else {
-                if (!newCategory.getMember().getId().equals(vocabulary.getCategory().getMember().getId())) {
-                    throw new MemberMismatchAfterMovingWithCurrentMemberException();
+        Category newCategory = null;
+        if (newCategoryId != null) {
+            newCategory = categoryRepository.findById(newCategoryId).orElseThrow(CategoryNotFoundException::new);
+            if (vocabulary.getCategory() != null) {
+                if (vocabulary.getCategory().getId().equals(newCategoryId)) {
+                    throw new DoNotMoveException();
                 }
             }
-        } else if (vocabulary.getDivision() == VocabularyDivision.COPIED) {
-            if (newCategory.getDivision() != CategoryDivision.PERSONAL) {
-                throw new DivisionMismatchException("다운로드 한 단어장은 개인카테고리로만 이동시킬 수 있습니다.");
+        }
+
+        if (newCategory != null) {
+            if (vocabulary.getDivision() == VocabularyDivision.SHARED) {
+                if (newCategory.getDivision() != CategoryDivision.SHARED) {
+                    throw new DivisionMismatchException("공유단어장은 공유카테고리로만 이동시킬 수 있습니다.");
+                }
+            } else if (vocabulary.getDivision() == VocabularyDivision.PERSONAL || vocabulary.getDivision() == VocabularyDivision.COPIED) {
+                if (newCategory.getDivision() != CategoryDivision.PERSONAL) {
+                    throw new DivisionMismatchException("자신이 생성하거나 다운로드 받은 단어장은 개인카테고리로만 이동시킬 수 있습니다.");
+                } else {
+                    if (!newCategory.getMember().getId().equals(vocabulary.getProprietor().getId())) {
+                        throw new MemberMismatchAfterMovingWithCurrentMemberException();
+                    }
+                }
             }
-        } else {
-            throw new BadRequestByDivision("삭제되거나 공유가 해제된 단어장은 카테고리 이동이 불가능합니다.");
+        }
+
+        if (vocabulary.getDivision() == VocabularyDivision.DELETE || vocabulary.getDivision() == VocabularyDivision.UNSHARED) {
+                throw new BadRequestByDivision("삭제되거나 공유가 해제된 단어장은 카테고리 이동이 불가능합니다.");
         }
 
         vocabulary.moveCategory(newCategory);
@@ -226,11 +242,24 @@ public class VocabularyService {
             vocabulary.increaseViews();
         }
 
+//        for (int i = 0; i < vocabulary.getWordList().size(); i++) {
+//            vocabulary.getWordList().get(i);
+//        }
+
         return vocabulary;
     }
 
-    public QueryResults<Vocabulary> getVocabularyListByMember(CriteriaDto criteriaDto, VocabularyDivision division, Long memberId, Long categoryId) {
-        return vocabularyQueryRepository.findAllByPersonal(criteriaDto, division, memberId, categoryId);
+    public QueryResults<Vocabulary> getVocabularyListByMember(CriteriaDto criteriaDto, Long memberId, Long categoryId, VocabularyDivision... divisions) {
+        if (categoryId != null) {
+            final Category findCategory = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+            if (findCategory.getDivision() != CategoryDivision.PERSONAL) {
+                throw new BadRequestByDivision("개인 카테고리의 단어 목록만 조회할 수 있습니다.");
+            }
+            if (!findCategory.getMember().getId().equals(memberId)) {
+                throw new MemberAndCategoryMemberDifferentException();
+            }
+        }
+        return vocabularyQueryRepository.findAllByMember(criteriaDto, memberId, categoryId,divisions);
     }
 
     /**
@@ -258,14 +287,18 @@ public class VocabularyService {
             if (personalCategory.getDivision() != CategoryDivision.PERSONAL) {
                 throw new BadRequestByDivision("공유 카테고리에는 공유 단어장을 다운로드 할 수 없습니다. 카테고리를 다시 확인해주세요.");
             }
+
+            if (!personalCategory.getMember().getId().equals(memberId)) {
+                throw new MemberAndCategoryMemberDifferentException();
+            }
         }
 
         return vocabularyRepository.save(personalVocabulary);
     }
 
     @Transactional
-    public void sharedVocabularyToUnshared(Long vocabularyId) {
-        Vocabulary vocabulary = vocabularyRepository.findById(vocabularyId).orElseThrow(VocabularyNotFoundException::new);
+    public void unshared(Long sharedVocabularyId) {
+        Vocabulary vocabulary = vocabularyRepository.findById(sharedVocabularyId).orElseThrow(VocabularyNotFoundException::new);
 
         if (vocabulary.getDivision() != VocabularyDivision.SHARED) {
             throw new BadRequestByDivision("공유 단어장 외에는 공유를 취소할 수 없습니다.");

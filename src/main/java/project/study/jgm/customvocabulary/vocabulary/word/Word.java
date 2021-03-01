@@ -62,6 +62,22 @@ public class Word {
         return word;
     }
 
+    public Word createCopiedWord() {
+
+        final WordImageFile copiedWordImageFile = this.wordImageFile.createCopiedWordImageFile();
+
+        final Word copiedWord = Word.builder()
+                .wordImageFile(copiedWordImageFile)
+                .mainWord(this.getMainWord())
+                .subWord(this.getSubWord())
+                .memorisedCheck(false)
+                .build();
+
+        copiedWordImageFile.setWord(copiedWord);
+
+        return copiedWord;
+    }
+
     public void checkMemorise() {
         if (this.memorisedCheck == false) {
             this.memorisedCheck = true;
@@ -74,5 +90,9 @@ public class Word {
 
     public void setVocabulary(Vocabulary vocabulary) {
         this.vocabulary = vocabulary;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

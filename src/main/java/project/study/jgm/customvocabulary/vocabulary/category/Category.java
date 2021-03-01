@@ -45,9 +45,6 @@ public class Category {
 
     private int orders;
 
-    @Enumerated(EnumType.STRING)
-    private CategoryStatus status;  //삭제 시 category 를 삭제하지 않고 상태만 바꾸기 위해 사용//  [REGISTER, DELETE]
-
 //.name
 //.member
 //.parent
@@ -68,7 +65,6 @@ public class Category {
                 ", vocabularyCount=" + vocabularyCount +
                 ", division=" + division +
                 ", orders=" + orders +
-                ", status=" + status +
                 '}';
     }
 
@@ -79,7 +75,6 @@ public class Category {
                 .parent(parent)
                 .division(CategoryDivision.PERSONAL)
                 .orders(orders)
-                .status(CategoryStatus.REGISTER)
                 .vocabularyCount(0)
                 .build();
     }
@@ -90,7 +85,6 @@ public class Category {
                 .parent(parent)
                 .division(CategoryDivision.SHARED)
                 .orders(orders)
-                .status(CategoryStatus.REGISTER)
                 .vocabularyCount(0)
                 .build();
     }

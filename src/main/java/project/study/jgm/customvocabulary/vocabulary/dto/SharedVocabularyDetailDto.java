@@ -54,6 +54,14 @@ public class SharedVocabularyDetailDto {
 
     private int totalWordCount; //단어 총 갯수 저장
 
+    private VocabularyDivision division;
+
+    private boolean like;
+
+    private boolean viewLike;
+
+    private boolean allowModificationAndDeletion;
+
     private LocalDateTime registerDate;     //division에 따라 다르게 해석 : 개인 단어장{생성 날짜, 복사 날짜 저장} 단어장 공유{공유 날짜 저장}
 
 //.id
@@ -75,7 +83,13 @@ public class SharedVocabularyDetailDto {
         List<Word> wordList = vocabulary.getWordList();
         List<WordResponseDto> wordResponseDtos = new ArrayList<>();
         for (Word word : wordList) {
-            WordResponseDto wordResponseDto = modelMapper.map(word, WordResponseDto.class);
+            final UploadFileResponseDto imageInfo = modelMapper.map(word.getWordImageFile(), UploadFileResponseDto.class);
+            final WordResponseDto wordResponseDto = WordResponseDto.builder()
+                    .imageInfo(imageInfo)
+                    .mainWord(word.getMainWord())
+                    .subWord(word.getSubWord())
+                    .memorisedCheck(false)
+                    .build();
             wordResponseDtos.add(wordResponseDto);
         }
 
@@ -89,7 +103,7 @@ public class SharedVocabularyDetailDto {
 
         return SharedVocabularyDetailDto.builder()
                 .id(vocabulary.getId())
-                .writer(new WriterDto(vocabulary.getMember().getId(), vocabulary.getMember().getNickname()))
+                .writer(new WriterDto(vocabulary.getWriter().getId(), vocabulary.getWriter().getNickname()))
                 .category(category)
                 .thumbnailInfo(thumbnailInfo)
                 .title(vocabulary.getTitle())
@@ -101,6 +115,8 @@ public class SharedVocabularyDetailDto {
                 .likeCount(vocabulary.getLikeCount())
                 .downloadCount(vocabulary.getDownloadCount())
                 .totalWordCount(vocabulary.getTotalWordCount())
+                .division(vocabulary.getDivision())
+                .viewLike(true)
                 .registerDate(vocabulary.getRegisterDate())
                 .build();
     }

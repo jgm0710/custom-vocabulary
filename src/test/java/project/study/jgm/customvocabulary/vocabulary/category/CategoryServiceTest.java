@@ -28,13 +28,13 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("개인용 카테고리 생성")
-    public void createPersonalCategory() throws Exception {
+    public void createPersonalCategory() {
         //given
         String joinId = "user1";
         String nickname = "user1";
         Member user1 = createUserMember(joinId, nickname);
 
-//        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "sample category", null, 1, CategoryStatus.REGISTER);
+//        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "sample category", null, 1);
 
         em.flush();
         em.clear();
@@ -59,13 +59,13 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("부모 카테고리가 지정이 됐는데 부모 카테고리를 찾을 수 없는 경우")
-    public void createPersonalCategory_ParentNotFound() throws Exception {
+    public void createPersonalCategory_ParentNotFound() {
         //given
         String joinId = "user1";
         String nickname = "user1";
         Member user1 = createUserMember(joinId, nickname);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "sample category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "sample category", null, 1);
 
         em.flush();
         em.clear();
@@ -86,13 +86,13 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("카테고리 생성 시 지정한 순서에 해당하는 카테고리가 이미 존재하는 경우")
-    public void createPersonalCategory_CategoryExistsInTheCorrespondingOrders() throws Exception {
+    public void createPersonalCategory_CategoryExistsInTheCorrespondingOrders() {
         //given
         String joinId = "user1";
         String nickname = "user1";
         Member user1 = createUserMember(joinId, nickname);
 
-        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "sample category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(user1, CategoryDivision.PERSONAL, "sample category", null, 1);
 
         em.flush();
         em.clear();
@@ -113,12 +113,12 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("카테고리 수정")
-    public void modifyCategory() throws Exception {
+    public void modifyCategory() {
         //given
         Member userMember = createUserMember("user1", "user1");
-        Category sampleCategory = createCategory(userMember, CategoryDivision.PERSONAL, "sample category", null, 1000, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(userMember, CategoryDivision.PERSONAL, "sample category", null, 1000);
 
-        Category sampleCategory2 = createCategory(userMember, CategoryDivision.PERSONAL, "sample2 category", null, 2, CategoryStatus.REGISTER);
+        Category sampleCategory2 = createCategory(userMember, CategoryDivision.PERSONAL, "sample2 category", null, 2);
 
         em.flush();
         em.clear();
@@ -134,7 +134,7 @@ class CategoryServiceTest extends BaseServiceTest {
         categoryService.modifyCategory(sampleCategory.getId(), updateDto);
 
         //then
-        Category findCategory = categoryRepository.findById(sampleCategory.getId()).get();
+        Category findCategory = categoryRepository.findById(sampleCategory.getId()).orElseThrow(CategoryNotFoundException::new);
         System.out.println("findCategory = " + findCategory);
         System.out.println("findCategory.getParent().toString() = " + findCategory.getParent().toString());
         assertEquals(findCategory.getMember().getId(), userMember.getId());
@@ -146,12 +146,12 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("카테고리 수정 시 수정할 카테고리를 찾을 수 없는 경우")
-    public void modifyCategory_NotFound() throws Exception {
+    public void modifyCategory_NotFound() {
         //given
         Member userMember = createUserMember("user1", "user1");
-        Category sampleCategory = createCategory(userMember, CategoryDivision.PERSONAL, "sample category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(userMember, CategoryDivision.PERSONAL, "sample category", null, 1);
 
-        Category sampleCategory2 = createCategory(userMember, CategoryDivision.PERSONAL, "sample2 category", null, 2, CategoryStatus.REGISTER);
+        Category sampleCategory2 = createCategory(userMember, CategoryDivision.PERSONAL, "sample2 category", null, 2);
 
         em.flush();
         em.clear();
@@ -173,12 +173,12 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("카테고리 수정 시 카테고리를 옮길 부모 카테고리를 찾을 수 없는 경우")
-    public void modifyCategory_ParentNotFound() throws Exception {
+    public void modifyCategory_ParentNotFound() {
         //given
         Member userMember = createUserMember("user1", "user1");
-        Category sampleCategory = createCategory(userMember, CategoryDivision.PERSONAL, "sample category", null, 1, CategoryStatus.REGISTER);
+        Category sampleCategory = createCategory(userMember, CategoryDivision.PERSONAL, "sample category", null, 1);
 
-        Category sampleCategory2 = createCategory(userMember, CategoryDivision.PERSONAL, "sample2 category", null, 2, CategoryStatus.REGISTER);
+        Category sampleCategory2 = createCategory(userMember, CategoryDivision.PERSONAL, "sample2 category", null, 2);
 
         em.flush();
         em.clear();
@@ -198,7 +198,7 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("공유 카테고리 목록 조회 테스트")
-    public void getSharedCategoryList() throws Exception {
+    public void getSharedCategoryList() {
         //given
         List<Category> categoryList = createCategoryList();
 
@@ -216,12 +216,12 @@ class CategoryServiceTest extends BaseServiceTest {
     }
 
     private List<Category> createCategoryList() {
-        Category sub1 = createCategory(null, CategoryDivision.SHARED, "sub1", null, 0, CategoryStatus.REGISTER);
-        Category sub2 = createCategory(null, CategoryDivision.SHARED, "sub2", null, 0, CategoryStatus.REGISTER);
-        Category sub11 = createCategory(null, CategoryDivision.SHARED, "sub1-1", sub1, 0, CategoryStatus.REGISTER);
-        Category sub12 = createCategory(null, CategoryDivision.SHARED, "sub1-2", sub1, 0, CategoryStatus.REGISTER);
-        Category sub21 = createCategory(null, CategoryDivision.SHARED, "sub2-1", sub2, 0, CategoryStatus.REGISTER);
-        Category sub22 = createCategory(null, CategoryDivision.SHARED, "sub2-2", sub2, 0, CategoryStatus.REGISTER);
+        Category sub1 = createCategory(null, CategoryDivision.SHARED, "sub1", null, 0);
+        Category sub2 = createCategory(null, CategoryDivision.SHARED, "sub2", null, 0);
+        Category sub11 = createCategory(null, CategoryDivision.SHARED, "sub1-1", sub1, 0);
+        Category sub12 = createCategory(null, CategoryDivision.SHARED, "sub1-2", sub1, 0);
+        Category sub21 = createCategory(null, CategoryDivision.SHARED, "sub2-1", sub2, 0);
+        Category sub22 = createCategory(null, CategoryDivision.SHARED, "sub2-2", sub2, 0);
 
         categoryRepository.save(sub1);
         categoryRepository.save(sub2);
@@ -236,7 +236,7 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("목록 조회 PersonalCategoryResponseDto Test")
-    public void PersonalCategoryResponseDto_Test() throws Exception {
+    public void PersonalCategoryResponseDto_Test() {
         //given
         List<Category> categoryList = createCategoryList();
         em.flush();
@@ -256,16 +256,16 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("카테고리 삭제")
-    public void deleteCategory() throws Exception {
+    public void deleteCategory() {
         //given
         Member user = createUserMember("user1", "user1");
 
-        Category sub1 = createCategory(null, CategoryDivision.SHARED, "sub1", null, 0, CategoryStatus.REGISTER);
-        Category sub2 = createCategory(null, CategoryDivision.SHARED, "sub2", null, 0, CategoryStatus.REGISTER);
-        Category sub11 = createCategory(null, CategoryDivision.SHARED, "sub1-1", sub1, 0, CategoryStatus.REGISTER);
-        Category sub12 = createCategory(null, CategoryDivision.SHARED, "sub1-2", sub1, 0, CategoryStatus.REGISTER);
-        Category sub21 = createCategory(null, CategoryDivision.SHARED, "sub2-1", sub2, 0, CategoryStatus.REGISTER);
-        Category sub22 = createCategory(null, CategoryDivision.SHARED, "sub2-2", sub2, 0, CategoryStatus.REGISTER);
+        Category sub1 = createCategory(null, CategoryDivision.SHARED, "sub1", null, 0);
+        Category sub2 = createCategory(null, CategoryDivision.SHARED, "sub2", null, 0);
+        Category sub11 = createCategory(null, CategoryDivision.SHARED, "sub1-1", sub1, 0);
+        Category sub12 = createCategory(null, CategoryDivision.SHARED, "sub1-2", sub1, 0);
+        Category sub21 = createCategory(null, CategoryDivision.SHARED, "sub2-1", sub2, 0);
+        Category sub22 = createCategory(null, CategoryDivision.SHARED, "sub2-2", sub2, 0);
 
         categoryRepository.save(sub1);
         categoryRepository.save(sub2);
@@ -297,16 +297,16 @@ class CategoryServiceTest extends BaseServiceTest {
 
     @Test
     @DisplayName("카테고리 삭제 시 자식 카테고리가 있는 경우")
-    public void deleteCategory_ExistSubCategory() throws Exception {
+    public void deleteCategory_ExistSubCategory() {
         //given
         Member user = createUserMember("user1", "user1");
 
-        Category sub1 = createCategory(null, CategoryDivision.SHARED, "sub1", null, 0, CategoryStatus.REGISTER);
-        Category sub2 = createCategory(null, CategoryDivision.SHARED, "sub2", null, 0, CategoryStatus.REGISTER);
-        Category sub11 = createCategory(null, CategoryDivision.SHARED, "sub1-1", sub1, 0, CategoryStatus.REGISTER);
-        Category sub12 = createCategory(null, CategoryDivision.SHARED, "sub1-2", sub1, 0, CategoryStatus.REGISTER);
-        Category sub21 = createCategory(null, CategoryDivision.SHARED, "sub2-1", sub2, 0, CategoryStatus.REGISTER);
-        Category sub22 = createCategory(null, CategoryDivision.SHARED, "sub2-2", sub2, 0, CategoryStatus.REGISTER);
+        Category sub1 = createCategory(null, CategoryDivision.SHARED, "sub1", null, 0);
+        Category sub2 = createCategory(null, CategoryDivision.SHARED, "sub2", null, 0);
+        Category sub11 = createCategory(null, CategoryDivision.SHARED, "sub1-1", sub1, 0);
+        Category sub12 = createCategory(null, CategoryDivision.SHARED, "sub1-2", sub1, 0);
+        Category sub21 = createCategory(null, CategoryDivision.SHARED, "sub2-1", sub2, 0);
+        Category sub22 = createCategory(null, CategoryDivision.SHARED, "sub2-2", sub2, 0);
 
         categoryRepository.save(sub1);
         categoryRepository.save(sub2);
@@ -335,7 +335,8 @@ class CategoryServiceTest extends BaseServiceTest {
     private void createVocabularyList(Member user, Category category) {
         for (int i = 0; i < 5; i++) {
             Vocabulary vocabulary = Vocabulary.builder()
-                    .member(user)
+                    .proprietor(user)
+                    .writer(user)
                     .category(category)
                     .title("vocabulary" + i)
                     .build();

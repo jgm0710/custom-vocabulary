@@ -19,7 +19,7 @@ class CategoryQueryRepositoryTest extends BaseServiceTest {
 
     @Test
     @DisplayName("parentId 와 orders 로 category 조회 - parentId 가 null 일 경우")
-    public void findByParentIdAndOrders_NullParent() throws Exception {
+    public void findByParentIdAndOrders_NullParent() {
         //given
         Member userMember = createUserMember("user1", "user1");
 
@@ -27,8 +27,7 @@ class CategoryQueryRepositoryTest extends BaseServiceTest {
         String name = "test category";
         Category parent = null;
         int orders = 1;
-        CategoryStatus status = CategoryStatus.REGISTER;
-        Category category = createCategory(userMember, division, name, parent, orders, status);
+        Category category = createCategory(userMember, division, name, parent, orders);
 
         em.flush();
         em.clear();
@@ -43,17 +42,16 @@ class CategoryQueryRepositoryTest extends BaseServiceTest {
 
     @Test
     @DisplayName("paerntId와 orders 로 category 조회")
-    public void findByParentIdAndOrders() throws Exception {
+    public void findByParentIdAndOrders() {
         //given
         Member userMember = createUserMember("user1", "user1");
 
         CategoryDivision division = CategoryDivision.PERSONAL;
         String name = "test category";
         int orders = 1;
-        CategoryStatus status = CategoryStatus.REGISTER;
-        Category parent = createCategory(userMember, division, name, null, orders, status);
+        Category parent = createCategory(userMember, division, name, null, orders);
 
-        Category child = createCategory(userMember, CategoryDivision.PERSONAL, "child category", parent, 1, CategoryStatus.REGISTER);
+        Category child = createCategory(userMember, CategoryDivision.PERSONAL, "child category", parent, 1);
 
         em.flush();
         em.clear();

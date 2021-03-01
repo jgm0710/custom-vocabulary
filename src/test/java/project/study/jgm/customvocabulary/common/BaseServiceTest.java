@@ -84,7 +84,7 @@ public class BaseServiceTest {
         return member;
     }
 
-    protected Category createCategory(Member userMember, CategoryDivision division, String name, Category parent, int orders, CategoryStatus status) {
+    protected Category createCategory(Member userMember, CategoryDivision division, String name, Category parent, int orders) {
         Category category = Category.builder()
                 .name(name)
                 .member(userMember)
@@ -92,7 +92,6 @@ public class BaseServiceTest {
                 .vocabularyCount(0)
                 .division(division)
                 .orders(orders)
-                .status(status)
                 .build();
 
         categoryRepository.save(category);
