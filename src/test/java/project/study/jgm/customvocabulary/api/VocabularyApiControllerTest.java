@@ -11,6 +11,7 @@ import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
+import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
@@ -4982,6 +4983,428 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("message").value(new SelfLikeException().getMessage()));
 
     }
+
+    @Test
+    @DisplayName("공유 단어장 공유 해제")
+    public void unlikeSharedVocabulary() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample);
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), null);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        vocabularyLikeService.like(user2.getId(), sharedVocabulary.getId());
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                delete("/api/vocabulary/shared/like/" + sharedVocabulary.getId())
+                        .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_SHARED_VOCABULARY_SUCCESSFULLY));
+
+        boolean existLike = vocabularyLikeService.getExistLike(user2.getId(), sharedVocabulary.getId());
+        assertFalse(existLike);
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 공유 단어장의 좋아요를 해제하는 경우")
+    public void unlikeSharedVocabulary_Unauthenticated() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample);
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), null);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        vocabularyLikeService.like(user2.getId(), sharedVocabulary.getId());
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                delete("/api/vocabulary/shared/like/" + sharedVocabulary.getId())
+//                        .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("공유 단어장 좋아요 해제 시 좋아요가 등록되어 있지 않은 경우")
+    public void unlikeSharedVocabulary_NoExistLike() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample);
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), null);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+//        vocabularyLikeService.like(user2.getId(), sharedVocabulary.getId());
+
+        em.flush();
+        em.clear();
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                delete("/api/vocabulary/shared/like/" + sharedVocabulary.getId())
+                        .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new NoExistLikeException().getMessage()));
+
+    }
+
+    @Test
+    @DisplayName("특정 회원의 삭제된 단어장 목록 조회")
+    public void getDeletedVocabularyListByMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "deleted vocabulary" + i);
+            vocabularyService.deletePersonalVocabulary(personalVocabularySample.getId());
+        }
+
+        for (int i = 0; i < 5; i++) {
+            createPersonalVocabularySample(user1, personalCategorySample, "personal vocabulary" + i * 4);
+        }
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                get("/api/vocabulary/deleted/" + user1.getId())
+                        .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                        .param("pageNum", "1")
+                        .param("limit", "20")
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.list[0].id").exists())
+                .andExpect(jsonPath("data.list[0].writer.id").exists())
+                .andExpect(jsonPath("data.list[0].writer.nickname").exists())
+                .andExpect(jsonPath("data.list[0].category.id").exists())
+                .andExpect(jsonPath("data.list[0].category.name").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileId").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileName").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileDownloadUri").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileType").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.size").exists())
+                .andExpect(jsonPath("data.list[0].title").exists())
+                .andExpect(jsonPath("data.list[0].mainLanguage").exists())
+                .andExpect(jsonPath("data.list[0].subLanguage").exists())
+                .andExpect(jsonPath("data.list[0].difficulty").exists())
+                .andExpect(jsonPath("data.list[0].memorisedCount").exists())
+                .andExpect(jsonPath("data.list[0].totalWordCount").exists())
+                .andExpect(jsonPath("data.list[0].division").exists())
+                .andExpect(jsonPath("data.list[0].registerDate").exists())
+                .andExpect(jsonPath("data.paging.totalCount").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto").exists())
+                .andExpect(jsonPath("data.paging.startPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.prev").exists())
+                .andExpect(jsonPath("data.paging.next").exists())
+                .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_DELETED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("USER 권한의 사용자가 특정 회원의 삭제된 단어장 목록을 조회할 경우")
+    public void getDeletedVocabularyListByMember_By_User() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "deleted vocabulary" + i);
+            vocabularyService.deletePersonalVocabulary(personalVocabularySample.getId());
+        }
+
+        for (int i = 0; i < 5; i++) {
+            createPersonalVocabularySample(user1, personalCategorySample, "personal vocabulary" + i * 4);
+        }
+
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                get("/api/vocabulary/deleted/" + user1.getId())
+                        .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                        .param("pageNum", "1")
+                        .param("limit", "20")
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("특정 회원의 삭제된 단어장 목록 조회 시 페이징 요청이 잘못된 경우")
+    public void getDeletedVocabularyListByMember_WrongCriteria() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "deleted vocabulary" + i);
+            vocabularyService.deletePersonalVocabulary(personalVocabularySample.getId());
+        }
+
+        for (int i = 0; i < 5; i++) {
+            createPersonalVocabularySample(user1, personalCategorySample, "personal vocabulary" + i * 4);
+        }
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                get("/api/vocabulary/deleted/" + user1.getId())
+                        .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                        .param("pageNum", "-1")
+                        .param("limit", "-20")
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+                .andExpect(jsonPath("$[0].rejectedValue").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("특정 회원의 공유가 해제된 단어장 목록 조회")
+    public void getUnsharedVocabularyListByMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Category sharedCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1);
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "shared vocabulary" + i);
+            vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i*4);
+            Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+            vocabularyService.unshared(sharedVocabulary.getId());
+        }
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/vocabulary/unshared/" + user1.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("pageNum", "1")
+                                .param("limit", "20")
+                ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.list[0].id").exists())
+                .andExpect(jsonPath("data.list[0].writer.id").exists())
+                .andExpect(jsonPath("data.list[0].writer.nickname").exists())
+                .andExpect(jsonPath("data.list[0].category.id").exists())
+                .andExpect(jsonPath("data.list[0].category.name").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileId").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileName").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileDownloadUri").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileType").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.size").exists())
+                .andExpect(jsonPath("data.list[0].title").exists())
+                .andExpect(jsonPath("data.list[0].mainLanguage").exists())
+                .andExpect(jsonPath("data.list[0].subLanguage").exists())
+                .andExpect(jsonPath("data.list[0].difficulty").exists())
+                .andExpect(jsonPath("data.list[0].views").exists())
+                .andExpect(jsonPath("data.list[0].likeCount").exists())
+                .andExpect(jsonPath("data.list[0].downloadCount").exists())
+                .andExpect(jsonPath("data.list[0].totalWordCount").exists())
+                .andExpect(jsonPath("data.list[0].division").exists())
+                .andExpect(jsonPath("data.list[0].registerDate").exists())
+                .andExpect(jsonPath("data.paging.totalCount").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.limit").exists())
+                .andExpect(jsonPath("data.paging.startPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.prev").exists())
+                .andExpect(jsonPath("data.paging.next").exists())
+                .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_UNSHARED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY))
+        ;
+
+
+    }
+
+    @Test
+    @DisplayName("특정 회원의 공유가 해제된 단어장 목록 조회 시 페이징 값을 잘못 입력한 경우")
+    public void getUnsharedVocabularyListByMember_WrongCriteria() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Category sharedCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1);
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "shared vocabulary" + i);
+            vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i*4);
+            Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+            vocabularyService.unshared(sharedVocabulary.getId());
+        }
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/vocabulary/unshared/" + user1.getId())
+                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+                                .param("pageNum", "-1")
+                                .param("limit", "-20")
+                ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].field").exists())
+                .andExpect(jsonPath("$[0].rejectedValue").exists())
+        ;
+
+    }
+
+    @Test
+    @DisplayName("USER 권한의 사용자가 특정 회원의 공유 해제 단어장 목록을 조회하는 경우")
+    public void getUnsharedVocabularyListByMember_By_User() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Category sharedCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1);
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "shared vocabulary" + i);
+            vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i*4);
+            Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+            vocabularyService.unshared(sharedVocabulary.getId());
+        }
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user1.getLoginInfo().getRefreshToken());
+        TokenDto user1TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        get("/api/vocabulary/unshared/" + user1.getId())
+                                .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
+                                .param("pageNum", "1")
+                                .param("limit", "20")
+                ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden());
+
+    }
+
 
     private List<WordRequestDto> createWordListSample() throws IOException {
         List<WordRequestDto> wordRequestDtoList = new ArrayList<>();

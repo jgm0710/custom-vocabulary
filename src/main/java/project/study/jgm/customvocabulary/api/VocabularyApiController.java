@@ -436,19 +436,19 @@ public class VocabularyApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-         QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(searchDto.getCriteriaDto(), searchDto.getCategoryId(), searchDto.getTitle(), searchDto.getSortCondition());
-         List<Vocabulary> sharedVocabularyList = results.getResults();
-         long totalCount = results.getTotal();
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(searchDto.getCriteriaDto(), searchDto.getCategoryId(), searchDto.getTitle(), searchDto.getSortCondition());
+        List<Vocabulary> sharedVocabularyList = results.getResults();
+        long totalCount = results.getTotal();
 
         List<SharedVocabularySimpleDto> sharedVocabularySimpleDtos = new ArrayList<>();
         for (Vocabulary sharedVocabulary : sharedVocabularyList) {
-             SharedVocabularySimpleDto sharedVocabularySimpleDto = SharedVocabularySimpleDto.sharedVocabularyToSimple(sharedVocabulary, modelMapper);
+            SharedVocabularySimpleDto sharedVocabularySimpleDto = SharedVocabularySimpleDto.sharedVocabularyToSimple(sharedVocabulary, modelMapper);
             sharedVocabularySimpleDtos.add(sharedVocabularySimpleDto);
         }
 
-         PaginationDto paginationDto = new PaginationDto(totalCount, searchDto.getCriteriaDto());
+        PaginationDto paginationDto = new PaginationDto(totalCount, searchDto.getCriteriaDto());
 
-         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
                 .list(sharedVocabularySimpleDtos)
                 .paging(paginationDto)
                 .build();
@@ -465,8 +465,8 @@ public class VocabularyApiController {
     ) {
 
         try {
-             Vocabulary downloadVocabulary = vocabularyService.download(vocabularyId, member.getId(), categoryId);
-             PersonalVocabularyDetailDto personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(downloadVocabulary, modelMapper);
+            Vocabulary downloadVocabulary = vocabularyService.download(vocabularyId, member.getId(), categoryId);
+            PersonalVocabularyDetailDto personalVocabularyDetailDto = PersonalVocabularyDetailDto.personalVocabularyToDetail(downloadVocabulary, modelMapper);
 
             return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, DOWNLOAD_SHARED_VOCABULARY_SUCCESSFULLY));
 
@@ -485,7 +485,7 @@ public class VocabularyApiController {
     ) {
 
         try {
-             Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
+            Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
             decreaseViewWhenGettingSharedVocabulary(findVocabulary);
 
             if (!findVocabulary.getWriter().getId().equals(member.getId())) {
@@ -545,38 +545,30 @@ public class VocabularyApiController {
     public ResponseEntity<?> getDeletedVocabularyListByMember(
             @PathVariable Long memberId,
             @ModelAttribute @Valid CriteriaDto criteriaDto,
-            BindingResult bindingResult,
-            @RequestParam(required = false) Long categoryId
+            BindingResult bindingResult
     ) {
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
-        try {
-             QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, categoryId, VocabularyDivision.DELETE);
-             List<Vocabulary> deletedVocabularyList = results.getResults();
-             long totalCount = results.getTotal();
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, null, VocabularyDivision.DELETE);
+        List<Vocabulary> deletedVocabularyList = results.getResults();
+        long totalCount = results.getTotal();
 
-            List<PersonalVocabularySimpleDto> personalVocabularySimpleDtos = new ArrayList<>();
-            for (Vocabulary deletedVocabulary : deletedVocabularyList) {
-                 PersonalVocabularySimpleDto personalVocabularySimpleDto = PersonalVocabularySimpleDto.personalVocabularyToSimple(deletedVocabulary, modelMapper);
-                personalVocabularySimpleDtos.add(personalVocabularySimpleDto);
-            }
-
-             PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
-             ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
-                    .list(personalVocabularySimpleDtos)
-                    .paging(paginationDto)
-                    .build();
-
-            return ResponseEntity.ok(new ResponseDto<>(listResponseDto, GET_DELETED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY));
-
-        } catch (CategoryNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (BadRequestByDivision | MemberAndCategoryMemberDifferentException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        List<PersonalVocabularySimpleDto> personalVocabularySimpleDtos = new ArrayList<>();
+        for (Vocabulary deletedVocabulary : deletedVocabularyList) {
+            PersonalVocabularySimpleDto personalVocabularySimpleDto = PersonalVocabularySimpleDto.personalVocabularyToSimple(deletedVocabulary, modelMapper);
+            personalVocabularySimpleDtos.add(personalVocabularySimpleDto);
         }
+
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+                .list(personalVocabularySimpleDtos)
+                .paging(paginationDto)
+                .build();
+
+        return ResponseEntity.ok(new ResponseDto<>(listResponseDto, GET_DELETED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY));
 
     }
 
@@ -592,30 +584,24 @@ public class VocabularyApiController {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
-        try {
 
-             QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, null, VocabularyDivision.UNSHARED);
-             List<Vocabulary> unsharedVocabularyList = results.getResults();
-             long totalCount = results.getTotal();
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, null, VocabularyDivision.UNSHARED);
+        List<Vocabulary> unsharedVocabularyList = results.getResults();
+        long totalCount = results.getTotal();
 
-            List<SharedVocabularySimpleDto> sharedVocabularySimpleDtos = new ArrayList<>();
-            for (Vocabulary unsharedVocabulary : unsharedVocabularyList) {
-                 SharedVocabularySimpleDto sharedVocabularySimpleDto = SharedVocabularySimpleDto.sharedVocabularyToSimple(unsharedVocabulary, modelMapper);
-                sharedVocabularySimpleDtos.add(sharedVocabularySimpleDto);
-            }
-
-             PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
-             ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
-                    .list(sharedVocabularySimpleDtos)
-                    .paging(paginationDto)
-                    .build();
-
-            return ResponseEntity.ok(new ResponseDto<>(listResponseDto, GET_UNSHARED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY));
-
-        } catch (CategoryNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
-        } catch (BadRequestByDivision | MemberAndCategoryMemberDifferentException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        List<SharedVocabularySimpleDto> sharedVocabularySimpleDtos = new ArrayList<>();
+        for (Vocabulary unsharedVocabulary : unsharedVocabularyList) {
+            SharedVocabularySimpleDto sharedVocabularySimpleDto = SharedVocabularySimpleDto.sharedVocabularyToSimple(unsharedVocabulary, modelMapper);
+            sharedVocabularySimpleDtos.add(sharedVocabularySimpleDto);
         }
+
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+        ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
+                .list(sharedVocabularySimpleDtos)
+                .paging(paginationDto)
+                .build();
+
+        return ResponseEntity.ok(new ResponseDto<>(listResponseDto, GET_UNSHARED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY));
+
     }
 }

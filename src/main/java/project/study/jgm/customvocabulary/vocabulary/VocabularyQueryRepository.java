@@ -92,6 +92,10 @@ public class VocabularyQueryRepository {
                 return vocabulary.division.eq(SHARED);
             case COPIED:
                 return vocabulary.division.eq(COPIED);
+            case DELETE:
+                return vocabulary.division.eq(DELETE);
+            case UNSHARED:
+                return vocabulary.division.eq(UNSHARED);
             default:
                 throw new BadRequestByDivision();
         }
