@@ -6,10 +6,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,14 +57,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @SpringBootTest
-@ExtendWith(value = SpringExtension.class)
+@ExtendWith(value = {SpringExtension.class, RestDocumentationExtension.class})
 @AutoConfigureMockMvc
+@AutoConfigureRestDocs
 @ActiveProfiles("test")
 @Disabled
+@Import(RestDocsConfig.class)
 @Transactional
 public abstract class BaseControllerTest {
 
@@ -157,11 +165,14 @@ public abstract class BaseControllerTest {
     protected final String testImageFilePath2 = "/static/test/사진2.jpg";
 
     @BeforeEach
-    public void setup(WebApplicationContext webApplicationContext) {
+    public void setup(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .addFilters(new CharacterEncodingFilter("UTF-8", true))  // 필터 추가
                 .apply(springSecurity())    //springSecurityFilter 를 타기 위해서 허용해줘야함. -> 없으면 filter를 타지 않음
                 .alwaysDo(print())
+                .apply(documentationConfiguration(restDocumentation)
+                        .operationPreprocessors()
+                        .withResponseDefaults(prettyPrint()))
                 .build();
 
         vocabularyLikeRepository.deleteAll();
@@ -184,7 +195,7 @@ public abstract class BaseControllerTest {
         return loginDto;
     }
 
-    protected MemberCreateDto getMemberCreateDto(String joinId,String nickname) {
+    protected MemberCreateDto getMemberCreateDto(String joinId, String nickname) {
         return MemberCreateDto.builder()
                 .joinId(joinId)
                 .email("test@email.com")
@@ -222,7 +233,7 @@ public abstract class BaseControllerTest {
         }
     }
 
-    protected List<Category> createCategoryList(Member member,CategoryDivision division) {
+    protected List<Category> createCategoryList(Member member, CategoryDivision division) {
         Category sub1 = createCategory(member, division, "sub1", null, 2);
         Category sub2 = createCategory(member, division, "sub2", null, 3);
         Category sub3 = createCategory(member, division, "sub3", null, 1);
@@ -291,7 +302,6 @@ public abstract class BaseControllerTest {
         String contentType = URLConnection.guessContentTypeFromName(filename);
         return new MockMultipartFile(parameterName, filename, contentType, classPathResource.getInputStream());
     }
-
 
 
 }

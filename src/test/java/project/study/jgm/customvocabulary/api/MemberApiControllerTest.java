@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -83,6 +84,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 //                .andExpect(jsonPath("_links.self.href").exists())
 //                .andExpect(jsonPath("_links.login.href").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MEMBER_JOIN_SUCCESSFULLY))
+                .andDo(document("join"))
         ;
 
         //then

@@ -1051,7 +1051,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/like/" + bbsSample.getId())
+                        post("/api/bbs/like/" + bbsSample.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1086,7 +1086,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/like/" + bbsSample.getId())
+                        post("/api/bbs/like/" + bbsSample.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1116,7 +1116,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/like/" + 1000000L)
+                        post("/api/bbs/like/" + 1000000L)
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1143,7 +1143,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/like/" + bbsSample.getId())
+                        post("/api/bbs/like/" + bbsSample.getId())
                                 .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1176,7 +1176,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/like/" + bbsSample.getId())
+                        post("/api/bbs/like/" + bbsSample.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1208,7 +1208,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/unlike/" + bbsSample.getId())
+                        delete("/api/bbs/like/" + bbsSample.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1239,7 +1239,7 @@ class BbsApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/unlike/" + bbsSample.getId())
+                        delete("/api/bbs/like/" + bbsSample.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());

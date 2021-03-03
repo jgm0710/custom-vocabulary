@@ -1154,7 +1154,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                        post("/api/bbs/reply/like/" + user2Reply.getId())
                                 .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1187,7 +1187,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/like/" + 10000L)
+                        post("/api/bbs/reply/like/" + 10000L)
                                 .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1223,7 +1223,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/like/" + user3ChildReply.getId())
+                        post("/api/bbs/reply/like/" + user3ChildReply.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1259,7 +1259,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                        post("/api/bbs/reply/like/" + user2Reply.getId())
                                 .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1295,7 +1295,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                        post("/api/bbs/reply/like/" + user2Reply.getId())
                                 .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1328,7 +1328,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/like/" + user2Reply.getId())
+                        post("/api/bbs/reply/like/" + user2Reply.getId())
                                 .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1364,7 +1364,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/unlike/" + reply.getId())
+                        delete("/api/bbs/reply/like/" + reply.getId())
                                 .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1399,7 +1399,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        get("/api/bbs/reply/unlike/" + reply.getId())
+                        delete("/api/bbs/reply/like/" + reply.getId())
                                 .header(X_AUTH_TOKEN, user3TokenDto.getAccessToken())
                 )
                 .andDo(print());
