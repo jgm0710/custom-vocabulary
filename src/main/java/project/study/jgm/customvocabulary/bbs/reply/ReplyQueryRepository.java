@@ -38,7 +38,11 @@ public class ReplyQueryRepository {
     public List<Reply> findChildren(CriteriaDto criteriaDto, Long parentId) {
         return queryFactory
                 .selectFrom(reply)
-                .where(reply.parent.id.eq(parentId))
+                .where(
+                        reply.parent.id.eq(parentId),
+                        reply.parent.status.eq(ReplyStatus.REGISTER),
+                        reply.status.eq(ReplyStatus.REGISTER)
+                )
                 .orderBy(reply.id.desc())
                 .offset(criteriaDto.getOffset())
                 .limit(criteriaDto.getLimit())

@@ -2,6 +2,7 @@ package project.study.jgm.customvocabulary.api;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +19,11 @@ import project.study.jgm.customvocabulary.vocabulary.category.dto.CategoryCreate
 import project.study.jgm.customvocabulary.vocabulary.category.exception.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -61,8 +66,9 @@ class CategoryApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.subCategoryList").isEmpty())
                 .andExpect(jsonPath("data.vocabularyCount").value(0))
                 .andExpect(jsonPath("data.orders").value(orders))
-                .andExpect(redirectedUrl("http://localhost/api/vocabulary/category/" + user1.getId()))
-                .andExpect(jsonPath("message").value(MessageVo.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
+                .andExpect(redirectedUrl("http://localhost:8080/api/vocabulary/category/" + user1.getId()))
+                .andExpect(jsonPath("message").value(MessageVo.ADD_PERSONAL_CATEGORY_SUCCESSFULLY))
+        ;
 
     }
 
@@ -136,8 +142,29 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isCreated())
-                .andExpect(redirectedUrl("http://localhost/api/vocabulary/category/" + user1.getId()))
-                .andExpect(jsonPath("message").value(MessageVo.ADD_PERSONAL_CATEGORY_SUCCESSFULLY));
+                .andExpect(redirectedUrl("http://localhost:8080/api/vocabulary/category/" + user1.getId()))
+                .andExpect(jsonPath("message").value(MessageVo.ADD_PERSONAL_CATEGORY_SUCCESSFULLY))
+                .andDo(document("add-personal-category",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("생성할 개인 카테고리의 이름"),
+                                fieldWithPath("parentId").description("생성할 개인 카테고리의 부모 카테고리의 식별 ID"),
+                                fieldWithPath("orders").description("생성할 개인 카테고리의 정렬 순서")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("생성된 개인 카테고리의 식별 ID"),
+                                fieldWithPath("data.name").description("생성된 개인 카테고리의 이름"),
+                                fieldWithPath("data.parentId").description("생성된 개인 카테고리의 부모 카테고리의 식별 ID"),
+                                fieldWithPath("data.subCategoryList").description("생성된 개인 카테고리의 자식 카테고리 수"),
+                                fieldWithPath("data.vocabularyCount").description("생성된 개인 카테고리에 등록된 단어장 수"),
+                                fieldWithPath("data.orders").description("생성된 개인 카테고리의 정렬 순서"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
     }
 
@@ -349,6 +376,20 @@ class CategoryApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data[0].vocabularyCount").exists())
                 .andExpect(jsonPath("data[0].orders").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_PERSONAL_CATEGORY_LIST_SUCCESSFULLY))
+                .andDo(document("get-personal-category-list",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        relaxedResponseFields(
+                                fieldWithPath("data[0].id").description("개인 카테고리 목록 중 첫 번째 카테고리의 식별 ID"),
+                                fieldWithPath("data[0].name").description("개인 카테고리 목록 중 첫 번째 카테고리의 이름"),
+                                fieldWithPath("data[0].parentId").description("개인 카테고리 목록 중 첫 번째 카테고리의 부모 카테고리 식별 ID"),
+                                fieldWithPath("data[0].subCategoryList[]").description("개인 카테고리 목록 중 첫 번째 카테고리의 자식 카테고리 목록"),
+                                fieldWithPath("data[0].vocabularyCount").description("개인 카테고리 목록 중 첫 번째 카테고리에 포함된 단어장 개수"),
+                                fieldWithPath("data[0].orders").description("개인 카테고리 목록 중 첫 번째 카테고리의 정렬 순서"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -494,7 +535,28 @@ class CategoryApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.subCategoryList").isEmpty())
                 .andExpect(jsonPath("data.vocabularyCount").value(sampleCategory.getVocabularyCount()))
                 .andExpect(jsonPath("data.orders").value(orders))
-                .andExpect(jsonPath("message").value(MessageVo.MODIFY_CATEGORY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_CATEGORY_SUCCESSFULLY))
+                .andDo(document("modify-category",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("수정할 이름"),
+                                fieldWithPath("parentId").description("이동할 부모 카테고리의 식별 ID"),
+                                fieldWithPath("orders").description("이동할 순서")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("수정된 카테고리의 식별 ID"),
+                                fieldWithPath("data.name").description("수정된 카테고리의 이름"),
+                                fieldWithPath("data.parentId").description("수정된 카테고리의 부모 카테고리의 식별 ID"),
+                                fieldWithPath("data.subCategoryList[]").description("수정된 카테고리에 포함된 하위 카테고리 목록"),
+                                fieldWithPath("data.vocabularyCount").description("수정된 카테고리에 포함된 단어장 개수"),
+                                fieldWithPath("data.orders").description("수정된 카테고리의 정렬 순서"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
         em.flush();
         em.clear();
@@ -932,7 +994,17 @@ class CategoryApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.DELETE_CATEGORY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_CATEGORY_SUCCESSFULLY))
+                .andDo(document("delete-category",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("카테고리 삭제는 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
         assertThrows(CategoryNotFoundException.class, () -> categoryService.getCategory(user1Category.getId()));
     }
@@ -1184,7 +1256,28 @@ class CategoryApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.subCategoryList").isEmpty())
                 .andExpect(jsonPath("data.vocabularyCount").value(0))
                 .andExpect(jsonPath("data.orders").value(orders))
-                .andExpect(jsonPath("message").value(MessageVo.ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.ADD_SHARED_CATEGORY_BY_ADMIN_SUCCESSFULLY))
+                .andDo(document("add-shared-category",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("name").description("생성할 공유 카테고리의 이름"),
+                                fieldWithPath("parentId").description("생성할 공유 카테고리의 부모 카테고리의 식별 ID"),
+                                fieldWithPath("orders").description("생성할 공유 카테고리의 정렬 순서")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("생성된 공유 카테고리의 식별 ID"),
+                                fieldWithPath("data.name").description("생성된 공유 카테고리의 이름"),
+                                fieldWithPath("data.parentId").description("생성된 공유 카테고리의 부모 카테고리의 식별 ID"),
+                                fieldWithPath("data.subCategoryList").description("생성된 공유 카테고리가 가지고 있는 자식 카테고리 목록"),
+                                fieldWithPath("data.vocabularyCount").description("생성된 공유 카테고리에 포함된 공유 단어장의 개수"),
+                                fieldWithPath("data.orders").description("생성된 공유 카테고리의 정렬 순서"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
         em.flush();
         em.clear();

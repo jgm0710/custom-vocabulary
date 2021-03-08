@@ -2,6 +2,6 @@ package project.study.jgm.customvocabulary.common.exception;
 
 public class SelfLikeException extends RuntimeException {
     public SelfLikeException() {
-        super("자기 자신은 좋아요를 누를 수 없습니다.");
+        super("자신이 등록한 대상에는 좋아요를 등록할 수 없습니다.");
     }
 }

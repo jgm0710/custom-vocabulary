@@ -3,6 +3,7 @@ package project.study.jgm.customvocabulary.api;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +34,13 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -89,8 +95,29 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.childrenCount").exists())
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.viewLike").value(false))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("message").value(MessageVo.REPLY_REGISTER_SUCCESSFULLY))
+                .andDo(document("add-reply",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("content").description("등록할 댓글의 내용")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("등록된 댓글의 식별 ID"),
+                                fieldWithPath("data.writer").description("등록된 댓글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.content").description("등록된 댓글의 내용"),
+                                fieldWithPath("data.likeCount").description("등록된 댓글의 좋아요 수"),
+                                fieldWithPath("data.childrenCount").description("등록된 댓글의 하위 댓글 수"),
+                                fieldWithPath("data.registerDate").description("등록된 댓글의 작성 날짜"),
+                                fieldWithPath("data.like").description("자신이 작성한 댓글에 대해 좋아요 등록, 해제, 확인은 불가능합니다."),
+                                fieldWithPath("data.viewLike").description("등록된 댓글에 대한 해당 회원의 좋아요 등록, 해제, 확인에 대한 권한"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("등록된 댓글에 대한 수정 및 삭제 권한"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         List<Reply> findReplyList = replyRepository.findAll();
@@ -292,9 +319,26 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.writer").exists())
                 .andExpect(jsonPath("data.content").exists())
                 .andExpect(jsonPath("data.registerDate").exists())
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("message").value(MessageVo.REPLY_REGISTER_SUCCESSFULLY))
-                .andExpect(redirectedUrl("http://localhost/api/bbs/reply"))
+                .andExpect(redirectedUrl("http://localhost:8080/api/bbs/reply"))
+                .andDo(document("add-reply-of-reply",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("content").description("댓글에 등록할 댓글의 내용")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("댓글에 등록된 댓글의 식별 ID"),
+                                fieldWithPath("data.writer").description("댓글에 등록된 댓글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.content").description("댓글에 등록된 댓글의 내용"),
+                                fieldWithPath("data.registerDate").description("댓글에 등록된 댓글의 작성 날짜"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("댓글에 등록된 댓글에 대한 해당 회원의 수정 및 삭제 권한"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         List<Reply> findReplyList = replyRepository.findAll();
@@ -434,8 +478,32 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data[0].registerDate").exists())
                 .andExpect(jsonPath("data[0].like").exists())
                 .andExpect(jsonPath("data[0].viewLike").exists())
-                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].permissionToDeleteAndModify").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_PARENT_REPLY_LIST_SUCCESSFULLY))
+                .andDo(document("get-parent-reply-list",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("pageNum").description("조회할 페이지"),
+                                parameterWithName("limit").description("조회할 개수"),
+                                parameterWithName("sortType").description("조회된 댓글 목록에 대한 정렬 조건" + br +
+                                        "[LIKE_ASC, LIKE_DESC, LATEST_ASC, LATEST_DESC]")
+                        ),
+                        responseFields(
+                                fieldWithPath("data[0].id").description("조회된 댓글 목록 중 첫 번째 댓글의 식별 ID"),
+                                fieldWithPath("data[0].writer").description("조회된 댓글 목록 중 첫 번째 댓글을 작성한 회원의 활동명"),
+                                fieldWithPath("data[0].content").description("조회된 댓글 목록 중 첫 번째 댓글의 내용"),
+                                fieldWithPath("data[0].likeCount").description("조회된 댓글 목록 중 첫 번째 댓글의 좋아요 수"),
+                                fieldWithPath("data[0].childrenCount").description("조회된 댓글 목록 중 첫 번째 댓글의 하위 댓글 수"),
+                                fieldWithPath("data[0].registerDate").description("조회된 댓글 목록 중 첫 번째 댓글의 작성 날짜"),
+                                fieldWithPath("data[0].like").description("댓글 목록을 조회한 회원이 해당 댓글에 좋아요를 등록했는지 여부"),
+                                fieldWithPath("data[0].viewLike").description("댓글 목록을 조회한 회원이 해당 댓글에 대해 좋아요 등록, 해제, 확인 권한이 있는지 여부" + br +
+                                        "자신이 작성한 댓글의 경우 해당 댓글에 대한 좋아요 등록, 해제, 확인 권한은 존재하지 않습니다."),
+                                fieldWithPath("data[0].permissionToDeleteAndModify").description("댓글 목록을 조회한 회원이 해당 댓글에 대해 수정 및 삭제 권한이 있는지 여부"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -483,7 +551,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data[0].registerDate").exists())
                 .andExpect(jsonPath("data[0].like").exists())
                 .andExpect(jsonPath("data[0].viewLike").exists())
-                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].permissionToDeleteAndModify").exists())
         ;
 
     }
@@ -611,7 +679,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data[0].writer").exists())
                 .andExpect(jsonPath("data[0].content").exists())
                 .andExpect(jsonPath("data[0].registerDate").exists())
-                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].permissionToDeleteAndModify").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_CHILD_REPLY_LIST_SUCCESSFULLY))
         ;
 
@@ -657,8 +725,25 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data[0].writer").exists())
                 .andExpect(jsonPath("data[0].content").exists())
                 .andExpect(jsonPath("data[0].registerDate").exists())
-                .andExpect(jsonPath("data[0].allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data[0].permissionToDeleteAndModify").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_CHILD_REPLY_LIST_SUCCESSFULLY))
+                .andDo(document("get-child-reply-list",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("pageNum").description("조회할 페이지"),
+                                parameterWithName("limit").description("조회할 개수")
+                        ),
+                        responseFields(
+                                fieldWithPath("data[0].id").description("댓글에 등록된 하위 댓글 목록 중 첫 번째 댓글의 식별 ID"),
+                                fieldWithPath("data[0].writer").description("댓글에 등록된 하위 댓글 목록 중 첫 번째 댓글을 작성한 회원"),
+                                fieldWithPath("data[0].content").description("댓글에 등록된 하위 댓글 목록 중 첫 번째 댓글의 내용"),
+                                fieldWithPath("data[0].registerDate").description("댓글에 등록된 하위 댓글 목록 중 첫 번째 댓글의 작성 날짜"),
+                                fieldWithPath("data[0].permissionToDeleteAndModify").description("해당 댓글에 대해 인증된 회원이 수정 및 삭제 권한이 있는지 여부"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -783,8 +868,30 @@ class ReplyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(false))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
-                .andExpect(jsonPath("message").value(MessageVo.MODIFY_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
+                .andExpect(jsonPath("message").value(MessageVo.MODIFY_REPLY_SUCCESSFULLY))
+                .andDo(document("modify-reply",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("content").description("수정할 댓글 내용")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("수정된 댓글의 식별 ID"),
+                                fieldWithPath("data.writer").description("수정된 댓글을 등록한 회원의 활동명"),
+                                fieldWithPath("data.content").description("수정된 댓글의 내용"),
+                                fieldWithPath("data.likeCount").description("수정된 댓글의 좋아요 수"),
+                                fieldWithPath("data.childrenCount").description("수정된 댓글에 등록된 하위 댓글 수"),
+                                fieldWithPath("data.registerDate").description("수정된 댓글의 작성 날짜"),
+                                fieldWithPath("data.like").description("댓글 수정의 경우 자신이 작성한 댓글이므로 좋아요 등록, 해제, 확인 권한이 없습니다."),
+                                fieldWithPath("data.viewLike").description("수정된 댓글에 대해 인증된 사용자가 좋아요 등록, 해제, 확인 권한이 있는지 여부"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("수정된 댓글에 대해 인증된 사용자가 수정 및 삭제 권한이 있는지 여부"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
         Reply findReply = replyService.getReply(reply.getId());
         assertEquals(findReply.getContent(), user2_update_content);
@@ -967,7 +1074,17 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.DELETE_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_REPLY_SUCCESSFULLY))
+                .andDo(document("delete-reply",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("댓글 삭제의 경우 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
     }
 
@@ -1035,7 +1152,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     }
 
     @Test
-    @DisplayName("댓글 삭제 시 인증된 회원과 삭제되는 게시글의 작성자가 다른 경우")
+    @DisplayName("댓글 삭제 시 인증된 회원과 삭제되는 댓글의 작성자가 다른 경우")
     public void deleteReply_Of_DifferentMember() throws Exception {
         //given
         MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
@@ -1162,7 +1279,17 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_REPLY_SUCCESSFULLY))
+                .andDo(document("add-like-to-reply",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("댓글 좋아요 등록은 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
     }
 
@@ -1372,7 +1499,17 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_REPLY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_REPLY_SUCCESSFULLY))
+                .andDo(document("unlike-reply",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("댓글 좋아요 해제는 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
     }
 

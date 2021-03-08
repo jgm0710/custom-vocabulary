@@ -16,6 +16,7 @@ import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.members.dto.*;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchValidator;
+import project.study.jgm.customvocabulary.members.exception.ExistDuplicatedMemberException;
 import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.CurrentUser;
@@ -48,13 +49,17 @@ public class MemberApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Member member = memberService.userJoin(memberCreateDto);
-        MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(member);
+        try {
+            Member member = memberService.userJoin(memberCreateDto);
+            MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(member);
 
-        URI loginUri = linkTo(LoginApiController.class).slash("login").withRel("login").toUri();
+            URI loginUri = linkTo(LoginApiController.class).slash("login").withRel("login").toUri();
 
-        return ResponseEntity.created(loginUri)
-                .body(new ResponseDto<>(memberDetailDto, MEMBER_JOIN_SUCCESSFULLY));
+            return ResponseEntity.created(loginUri)
+                    .body(new ResponseDto<>(memberDetailDto, MEMBER_JOIN_SUCCESSFULLY));
+        } catch (ExistDuplicatedMemberException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        }
     }
 
     @GetMapping("/{memberId}")
@@ -100,6 +105,7 @@ public class MemberApiController {
             return ResponseEntity.badRequest().body(errors);
         }
 
+
         if (!memberId.equals(member.getId())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ResponseDto<>(MODIFY_DIFFERENT_MEMBER_INFO));
@@ -110,24 +116,17 @@ public class MemberApiController {
         } catch (MemberNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ResponseDto<>(e.getMessage()));
-        } catch (PasswordMismatchException e) {
+        } catch (PasswordMismatchException | ExistDuplicatedMemberException e) {
             return ResponseEntity.badRequest()
                     .body(new ResponseDto<>(e.getMessage()));
         }
 
         Member findMember = memberService.getMember(memberId);
+        MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
 
-        if (member.getRoles().contains(MemberRole.ADMIN)) {
-            MemberAdminViewDto memberAdminViewDto = MemberAdminViewDto.memberToAdminView(findMember);
+        return ResponseEntity
+                .ok(new ResponseDto<>(memberDetailDto, MODIFIED_MEMBER_INFO_SUCCESSFULLY));
 
-            return ResponseEntity
-                    .ok(new ResponseDto<>(memberAdminViewDto, MODIFIED_MEMBER_INFO_SUCCESSFULLY));
-        } else {
-            MemberDetailDto memberDetailDto = MemberDetailDto.memberToDetail(findMember);
-
-            return ResponseEntity
-                    .ok(new ResponseDto<>(memberDetailDto, MODIFIED_MEMBER_INFO_SUCCESSFULLY));
-        }
     }
 
     @PutMapping("/password/{memberId}")
@@ -164,6 +163,7 @@ public class MemberApiController {
     @PutMapping("/secession/{memberId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity secession(@PathVariable("memberId") Long memberId,
+                                    @RequestParam String password,
                                     @CurrentUser Member member) {
 
         if (!memberId.equals(member.getId())) {
@@ -172,10 +172,13 @@ public class MemberApiController {
         }
 
         try {
-            memberService.secession(memberId);
+            memberService.secession(memberId, password);
 
         } catch (MemberNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDto<>(e.getMessage()));
+        } catch (PasswordMismatchException e) {
+            return ResponseEntity.badRequest()
                     .body(new ResponseDto<>(e.getMessage()));
         }
 
@@ -267,7 +270,6 @@ public class MemberApiController {
 //            listResponse.add(linkToGetMemberList(tempSearchDto, "next-list"));
 //        }
 //    }
-
     private ListResponseDto<Object> getListResponseDto(List<MemberAdminViewDto> memberAdminViewDtoList, PaginationDto paginationDto) {
         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
                 .list(memberAdminViewDtoList)

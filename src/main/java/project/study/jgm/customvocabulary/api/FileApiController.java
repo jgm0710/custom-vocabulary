@@ -19,6 +19,7 @@ import project.study.jgm.customvocabulary.common.upload.*;
 import project.study.jgm.customvocabulary.common.upload.exception.*;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.upload.VocabularyThumbnailImageFile;
+import project.study.jgm.customvocabulary.vocabulary.upload.exception.VocabularyThumbnailImageFileNotFoundException;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordFileStorageService;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 import project.study.jgm.customvocabulary.vocabulary.word.upload.exception.WordImageFileNotFoundException;
@@ -215,7 +216,7 @@ public class FileApiController {
         try {
             vocabularyThumbnailImageFile = vocabularyFileStorageService.getVocabularyThumbnailImageFileByFileName(fileName);
             resource = vocabularyFileStorageService.loadVocabularyThumbnailImageFileAsResource(vocabularyThumbnailImageFile.getId());
-        } catch (WordImageFileNotFoundException | MyFileNotFoundException e) {
+        } catch (VocabularyThumbnailImageFileNotFoundException | MyFileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
 

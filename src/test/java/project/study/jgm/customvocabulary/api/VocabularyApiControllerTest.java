@@ -1664,7 +1664,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.downloadCount").value(0))
                 .andExpect(jsonPath("data.totalWordCount").value(personalVocabularySample.getTotalWordCount()))
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.SHARED.name()))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.SHARE_VOCABULARY_SUCCESSFULLY))
         ;
@@ -2990,7 +2990,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.downloadCount").exists())
                 .andExpect(jsonPath("data.totalWordCount").value(sharedVocabulary.getWordList().size()))
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.SHARED.name()))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MOVE_CATEGORY_OF_SHARED_VOCABULARY_SUCCESSFULLY))
         ;
@@ -3562,7 +3562,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.downloadCount").exists())
                 .andExpect(jsonPath("data.totalWordCount").exists())
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.SHARED.name()))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(false))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_SHARED_VOCABULARY_SUCCESSFULLY))
         ;
@@ -3631,7 +3631,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.downloadCount").exists())
                 .andExpect(jsonPath("data.totalWordCount").exists())
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.SHARED.name()))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_SHARED_VOCABULARY_SUCCESSFULLY))
         ;
@@ -3751,7 +3751,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.downloadCount").exists())
                 .andExpect(jsonPath("data.totalWordCount").exists())
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.UNSHARED.name()))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(false))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_UNSHARED_VOCABULARY_BY_ADMIN))
         ;

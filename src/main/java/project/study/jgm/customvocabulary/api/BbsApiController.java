@@ -71,7 +71,7 @@ public class BbsApiController {
         URI getBbsUri = linkTo(BbsApiController.class).slash(savedBbs.getId()).toUri();
 
         BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(savedBbs, modelMapper);
-        bbsDetailDto.setAllowModificationAndDeletion(true);
+        bbsDetailDto.setPermissionToDeleteAndModify(true);
 
         return ResponseEntity.created(getBbsUri).body(new ResponseDto<>(bbsDetailDto, BBS_REGISTERED_SUCCESSFULLY));
     }
@@ -128,8 +128,6 @@ public class BbsApiController {
 
         try {
             Bbs findBbs = bbsService.getBbs(bbsId);
-            List<BbsUploadFile> bbsUploadFileList = findBbs.getBbsUploadFileList();
-            List<UploadFileResponseDto> uploadFileResponseDtoList = uploadFilesToResponseDtos(bbsUploadFileList);
             BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs,modelMapper);
 
             if (member != null) {
@@ -144,12 +142,11 @@ public class BbsApiController {
 
                     if (findBbs.getMember().getId().equals(member.getId())) {
                         bbsDetailDto.setViewLike(false);
-                        bbsDetailDto.setAllowModificationAndDeletion(true);
+                        bbsDetailDto.setPermissionToDeleteAndModify(true);
                     } else {
                         boolean existLike = bbsLikeService.getExistLike(member.getId(), bbsId);
                         bbsDetailDto.setLike(existLike);
                     }
-//                    return ResponseEntity.ok(new ResponseDto<>(bbsDetailDto, GET_BBS_SUCCESSFULLY));
                 }
             }
 
@@ -197,7 +194,7 @@ public class BbsApiController {
         } else {
             BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs,modelMapper);
             bbsDetailDto.setViewLike(false);
-            bbsDetailDto.setAllowModificationAndDeletion(true);
+            bbsDetailDto.setPermissionToDeleteAndModify(true);
             return ResponseEntity.ok(new ResponseDto<>(bbsDetailDto, MODIFIED_BBS_SUCCESSFULLY));
         }
     }
@@ -263,14 +260,5 @@ public class BbsApiController {
         }
 
         return ResponseEntity.ok(new ResponseDto<>(UNLIKE_BBS_SUCCESSFULLY));
-    }
-
-    private List<UploadFileResponseDto> uploadFilesToResponseDtos(List<BbsUploadFile> bbsUploadFiles) {
-        List<UploadFileResponseDto> uploadFileResponseDtoList = new ArrayList<>();
-        for (BbsUploadFile bbsUploadFile : bbsUploadFiles) {
-            UploadFileResponseDto uploadFileResponseDto = modelMapper.map(bbsUploadFile, UploadFileResponseDto.class);
-            uploadFileResponseDtoList.add(uploadFileResponseDto);
-        }
-        return uploadFileResponseDtoList;
     }
 }

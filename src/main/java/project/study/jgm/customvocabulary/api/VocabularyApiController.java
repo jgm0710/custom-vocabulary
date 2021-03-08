@@ -191,7 +191,7 @@ public class VocabularyApiController {
             }
             Vocabulary sharedVocabulary = vocabularyService.share(vocabularyId, categoryId);
             SharedVocabularyDetailDto sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(sharedVocabulary, modelMapper);
-            sharedVocabularyDetailDto.setAllowModificationAndDeletion(true);
+            sharedVocabularyDetailDto.setPermissionToDeleteAndModify(true);
             URI getSharedVocabularyUri = linkTo(VocabularyApiController.class).slash("shared").slash(sharedVocabulary.getId()).toUri();
 
             return ResponseEntity.created(getSharedVocabularyUri)
@@ -304,7 +304,7 @@ public class VocabularyApiController {
                 return ResponseEntity.ok(new ResponseDto<>(personalVocabularyDetailDto, MOVE_CATEGORY_OF_PERSONAL_VOCABULARY_SUCCESSFULLY));
             } else { //findVocabulary.getDivision() == SHARED
                 SharedVocabularyDetailDto sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(findVocabulary, modelMapper);
-                sharedVocabularyDetailDto.setAllowModificationAndDeletion(true);
+                sharedVocabularyDetailDto.setPermissionToDeleteAndModify(true);
                 return ResponseEntity.ok(new ResponseDto<>(sharedVocabularyDetailDto, MOVE_CATEGORY_OF_SHARED_VOCABULARY_SUCCESSFULLY));
             }
 
@@ -363,7 +363,7 @@ public class VocabularyApiController {
                     sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(findVocabulary, modelMapper);
                     if (member != null) {
                         if (member.getId().equals(findVocabulary.getWriter().getId())) {
-                            sharedVocabularyDetailDto.setAllowModificationAndDeletion(true);
+                            sharedVocabularyDetailDto.setPermissionToDeleteAndModify(true);
                             sharedVocabularyDetailDto.setViewLike(false);
                         } else {
                             final boolean existLike = vocabularyLikeService.getExistLike(member.getId(), findVocabulary.getId());

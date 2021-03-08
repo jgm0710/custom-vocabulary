@@ -17,6 +17,7 @@ import project.study.jgm.customvocabulary.members.dto.*;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
+import project.study.jgm.customvocabulary.members.exception.ExistDuplicatedMemberException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
@@ -88,12 +89,28 @@ class MemberServiceTest {
     }
 
     private MemberCreateDto getMemberCreateDto() {
+        String joinId = "test";
+        String nickname = "test";
         MemberCreateDto memberCreateDto = MemberCreateDto.builder()
-                .joinId("test")
+                .joinId(joinId)
                 .email("test@email.com")
                 .password("test")
                 .name("test")
-                .nickname("test")
+                .nickname(nickname)
+                .dateOfBirth(LocalDate.now())
+                .gender(Gender.MALE)
+                .simpleAddress("test address")
+                .build();
+        return memberCreateDto;
+    }
+
+    private MemberCreateDto getMemberCreateDto(String  joinId, String nickname) {
+        MemberCreateDto memberCreateDto = MemberCreateDto.builder()
+                .joinId(joinId)
+                .email("test@email.com")
+                .password("test")
+                .name("test")
+                .nickname(nickname)
                 .dateOfBirth(LocalDate.now())
                 .gender(Gender.MALE)
                 .simpleAddress("test address")
@@ -279,11 +296,26 @@ class MemberServiceTest {
     }
 
     private MemberUpdateDto getMemberUpdateDto() {
+        String joinId = "update";
+        String nickname = "update";
         MemberUpdateDto memberUpdateDto = MemberUpdateDto.builder()
-                .joinId("update")
+                .joinId(joinId)
                 .email("update")
                 .name("update")
-                .nickname("update")
+                .nickname(nickname)
+                .dateOfBirth(LocalDate.of(1996, 11, 8))
+                .gender(Gender.FEMALE)
+                .simpleAddress("update AD")
+                .build();
+        return memberUpdateDto;
+    }
+
+    private MemberUpdateDto getMemberUpdateDto(String joinId, String nickname) {
+        MemberUpdateDto memberUpdateDto = MemberUpdateDto.builder()
+                .joinId(joinId)
+                .email("update")
+                .name("update")
+                .nickname(nickname)
                 .dateOfBirth(LocalDate.of(1996, 11, 8))
                 .gender(Gender.FEMALE)
                 .simpleAddress("update AD")
@@ -310,9 +342,10 @@ class MemberServiceTest {
     @Test
     @DisplayName("회원 탈퇴")
     void secession() {
-        Member joinMember = memberService.userJoin(getMemberCreateDto());
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member joinMember = memberService.userJoin(memberCreateDto);
 
-        memberService.secession(joinMember.getId());
+        memberService.secession(joinMember.getId(), memberCreateDto.getPassword());
 
         em.flush();
         em.clear();
@@ -333,7 +366,7 @@ class MemberServiceTest {
         //when
 
         //then
-        assertThrows(MemberNotFoundException.class, () -> memberService.secession(3000L));
+        assertThrows(MemberNotFoundException.class, () -> memberService.secession(3000L, "fdsafdas"));
 
     }
     /**
@@ -595,5 +628,104 @@ class MemberServiceTest {
 
         //then
         assertThrows(PasswordMismatchException.class, () -> memberService.updatePassword(userMember.getId(), "fdasfdasfsafdas", newPassword));
+    }
+
+    @Test
+    @DisplayName("회원가입 시 중복된 joinId 가 있는 경우")
+    public void memberJoin_ExistDuplicatedMemberException1() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user2");
+        //when
+
+        //then
+        assertThrows(ExistDuplicatedMemberException.class, () -> memberService.userJoin(memberCreateDto1));
+
+    }
+
+    @Test
+    @DisplayName("회원가입 시 중복된 nickname 이 있는 경우")
+    public void memberJoin_ExistDuplicatedMemberException2() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user1");
+        //when
+
+        //then
+        assertThrows(ExistDuplicatedMemberException.class, () -> memberService.userJoin(memberCreateDto1));
+
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 원래 ID와 nickname 으로 수정되는 경우")
+    public void modifyMember_NotModify() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto("user1", "user1");
+        memberService.modifyMember(user1.getId(), memberCreateDto.getPassword(), memberUpdateDto);
+
+        //when
+
+        //then
+
+    }
+    @Test
+    @DisplayName("회원 정보 수정 시 중복된 joinId 가 있는 경우")
+    public void modifyMember_ExistDuplicatedMemberException1() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto("user1", "user2");
+        //when
+
+        //then
+        assertThrows(ExistDuplicatedMemberException.class, () -> memberService.modifyMember(user2.getId(), memberCreateDto1.getPassword(), memberUpdateDto));
+
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 중복된 nickname 이 있는 경우")
+    public void modifyMember_ExistDuplicatedMemberException2() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto("user2", "user1");
+        //when
+
+        //then
+        assertThrows(ExistDuplicatedMemberException.class, () -> memberService.modifyMember(user2.getId(), memberCreateDto1.getPassword(), memberUpdateDto));
+
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 joinId, nickname 둘다 중복인 경우")
+    public void modifyMember_ExistDuplicatedMemberException3() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto("user1", "user1");
+        //when
+
+        //then
+        assertThrows(ExistDuplicatedMemberException.class, () -> memberService.modifyMember(user2.getId(), memberCreateDto1.getPassword(), memberUpdateDto));
+
     }
 }

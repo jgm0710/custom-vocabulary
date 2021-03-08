@@ -15,6 +15,7 @@ import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundExcep
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRepository;
+import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 
 import java.util.List;

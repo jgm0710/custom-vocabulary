@@ -60,7 +60,7 @@ public class SharedVocabularyDetailDto {
 
     private boolean viewLike;
 
-    private boolean allowModificationAndDeletion;
+    private boolean permissionToDeleteAndModify;
 
     private LocalDateTime registerDate;     //division에 따라 다르게 해석 : 개인 단어장{생성 날짜, 복사 날짜 저장} 단어장 공유{공유 날짜 저장}
 

@@ -38,7 +38,7 @@ public class MessageVo {
 
     public static final String CHANGED_PASSWORD_SUCCESSFULLY = "비밀번호가 정상적으로 변경되었습니다.";
 
-    public static final String LOGOUT_SUCCESSFULLY = "logout 이 정상적으로 완료되었습니다.";
+    public static final String LOGOUT_SUCCESSFULLY = "logout 이 정상적으로 완료되었습니다. 해당 회원의 Refresh Token 을 삭제합니다.";
 
     public static final String GET_MEMBER_BY_ADMIN_SUCCESSFULLY = "관리자 권한으로 조회하는 회원 정보가 정상적으로 조회되었습니다.";
 

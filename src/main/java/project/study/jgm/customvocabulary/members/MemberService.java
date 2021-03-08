@@ -1,5 +1,6 @@
 package project.study.jgm.customvocabulary.members;
 
+import javassist.bytecode.DuplicateMemberException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,16 +45,17 @@ public class MemberService {
      */
     @Transactional
     public Member userJoin(MemberCreateDto memberCreateDto) {
-        Member duplicatedMember = memberRepository
-                .findByJoinIdOrNickname(memberCreateDto.getJoinId(), memberCreateDto.getNickname()).orElse(null);
-
-        if (duplicatedMember != null) {
-            throw new ExistDuplicatedMemberException();
-        }
+        checkForDuplicateMembers(memberCreateDto.getJoinId(), memberCreateDto.getNickname());
 
         List<MemberRole> roles = List.of(MemberRole.USER);
         Member member = Member.createMember(memberCreateDto, roles, passwordEncoder, securityProperties);
         return memberRepository.save(member);
+    }
+
+    private void checkForDuplicateMembers(String joinId, String nickname) {
+        if (checkExistJoinId(joinId) || checkExistNickname(nickname)) {
+            throw new ExistDuplicatedMemberException();
+        }
     }
 
     @Transactional
@@ -100,6 +102,19 @@ public class MemberService {
         if (!findMember.matches(password, passwordEncoder)) {
             throw new PasswordMismatchException();
         }
+
+        if (findMember.getJoinId() != memberUpdateDto.getJoinId()) {
+            if (checkExistJoinId(memberUpdateDto.getJoinId())) {
+                throw new ExistDuplicatedMemberException();
+            }
+        }
+
+        if (findMember.getNickname() != memberUpdateDto.getNickname()) {
+            if (checkExistNickname(memberUpdateDto.getNickname())) {
+                throw new ExistDuplicatedMemberException();
+            }
+        }
+
         findMember.update(memberUpdateDto);
     }
 
@@ -114,8 +129,12 @@ public class MemberService {
     }
 
     @Transactional
-    public void secession(Long memberId) {
+    public void secession(Long memberId, String password) {
         Member findMember = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
+        boolean matches = findMember.matches(password, passwordEncoder);
+        if (matches == false) {
+            throw new PasswordMismatchException();
+        }
         findMember.secession();
     }
 
@@ -137,11 +156,7 @@ public class MemberService {
      */
     @Transactional
     public Member adminJoin(MemberCreateDto memberCreateDto) {
-        Member duplicatedMember = memberRepository
-                .findByJoinIdOrNickname(memberCreateDto.getJoinId(), memberCreateDto.getNickname()).orElse(null);
-        if (duplicatedMember != null) {
-            throw new ExistDuplicatedMemberException();
-        }
+        checkForDuplicateMembers(memberCreateDto.getJoinId(), memberCreateDto.getNickname());
 
         List<MemberRole> roles = List.of(MemberRole.USER, MemberRole.ADMIN);
         Member member = Member.createMember(memberCreateDto, roles, passwordEncoder, securityProperties);

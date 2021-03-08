@@ -1,0 +1,138 @@
+= Custom Vocabulary API Guide
+정구민;
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+:operation-curl-request-title: Example request
+:operation-http-response-title: Example response
+:docinfo: shared-head
+
+[[overview]]
+= 개요
+== link:/docs/index.html[home]
+== 오류 코드
+|===
+| 발생 API | CAUSE | CODE | MESSAGE
+
+| <<resources-file-bbs-upload-files>> / <<resources-file-vocabulary-upload-thumbnail-file>> / <<resources-file-word-upload-image-file>>
+| 인증되지 않은 사용자가 파일을 등록하는 경우
+| 403
+| null
+
+| <<resources-file-bbs-upload-files>> / <<resources-file-vocabulary-upload-thumbnail-file>> / <<resources-file-word-upload-image-file>>
+| 파일 업로드 시 "exe", "sh", "zip", "alz" 등의 확장자를 가진 파일을 업로드 하는 경우
+| 400
+| 해당 파일의 확장자는 업로드할 수 없습니다.
+
+| <<resources-file-bbs-download-file>> / <<resources-file-vocabulary-upload-thumbnail-file>> / <<resources-file-word-upload-image-file>>
+| 파일 다운로드 시 요청한 파일의 이름으로 해당 파일을 찾을 수 없는 경우
+| 404
+| 게시글에 업로드된 파일을 찾을 수 없습니다.  /   단어장에 등록된 파일을 찾을 수 없습니다. / 단어에 등록된 이미지 파일을 찾을 수 없습니다.
+
+| <<resources-file-bbs-display-thumbnail>>
+| 등록된 파일의 썸네일 이미지 다운로드 시 요청한 파일의 이름으로 해당 파일을 찾을 수 없는 경우
+| 404
+| 게시글에 업로드된 파일을 찾을 수 없습니다.  /   단어장에 등록된 파일을 찾을 수 없습니다. / 단어에 등록된 이미지 파일을 찾을 수 없습니다.
+
+| <<resources-file-bbs-display-thumbnail>>
+| 게시글에 등록된 파일의 썸네일 이미지 다운로드 시 요청한 파일이 이미지 파일이 아니어서 썸네일 이미지가 없는 경우
+| 404
+| File not found [s_파일명]
+
+| <<resources-file-vocabulary-upload-thumbnail-file>> / <<resources-file-word-upload-image-file>>
+| 이미지 파일 업로드 시 업로드 하는 파일이 이미지 파일이 아닌 경우
+| 400
+| 단어장과 단어에는 Image file 만 등록할 수 있습니다.
+
+
+
+|===
+
+[[resources]]
+= 리소스
+
+[[resources-file-bbs]]
+== 게시글 파일 리소스
+
+[[resources-file-bbs-upload-files]]
+=== 게시글이 파일 목록 추가
+
+게시글 파일 목록을 업로드합니다. +
+`files` 라는 이름으로 여러 개의 파일 업로드를 요청할 수 있습니다. +
+다른 사용자의 PC 에 교란을 줄 수 있는 실행 파일 등의 확장자를 가진 파일은 업로드를 허용하지 않습니다. +
+업로드 한 파일이 이미지 파일일 경우, 자동으로 썸네일 이미지를 생성하여 `s_파일이름` 형식으로 저장합니다.
+
+operation::file-bbs-upload-files[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-file-bbs-download-file]]
+=== 게시글에 등록된 파일 다운로드
+
+`/api/bbs/downloadFile/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+
+operation::file-bbs-download-file[snippets='curl-request,http-response']
+
+[[resources-file-bbs-display-thumbnail]]
+=== 게시글에 등록된 파일의 썸네일 이미지 다운로드
+
+`/api/bbs/displayThumbnail/` 까지는 기본 요청 URI 입니다. 이후 썸네일 이미지를 다운로드 받을 이미지 파일의 이름을 붙여서 요청합니다. +
+만약 요청한 파일이 이미지 파일이 아닐 경우 썸네일 이미지를 다운로드 받을 수 없습니다.
+
+operation::file-bbs-display-thumbnail[snippets='curl-request,http-response']
+
+
+[[resources-file-vocabulary]]
+== 단어장 썸네일 이미지 파일 리소스
+
+[[resources-file-vocabulary-upload-thumbnail-file]]
+=== 단어장에 썸네일 이미지 파일 업로드
+
+단어장의 썸네일 이미지로 쓰일 이미지 파일을 업로드 합니다. +
+`file` 이라는 이름으로 한 개의 파일 업로드를 요청할 수 있습니다. +
+이미지가 아닌 파일은 업로드를 허용하지 않습니다.
+
+operation::file-vocabulary-upload-thumbnail-file[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-file-vocabulary-download-thumbnail-file]]
+=== 단어장에 등록된 이미지 파일 다운로드
+
+`/api/vocabulary/downloadImageFile/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+
+operation::file-vocabulary-download-thumbnail-file[snippets='curl-request,http-response']
+
+[[resources-file-vocabulary-display-thumbnail]]
+=== 단어장에 등록된 이미지 파일의 썸네일 이미지 다운로드
+
+`/api/vocabulary/displayThumbnail/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+
+operation::file-vocabulary-display-thumbnail[snippets='curl-request,http-response']
+
+
+
+[[resources-file-word]]
+== 단어 이미지 파일 리소스
+
+[[resources-file-word-upload-image-file]]
+=== 단어 이미지 파일 업로드
+
+단어의 이미지로 쓰일 이미지 파일을 업로드 합니다. +
+`file` 이라는 이름으로 한 개의 파일 업로드를 요청할 수 있습니다. +
+이미지가 아닌 파일은 업로드를 허용하지 않습니다.
+
+operation::file-word-upload-image-file[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-file-word-download-image-file]]
+=== 단어에 등록된 이미지 파일 다운로드
+
+`/api/vocabulary/word/downloadImageFile/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+
+operation::file-word-download-image-file[snippets='curl-request,http-response']
+
+[[resources-file-word-display-thumbnail]]
+=== 단어에 등록된 이미지 파일의 썸네일 이미지 다운로드
+
+`/api/vocabulary/word/displayThumbnail/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+
+operation::file-word-display-thumbnail[snippets='curl-request,http-response']

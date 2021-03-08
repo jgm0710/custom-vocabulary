@@ -37,7 +37,7 @@ public class BbsDetailAdminViewDto {
 
     private BbsStatus status;   //Bbs 저장 상태 표시 [REGISTER, DELETE]
 
-    private boolean allowModificationAndDeletion;
+    private boolean permissionToDeleteAndModify;
 
     @Builder.Default
     private List<UploadFileResponseDto> uploadFiles =new ArrayList<>();
@@ -66,7 +66,7 @@ public class BbsDetailAdminViewDto {
                 .registerDate(bbs.getRegisterDate())
                 .updateDate(bbs.getUpdateDate())
                 .status(bbs.getStatus())
-                .allowModificationAndDeletion(true)
+                .permissionToDeleteAndModify(true)
                 .build();
 
         List<BbsUploadFile> bbsUploadFileList = bbs.getBbsUploadFileList();

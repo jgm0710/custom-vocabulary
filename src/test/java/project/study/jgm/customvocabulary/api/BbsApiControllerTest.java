@@ -2,6 +2,7 @@ package project.study.jgm.customvocabulary.api;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import project.study.jgm.customvocabulary.bbs.Bbs;
@@ -27,7 +28,12 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -78,13 +84,44 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").exists())
-                .andExpect(jsonPath("data.allowModificationAndDeletion").exists())
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("message").value(MessageVo.BBS_REGISTERED_SUCCESSFULLY))
+                .andDo(document("add-bbs",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("title").description("등록할 게시글의 제목"),
+                                fieldWithPath("content").description("등록할 게시글의 내용"),
+                                fieldWithPath("fileIdList[0].fileId").description("등록할 게시글에 저장할 업로드 파일의 식별 ID 목록 중 첫 번째 파일 ID")
+                        ),
+                        relaxedResponseFields(
+                                fieldWithPath("data.id").description("등록된 게시글의 식별 ID"),
+                                fieldWithPath("data.writer").description("게시글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.title").description("등록된 게시글의 제목"),
+                                fieldWithPath("data.content").description("등록된 게시글의 내용"),
+                                fieldWithPath("data.views").description("등록된 게시글의 조회 수"),
+                                fieldWithPath("data.likeCount").description("등록된 게시글의 좋아요 수"),
+                                fieldWithPath("data.replyCount").description("등록된 게시글의 댓글 수"),
+                                fieldWithPath("data.registerDate").description("등록된 게시글의 작성 날짜"),
+                                fieldWithPath("data.updateDate").description("등록된 게시글의 수정 날짜"),
+                                fieldWithPath("data.like").description("게시글 등록의 경우 자신이 작성한 게시글이므로 좋아요 등록 및 확인 삭제 권한은 없음"),
+                                fieldWithPath("data.viewLike").description("등록된 게시글에 대한 해당 회원의 좋아요 등록 및 확인 권한 여부"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("등록된 게시글에 대한 해당 회원의 수정 및 삭제 권한 여부"),
+                                fieldWithPath("data.uploadFiles[0].fileId").description("등록된 게시글에 등록된 파일 목록 중 첫 번째 파일의 식별 ID"),
+                                fieldWithPath("data.uploadFiles[0].fileName").description("등록된 게시글에 등록된 파일 목록 중 첫 번째 파일의 이름"),
+                                fieldWithPath("data.uploadFiles[0].fileDownloadUri").description("등록된 게시글에 등록된 파일 목록 중 첫 번째 파일의 다운로드 URI"),
+                                fieldWithPath("data.uploadFiles[0].fileType").description("등록된 게시글에 등록된 파일 목록 중 첫 번째 파일의 타입"),
+                                fieldWithPath("data.uploadFiles[0].size").description("등록된 게시글에 등록된 파일 목록 중 첫 번째 파일의 크기"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -169,10 +206,16 @@ class BbsApiControllerTest extends BaseControllerTest {
         Member userMember = memberService.userJoin(memberCreateDto);
 
         createBbsList(userMember);
+
         //when
         mockMvc
                 .perform(
                         get("/api/bbs")
+                                .param("searchType", BbsSearchType.TITLE.name())
+                                .param("keyword", "bbs7")
+                                .param("bbsSortType", BbsSortType.REPLY_COUNT_DESC.name())
+                                .param("criteriaDto.pageNum", "1")
+                                .param("criteriaDto.limit", "20")
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -185,7 +228,7 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
                 .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(15))
+                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(20))
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
@@ -193,6 +236,35 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_BBS_LIST_SUCCESSFULLY))
+                .andDo(document("get-bbs-list",
+                        requestParameters(
+                                parameterWithName("searchType").description("게시글 목록 조회 시 검색 조건 :" + br +
+                                        "게시글 제목, 게시글 내용, 게시글 제목 또는 내용, 게시글 작성자 "+br+
+                                        "[TITLE, CONTENT, TITLE_OR_CONTENT, WRITER]"),
+                                parameterWithName("keyword").description("게시글 목록 조회 시 검색 키워드"),
+                                parameterWithName("bbsSortType").description("게시글 목록 조회 시 정렬 조건"),
+                                parameterWithName("criteriaDto.pageNum").description("게시글 목록 조회 시 몇 페이지를 조회할 것인지 기입"),
+                                parameterWithName("criteriaDto.limit").description("게시글 목록 조회 시 몇 개의 결과를 조회할 것인지 기입")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("게시글 목록 중 첫 번째 게시글의 식별 ID"),
+                                fieldWithPath("data.list[0].writer").description("게시글 목록 중 첫 번째 게시글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].title").description("게시글 목록 중 첫 번째 게시글의 제목"),
+                                fieldWithPath("data.list[0].views").description("게시글 목록 중 첫 번째 게시글의 조회수"),
+                                fieldWithPath("data.list[0].likeCount").description("게시글 목록 중 첫 번째 게시글의 좋아요 수"),
+                                fieldWithPath("data.list[0].replyCount").description("게시글 목록 중 첫 번째 게시글의 댓글 수"),
+                                fieldWithPath("data.list[0].registerDate").description("게시글 목록 중 첫 번째 게시글의 등록 날짜"),
+                                fieldWithPath("data.paging.totalCount").description("요청한 검색 조건에 의해 조회되는 게시글의 총 개수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청한 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("요청한 검색 결과의 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청한 페이지 기준 첫 번째 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청한 페이지 기준 마지막 페이지 "),
+                                fieldWithPath("data.paging.prev").description("현재 요청한 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요천항 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("요청한 검색 조건에 의해 조회 되는 게시글 목록의 총 페이지 수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
         //then
 
@@ -289,6 +361,37 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.prev").exists())
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andDo(document("get-bbs-list-by-admin",
+                        requestParameters(
+                                parameterWithName("searchType").description("게시글 목록 조회 시 검색 조건 :" + br +
+                                        " 게시글 제목, 게시글 내용, 게시글 제목 또는 내용, 게시글 작성자 " + br +
+                                        "[TITLE, CONTENT, TITLE_OR_CONTENT, WRITER]"),
+                                parameterWithName("keyword").description("게시글 목록 조회 시 검색 키워드"),
+                                parameterWithName("bbsSortType").description("게시글 목록 조회 시 정렬 조건"),
+                                parameterWithName("criteriaDto.pageNum").description("게시글 목록 조회 시 몇 페이지를 조회할 것인지 기입"),
+                                parameterWithName("criteriaDto.limit").description("게시글 목록 조회 시 몇 개의 결과를 조회할 것인지 기입"),
+                                parameterWithName("bbsStatus").description("게시글 조회 시 조회할 게시글의 상태 : 등록, 삭제 [REGISTER, DELETE]")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("게시글 목록 중 첫 번째 게시글의 식별 ID"),
+                                fieldWithPath("data.list[0].writer").description("게시글 목록 중 첫 번째 게시글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].title").description("게시글 목록 중 첫 번째 게시글의 제목"),
+                                fieldWithPath("data.list[0].views").description("게시글 목록 중 첫 번째 게시글의 조회수"),
+                                fieldWithPath("data.list[0].likeCount").description("게시글 목록 중 첫 번째 게시글의 좋아요 수"),
+                                fieldWithPath("data.list[0].replyCount").description("게시글 목록 중 첫 번째 게시글의 댓글 수"),
+                                fieldWithPath("data.list[0].registerDate").description("게시글 목록 중 첫 번째 게시글의 등록 날짜"),
+                                fieldWithPath("data.list[0].status").description("게시글의 상태 : 등록, 삭제 [REGISTER, DELETE]"),
+                                fieldWithPath("data.paging.totalCount").description("요청한 검색 조건에 의해 조회되는 게시글의 총 개수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청한 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("요청한 검색 결과의 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청한 페이지 기준 첫 번째 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청한 페이지 기준 마지막 페이지 "),
+                                fieldWithPath("data.paging.prev").description("현재 요청한 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요천항 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("요청한 검색 조건에 의해 조회 되는 게시글 목록의 총 페이지 수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
     }
 
@@ -398,7 +501,7 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(true))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(false))
                 .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
@@ -455,7 +558,7 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(false))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
@@ -507,13 +610,38 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("data.like").value(true))
                 .andExpect(jsonPath("data.viewLike").value(true))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(false))
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(false))
                 .andExpect(jsonPath("data.uploadFiles[0].fileId").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileName").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].size").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_BBS_SUCCESSFULLY))
+                .andDo(document("get-bbs",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("조회된 게시글의 식별 ID"),
+                                fieldWithPath("data.writer").description("조회된 게시글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.title").description("조회된 게시글의 제목"),
+                                fieldWithPath("data.content").description("조회된 게시글의 내용"),
+                                fieldWithPath("data.views").description("조회된 게시글의 조회 수"),
+                                fieldWithPath("data.likeCount").description("조회된 게시글의 좋아요 수"),
+                                fieldWithPath("data.replyCount").description("조회된 게시글의 댓글 수"),
+                                fieldWithPath("data.registerDate").description("조회된 게시글의 작성 날짜"),
+                                fieldWithPath("data.updateDate").description("조회된 게시글의 수정 날짜"),
+                                fieldWithPath("data.like").description("게시글을 조회한 회원이 해당 게시글에 좋아요를 등록했는지 여부"),
+                                fieldWithPath("data.viewLike").description("조회된 게시글의 좋아요 등록, 확인 등에 대한 권한 여부"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("조회된 게시글에 대한 수정 및 삭제 권한 여부"),
+                                fieldWithPath("data.uploadFiles[0].fileId").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 식별 ID"),
+                                fieldWithPath("data.uploadFiles[0].fileName").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 이름"),
+                                fieldWithPath("data.uploadFiles[0].fileDownloadUri").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 다운로드 URI"),
+                                fieldWithPath("data.uploadFiles[0].fileType").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 타입"),
+                                fieldWithPath("data.uploadFiles[0].size").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 크기"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
 //                .andExpect(jsonPath("_links.update-bbs.href").doesNotExist())
         ;
 
@@ -559,8 +687,31 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.uploadFiles[0].fileDownloadUri").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].fileType").exists())
                 .andExpect(jsonPath("data.uploadFiles[0].size").exists())
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
-//                .andExpect(jsonPath("_links.update-bbs.href").exists())
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
+                .andDo(document("get-bbs-by-admin",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("조회된 게시글의 식별 ID"),
+                                fieldWithPath("data.writer").description("조회된 게시글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.title").description("조회된 게시글의 제목"),
+                                fieldWithPath("data.content").description("조회된 게시글의 내용"),
+                                fieldWithPath("data.views").description("조회된 게시글의 조회 수"),
+                                fieldWithPath("data.likeCount").description("조회된 게시글의 좋아요 수"),
+                                fieldWithPath("data.replyCount").description("조회된 게시글의 댓글 수"),
+                                fieldWithPath("data.registerDate").description("조회된 게시글의 작성 날짜"),
+                                fieldWithPath("data.updateDate").description("조회된 게시글의 수정 날짜"),
+                                fieldWithPath("data.status").description("조회된 게시글의 상태 : 등록됨, 삭제됨 [REGISTER, DELETE]"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("조회된 게시글에 대한 해당 회원의 수정 및 삭제 권한"),
+                                fieldWithPath("data.uploadFiles[0].fileId").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 식별 ID"),
+                                fieldWithPath("data.uploadFiles[0].fileName").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 이름"),
+                                fieldWithPath("data.uploadFiles[0].fileDownloadUri").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 다운로드 URI"),
+                                fieldWithPath("data.uploadFiles[0].fileType").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 타입"),
+                                fieldWithPath("data.uploadFiles[0].size").description("조회된 게시글에 등록된 업로드 파일 목록 중 첫 번째 파일의 크기"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -634,12 +785,12 @@ class BbsApiControllerTest extends BaseControllerTest {
 
         String update_title = "update bbs";
         String update_content = "update content";
-//        List<OnlyFileIdDto> onlyFileIdDtos = getOnlyFileIdDtos();
+        List<OnlyFileIdDto> onlyFileIdDtos = getOnlyFileIdDtos();
 
         BbsUpdateDto bbsUpdateDto = BbsUpdateDto.builder()
                 .title(update_title)
                 .content(update_content)
-//                .fileIdList(onlyFileIdDtos)
+                .fileIdList(onlyFileIdDtos)
                 .build();
 
         //when
@@ -666,10 +817,42 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("data.like").exists())
                 .andExpect(jsonPath("data.viewLike").value(false))
-                .andExpect(jsonPath("data.allowModificationAndDeletion").value(true))
-                .andExpect(jsonPath("data.uploadFiles").isEmpty())
+                .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
+                .andExpect(jsonPath("data.uploadFiles").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MODIFIED_BBS_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.get-bbs.href").exists())
+                .andDo(document("modify-bbs",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("title").description("수정할 제목"),
+                                fieldWithPath("content").description("수정할 내용"),
+                                fieldWithPath("fileIdList[0].fileId").description("게시글 수정 시 등록할 파일 목록의 식별 ID 중 첫 번째 파일 ID" + br +
+                                        "기존에 등록된 게시글 목록은 삭제하고 다시 등록하는 방식을 사용합니다.")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("수정된 게시글의 식별 ID"),
+                                fieldWithPath("data.writer").description("수정된 게시글을 작성한 회원의 활동명"),
+                                fieldWithPath("data.title").description("수정된 게시글 제목"),
+                                fieldWithPath("data.content").description("수정된 게시글 내용"),
+                                fieldWithPath("data.views").description("수정된 게시글의 조회 수"),
+                                fieldWithPath("data.likeCount").description("수정된 게시글의 좋아요 수"),
+                                fieldWithPath("data.replyCount").description("수정된 게시글의 댓글 수"),
+                                fieldWithPath("data.registerDate").description("수정된 게시글의 작성 날짜"),
+                                fieldWithPath("data.updateDate").description("수정된 게시글의 수정 날짜"),
+                                fieldWithPath("data.like").description("자신이 작성한 게시글이므로 좋아요에 대한 부분은 참고하지 않는다."),
+                                fieldWithPath("data.viewLike").description("수정된 게시글에 대한 해당 회원의 좋아요 등록, 해제, 확인 권한"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("수정된 게시글에 대한 해당 회원의 수정 및 삭제 권한"),
+                                fieldWithPath("data.uploadFiles[0].fileId").description("수정된 게시글에 등록된 파일 목록 중 첫 번째 파일의 식별 ID"),
+                                fieldWithPath("data.uploadFiles[0].fileName").description("수정된 게시글에 등록된 파일 목록 중 첫 번째 파일의 이름"),
+                                fieldWithPath("data.uploadFiles[0].fileDownloadUri").description("수정된 게시글에 등록된 파일 목록 중 첫 번째 파일의 다운로드 URI"),
+                                fieldWithPath("data.uploadFiles[0].fileType").description("수정된 게시글에 등록된 파일 목록 중 첫 번째 파일의 타입"),
+                                fieldWithPath("data.uploadFiles[0].size").description("수정된 게시글에 등록된 파일 목록 중 첫 번째 파일의 크기"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+
+                ))
         ;
 
         Bbs findBbs = bbsService.getBbs(bbs.getId());
@@ -883,6 +1066,15 @@ class BbsApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.DELETE_BBS_SUCCESSFULLY))
+                .andDo(document("delete-bbs",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("게시글 삭제의 경우 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -914,7 +1106,17 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.DELETE_BBS_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.DELETE_BBS_SUCCESSFULLY))
+                .andDo(document("delete-bbs-by-admin",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("게시글 삭제의 경우 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
     }
 
@@ -1060,6 +1262,15 @@ class BbsApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_BBS_SUCCESSFULLY))
+                .andDo(document("add-like-to-bbs",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("게시글에 좋아요 등록의 경우 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         boolean existLike = bbsLikeService.getExistLike(user2.getId(), bbsSample.getId());
@@ -1216,7 +1427,17 @@ class BbsApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_BBS_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_BBS_SUCCESSFULLY))
+                .andDo(document("unlike-bbs",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("게시글 좋아요 해제의 경우 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
     }
 

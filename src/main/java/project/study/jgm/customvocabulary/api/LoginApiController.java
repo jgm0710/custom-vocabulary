@@ -41,7 +41,7 @@ public class LoginApiController {
             return ResponseEntity.ok(new ResponseDto<>(tokenDto, LOGIN_SUCCESSFULLY));
 
         } catch (UsernameNotFoundException e) {
-            return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         } catch (PasswordMismatchException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }

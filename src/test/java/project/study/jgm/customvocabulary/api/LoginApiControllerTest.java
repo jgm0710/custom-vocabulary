@@ -3,6 +3,7 @@ package project.study.jgm.customvocabulary.api;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.ResultActions;
@@ -20,8 +21,11 @@ import project.study.jgm.customvocabulary.security.exception.PasswordMismatchExc
 
 import java.time.LocalDateTime;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,8 +41,8 @@ class LoginApiControllerTest extends BaseControllerTest {
     @DisplayName("로그인")
     public void login() throws Exception {
         //given
-        String joinId = "testJoinid";
-        String nickname = "test";
+        String joinId = "userHong";
+        String nickname = "userHong";
         MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
@@ -60,6 +64,22 @@ class LoginApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.accessTokenExpirationSecond").value(securityProperties.getTokenValidSecond()))
                 .andExpect(jsonPath("data.refreshToken").exists())
                 .andExpect(jsonPath("data.refreshTokenExpirationPeriodDateTime").exists())
+                .andDo(document("authentication-login",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type")
+                        ),
+                        requestFields(
+                                fieldWithPath("joinId").description("회원 가입 시 입력한 로그인 ID"),
+                                fieldWithPath("password").description("회원 가입 시 입력한 로그인 비밀번호")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.accessToken").description("리소스에 접근하기 위한 Access Token"),
+                                fieldWithPath("data.accessTokenExpirationSecond").description("Access Token 유효 시간 [sec]"),
+                                fieldWithPath("data.refreshToken").description("Access Token 을 재발급하기 위한 Refresh Token"),
+                                fieldWithPath("data.refreshTokenExpirationPeriodDateTime").description("Refresh Token 만료 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -88,7 +108,7 @@ class LoginApiControllerTest extends BaseControllerTest {
 
         //then
         perform
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("message").value(new UsernameNotFoundException("해당 아이디의 사용자가 없습니다. ID : "+joinId2).getMessage()));
 
     }
@@ -152,6 +172,18 @@ class LoginApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.accessTokenExpirationSecond").value(securityProperties.getTokenValidSecond()))
                 .andExpect(jsonPath("data.refreshToken").exists())
                 .andExpect(jsonPath("data.refreshTokenExpirationPeriodDateTime").exists())
+                .andDo(document("authentication-refresh",
+                        requestFields(
+                                fieldWithPath("refreshToken").description("로그인 시 발급해주는 Refresh Token 을 기입")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.accessToken").description("재발급된 Access Token"),
+                                fieldWithPath("data.accessTokenExpirationSecond").description("재발급된 Access Token 유효 시간"),
+                                fieldWithPath("data.refreshToken").description("사용한 Refresh Token"),
+                                fieldWithPath("data.refreshTokenExpirationPeriodDateTime").description("사용한 Refresh Token 의 만료 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -242,6 +274,15 @@ class LoginApiControllerTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.LOGOUT_SUCCESSFULLY))
+                .andDo(document("authentication-logout",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("로그아웃은 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }

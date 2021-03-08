@@ -40,7 +40,7 @@ public class BbsDetailDto {
 
     private boolean viewLike;
 
-    private boolean allowModificationAndDeletion;
+    private boolean permissionToDeleteAndModify;
 
     @Builder.Default
     private List<UploadFileResponseDto> uploadFiles = new ArrayList<>();
@@ -68,7 +68,7 @@ public class BbsDetailDto {
                 .registerDate(bbs.getRegisterDate())
                 .updateDate(bbs.getUpdateDate())
                 .viewLike(true)
-                .allowModificationAndDeletion(false)
+                .permissionToDeleteAndModify(false)
                 .build();
 
         List<BbsUploadFile> bbsUploadFileList = bbs.getBbsUploadFileList();

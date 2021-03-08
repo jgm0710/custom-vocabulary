@@ -5,10 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.hateoas.EntityModel;
 import project.study.jgm.customvocabulary.bbs.reply.Reply;
 import project.study.jgm.customvocabulary.bbs.reply.like.ReplyLikeService;
 import project.study.jgm.customvocabulary.members.Member;
+import project.study.jgm.customvocabulary.members.MemberRole;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,13 +36,13 @@ public class ReplyParentResponseDto {
 
     private boolean viewLike;
 
-    private boolean allowModificationAndDeletion;
+    private boolean permissionToDeleteAndModify;
 
     public static ReplyParentResponseDto replyToParentResponseDto(Reply reply, ModelMapper modelMapper) {
         ReplyParentResponseDto replyParentResponseDto = modelMapper.map(reply, ReplyParentResponseDto.class);
         replyParentResponseDto.setWriter(reply.getMember().getNickname());
         replyParentResponseDto.setViewLike(false);
-        replyParentResponseDto.setAllowModificationAndDeletion(true);
+        replyParentResponseDto.setPermissionToDeleteAndModify(true);
 
         return replyParentResponseDto;
     }
@@ -56,10 +56,16 @@ public class ReplyParentResponseDto {
             boolean existLike = false;
 
             if (member != null) {
-                if (reply.getMember().getId().equals(member.getId())) {
+                if (member.getRoles().contains(MemberRole.ADMIN)) {
                     viewLike = false;
                     allowModificationAndDeletion = true;
+                } else {
+                    if (reply.getMember().getId().equals(member.getId())) {
+                        viewLike = false;
+                        allowModificationAndDeletion = true;
+                    }
                 }
+
                 existLike = replyLikeService.getExistLike(member.getId(), reply.getId());
             }
 
@@ -72,7 +78,7 @@ public class ReplyParentResponseDto {
                     .registerDate(reply.getRegisterDate())
                     .like(existLike)
                     .viewLike(viewLike)
-                    .allowModificationAndDeletion(allowModificationAndDeletion)
+                    .permissionToDeleteAndModify(allowModificationAndDeletion)
                     .build();
 
             replyParentResponseDtoList.add(replyParentResponseDto);

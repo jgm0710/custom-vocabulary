@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
@@ -19,6 +21,7 @@ import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
 import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
+import project.study.jgm.customvocabulary.members.exception.ExistDuplicatedMemberException;
 import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
@@ -30,9 +33,13 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -84,7 +91,38 @@ public class MemberApiControllerTest extends BaseControllerTest {
 //                .andExpect(jsonPath("_links.self.href").exists())
 //                .andExpect(jsonPath("_links.login.href").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MEMBER_JOIN_SUCCESSFULLY))
-                .andDo(document("join"))
+                .andDo(document("member-join",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type")
+                        ),
+                        requestFields(
+                                fieldWithPath("joinId").description("로그인을 위해 사용할 ID"),
+                                fieldWithPath("email").description("가입자 개인 Email"),
+                                fieldWithPath("password").description("로그인 시점에 사용할 비밀번호"),
+                                fieldWithPath("name").description("가입자 성함"),
+                                fieldWithPath("nickname").description("Custom Vocabulary 내의 활동명"),
+                                fieldWithPath("dateOfBirth").description("생년월일"),
+                                fieldWithPath("gender").description("성별 [MALE, FEMALE]"),
+                                fieldWithPath("simpleAddress").description("간략한 주소지 기입 (생략 가능)")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("가입자의 식별 ID 값"),
+                                fieldWithPath("data.joinId").description("가입자의 로그인 ID"),
+                                fieldWithPath("data.email").description("가입자의 Email"),
+                                fieldWithPath("data.name").description("가입자 성함"),
+                                fieldWithPath("data.nickname").description("Custom Vocabulary 활동명"),
+                                fieldWithPath("data.dateOfBirth").description("생년월일"),
+                                fieldWithPath("data.gender").description("성별"),
+                                fieldWithPath("data.simpleAddress").description("간략한 주소지"),
+                                fieldWithPath("data.sharedVocabularyCount").description("해당 회원이 공유한 단어장 개수"),
+                                fieldWithPath("data.bbsCount").description("해당 회원이 작성한 게시글 개수"),
+                                fieldWithPath("data.loginInfo.refreshToken").description("Access Token을 재발급 받기 위한 Refresh Token"),
+                                fieldWithPath("data.loginInfo.refreshTokenExpirationPeriodDateTime").description("Refresh Token 만료 날짜"),
+                                fieldWithPath("data.registerDate").description("가입일시"),
+                                fieldWithPath("data.updateDate").description("회원정보 수정 일시"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         //then
@@ -108,6 +146,30 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
+
+    }
+
+    @Test
+    @DisplayName("회원가입 시 중복된 회원이 있는 경우")
+    public void join_ExistDuplicatedMemberException() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user1", "user1");
+
+        //when
+        mockMvc.perform(
+                post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(memberCreateDto1)
+                        ))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new ExistDuplicatedMemberException().getMessage()))
+        ;
+
+        //then
 
     }
 
@@ -148,6 +210,28 @@ public class MemberApiControllerTest extends BaseControllerTest {
 //                .andExpect(jsonPath("_links.self.href").exists())
 //                .andExpect(jsonPath("_links.index.href").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_MEMBER_SUCCESSFULLY))
+                .andDo(document("member-get-one",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("가입자의 식별 ID 값"),
+                                fieldWithPath("data.joinId").description("가입자의 로그인 ID"),
+                                fieldWithPath("data.email").description("가입자의 Email"),
+                                fieldWithPath("data.name").description("가입자 성함"),
+                                fieldWithPath("data.nickname").description("Custom Vocabulary 활동명"),
+                                fieldWithPath("data.dateOfBirth").description("생년월일"),
+                                fieldWithPath("data.gender").description("성별"),
+                                fieldWithPath("data.simpleAddress").description("간략한 주소지"),
+                                fieldWithPath("data.sharedVocabularyCount").description("해당 회원이 공유한 단어장 개수"),
+                                fieldWithPath("data.bbsCount").description("해당 회원이 작성한 게시글 개수"),
+                                fieldWithPath("data.loginInfo.refreshToken").description("Access Token을 재발급 받기 위한 Refresh Token"),
+                                fieldWithPath("data.loginInfo.refreshTokenExpirationPeriodDateTime").description("Refresh Token 만료 날짜"),
+                                fieldWithPath("data.registerDate").description("가입일시"),
+                                fieldWithPath("data.updateDate").description("회원정보 수정 일시"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
         //then
 
@@ -160,7 +244,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        memberService.secession(userMember.getId());
+        memberService.secession(userMember.getId(), memberCreateDto.getPassword());
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -335,20 +419,74 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MODIFIED_MEMBER_INFO_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.self.href").exists())
-//                .andExpect(jsonPath("_links.index.href").exists())
-//                .andExpect(jsonPath("_links.get-member.href").exists())
+                .andDo(document("member-modify",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("password").description("본인 확인을 위한 해당 회원의 로그인 비밀번호")
+                        ),
+                        requestFields(
+                                fieldWithPath("joinId").description("수정할 로그인 ID"),
+                                fieldWithPath("email").description("수정할 개인 Email"),
+                                fieldWithPath("name").description("수정할 이름"),
+                                fieldWithPath("nickname").description("수정할 활동명"),
+                                fieldWithPath("dateOfBirth").description("수정할 생년월일"),
+                                fieldWithPath("gender").description("수정할 성별 [MALE, FEMALE]"),
+                                fieldWithPath("simpleAddress").description("수정할 간략한 주소지")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("가입자의 식별 ID"),
+                                fieldWithPath("data.joinId").description("수정된 로그인 ID"),
+                                fieldWithPath("data.email").description("수정된 Email"),
+                                fieldWithPath("data.name").description("수정된 이름"),
+                                fieldWithPath("data.nickname").description("수정된 활동명"),
+                                fieldWithPath("data.dateOfBirth").description("수정된 생년월일"),
+                                fieldWithPath("data.gender").description("수정된 성별"),
+                                fieldWithPath("data.simpleAddress").description("수정된 간략한 주소지"),
+                                fieldWithPath("data.sharedVocabularyCount").description("해당 회원이 공유한 단어장 개수"),
+                                fieldWithPath("data.bbsCount").description("해당 회원이 작성한 게시글 개수"),
+                                fieldWithPath("data.loginInfo.refreshToken").description("Access Token을 재발급 받기 위한 Refresh Token"),
+                                fieldWithPath("data.loginInfo.refreshTokenExpirationPeriodDateTime").description("Refresh Token 만료 날짜"),
+                                fieldWithPath("data.registerDate").description("가입일시"),
+                                fieldWithPath("data.updateDate").description("회원정보 수정 일시"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
-//        Member findMember = memberService.getMember(joinMember.getId());
-//
-//        Assertions.assertEquals(findMember.getJoinId(), memberUpdateDto.getJoinId());
-//        Assertions.assertEquals(findMember.getEmail(), memberUpdateDto.getEmail());
-//        Assertions.assertEquals(findMember.getName(), memberUpdateDto.getName());
-//        Assertions.assertEquals(findMember.getNickname(), memberUpdateDto.getNickname());
-//        Assertions.assertEquals(findMember.getDateOfBirth(), memberUpdateDto.getDateOfBirth());
-//        Assertions.assertEquals(findMember.getGender(), memberUpdateDto.getGender());
-//        Assertions.assertEquals(findMember.getSimpleAddress(), memberUpdateDto.getSimpleAddress());
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 시 아이디가 중복된 회원이 있는 경우")
+    public void modifyMember_ExistDuplicatedMemberException() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        Member joinMember = memberService.userJoin(memberCreateDto);
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        MemberUpdateDto memberUpdateDto = getMemberUpdateDto(user2.getJoinId(), "update nickname");
+        //when
+
+        //then
+        mockMvc
+                .perform(
+                        put("/api/members/" + joinMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(memberUpdateDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new ExistDuplicatedMemberException().getMessage()))
+        ;
+
     }
 
     @Test
@@ -383,11 +521,25 @@ public class MemberApiControllerTest extends BaseControllerTest {
     }
 
     private MemberUpdateDto getMemberUpdateDto() {
+        String joinId = "updateId";
+        String nickname = "updateNickname";
         return MemberUpdateDto.builder()
-                .joinId("updateId")
+                .joinId(joinId)
                 .email("update@email.com")
                 .name("updateName")
-                .nickname("updateNickname")
+                .nickname(nickname)
+                .dateOfBirth(LocalDate.of(1996, 11, 8))
+                .gender(Gender.FEMALE)
+                .simpleAddress("서울 성북구")
+                .build();
+    }
+
+    private MemberUpdateDto getMemberUpdateDto(String joinId, String nickname) {
+        return MemberUpdateDto.builder()
+                .joinId(joinId)
+                .email("update@email.com")
+                .name("updateName")
+                .nickname(nickname)
                 .dateOfBirth(LocalDate.of(1996, 11, 8))
                 .gender(Gender.FEMALE)
                 .simpleAddress("서울 성북구")
@@ -544,9 +696,20 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.CHANGED_PASSWORD_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.self.href").exists())
-//                .andExpect(jsonPath("_links.login.href").exists())
-//                .andExpect(jsonPath("_links.index.href").exists())
+                .andDo(document("member-update-password",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description("해당 리소스에 접근하기 위해 발급된 Access Token 기입")
+                        ),
+                        requestFields(
+                                fieldWithPath("oldPassword").description("기존에 사용하던 비밀번호"),
+                                fieldWithPath("newPassword").description("변경할 새로운 비밀번호")
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("비밀번호 변경은 별도로 data가 출력되지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         Member findMember = memberService.getMember(userMember.getId());
@@ -746,6 +909,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/secession/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", memberCreateDto.getPassword())
                 );
 
         //then
@@ -753,8 +917,18 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.SECESSION_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.self.href").exists())
-//                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+                .andDo(document("member-secession",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("password").description("회원 탈퇴 시 본인 확인을 위한 비밀번호")
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("회원 탈퇴는 별도의 data가 출력되지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         Member findMember = memberService.getMember(userMember.getId());
@@ -763,6 +937,31 @@ public class MemberApiControllerTest extends BaseControllerTest {
         assertFalse(findMember.getRoles().contains(MemberRole.USER));
         assertFalse(findMember.getRoles().contains(MemberRole.ADMIN));
         assertFalse(findMember.getRoles().contains(MemberRole.BAN));
+
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 비밀번호를 틀린 경우")
+    public void secession_PasswordMismatch() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+        TokenDto tokenDto = memberService.login(loginDto);
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        put("/api/members/secession/" + userMember.getId())
+                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", "ㄹㅇㅁㄴㄹㅇㄴㅁ")
+                );
+
+        //then
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("message").value(new PasswordMismatchException().getMessage()));
 
     }
 
@@ -781,6 +980,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/secession/" + userMember.getId())
 //                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
+                                .param("password", memberCreateDto.getPassword())
                 );
 
         //then
@@ -811,6 +1011,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/secession/" + userMember2.getId())
                                 .header(X_AUTH_TOKEN, userMember1TokenDto.getAccessToken())
+                                .param("password", memberCreateDto.getPassword())
                 );
 
         //then
@@ -900,6 +1101,48 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").value(true))
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_MEMBER_LIST_BY_ADMIN_SUCCESSFULLY))
+                .andDo(document("member-admin-get-list",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                                ),
+                        requestParameters(
+                                parameterWithName("criteriaDto.pageNum").description("조회할 Page 번호"),
+                                parameterWithName("criteriaDto.limit").description("조회할 개수"),
+                                parameterWithName("searchType").description("검색 조건 : 회원 ID 로 검색, 회원 Email 로 검색, 회원 이름으로 검색, 회원 Nickname 으로 검색 " +
+                                        " [JOIN_ID, EMAIL, NAME, NICKNAME]"),
+                                parameterWithName("keyword").description("검색 키워드 (검색 시 검색 조건에 해당 키워드를 포함하는 결과들을 반환해 줌.)"),
+                                parameterWithName("sortType").description("정렬 조건 : 최신 순, 오래된 순, 게시글 많이 작성한 순, 게시글 조금 작성한 순, 공유한 단어장이 많은 순, 공유한 단어장이 적은 순  " +
+                                        " [LATEST, OLDEST, BBS_COUNT_DESC, BBS_COUNT_ASC, SHARED_VOCABULARY_COUNT_DESC, SHARED_VOCABULARY_COUNT_ASC]")
+                                ),
+                        relaxedResponseFields(
+                                fieldWithPath("data.list[0].id").description("회원 목록 중 첫 번째 회원의 식별 ID"),
+                                fieldWithPath("data.list[0].joinId").description("회원 목록 중 첫 번째 회원의 로그인 ID"),
+                                fieldWithPath("data.list[0].email").description("회원 목록 중 첫 번째 회원의 개인 Email"),
+                                fieldWithPath("data.list[0].name").description("회원 목록 중 첫 번째 회원의 이름"),
+                                fieldWithPath("data.list[0].nickname").description("회원 목록 중 첫 번째 회원의 활동명"),
+                                fieldWithPath("data.list[0].dateOfBirth").description("회원 목록 중 첫 번째 회원의 생년월일"),
+                                fieldWithPath("data.list[0].gender").description("회원 목록 중 첫 번째 회원의 성별"),
+                                fieldWithPath("data.list[0].simpleAddress").description("회원 목록 중 첫 번째 회원의 간략한 주소지"),
+                                fieldWithPath("data.list[0].sharedVocabularyCount").description("회원 목록 중 첫 번째 회원이 공유한 단어장 개수"),
+                                fieldWithPath("data.list[0].bbsCount").description("회원 목록 중 첫 번째 회원이 작성한 게시글 개수"),
+                                fieldWithPath("data.list[0].roles").description("회원 목록 중 첫 번째 회원의 권한"),
+                                fieldWithPath("data.list[0].registerDate").description("회원 목록 중 첫 번째 회원의 가입 일시"),
+                                fieldWithPath("data.list[0].updateDate").description("회원 목록 중 첫 번째 회원의 개인 정보 수정 일시"),
+                                fieldWithPath("data.paging.totalCount").description("요청 시 입력된 조건에 따라 조회되는 회원의 총 인원 수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("조회된 Page"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("조회된 인원 수"),
+                                fieldWithPath("data.paging.startPage").description("요청의 pageNum 에 따른 시작 페이지 (12Page -> 11Page 가 startPage)"),
+                                fieldWithPath("data.paging.endPage").description("요청의 pageNum 과 조회 결과에 따라 변동되는 마지막 페이지 " +
+                                        " (조회된 회원이 충분히 많을 경우 12Page -> 20Page 가 endPage)"),
+                                fieldWithPath("data.paging.prev").description("이전 페이지 목록을 조회 할 수 있는지 여부 " +
+                                        " (1 Page 를 요청하게 되면 1 Page 보다 이전의 Page 는 없으므로 prev = false, 12 Page 를 요청하게 될 경우 1~10 Page 는 요청이 가능하므로 prev = true)"),
+                                fieldWithPath("data.paging.next").description("다음 페이지 목록을 조회 할 수 있는지 여부 " +
+                                        " (endPage 가 30일 경우 25 Page 를 요청하게 되면 30 이후의 31~40 Page 는 요청할 수 없으므로 next = false, " +
+                                        " 같은 경우 15 Page 를 요청하게 되면 21~30 Page 에 대한 요청도 가능하므로 next = true)"),
+                                fieldWithPath("data.paging.totalPage").description("요청의 검색 조건에 의해 조회되는 총 페이지 수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -1000,7 +1243,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 
     @ParameterizedTest(name = "test {index} : {2}")
     @MethodSource("paramsForGetMemberListTest")
-    @DisplayName("회원 목록 조회 시페이징에 대한 정보를 잘 못 준 경우")
+    @DisplayName("회원 목록 조회 시 페이징에 대한 정보를 잘 못 준 경우")
     public void getMemberList_Wrong2(int pageNum, int limit, String message) throws Exception {
         //given
         createMemberList();
@@ -1085,9 +1328,27 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.BAN_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.self.href").value("http://localhost/api/members/ban/"+userMember.getId()))
-//                .andExpect(jsonPath("_links.get-member.href").value(linkToGetMember(userMember.getId()).toUri().toString()))
-//                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+                .andDo(document("member-admin-ban",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("활동이 금지된 회원의 식별 ID"),
+                                fieldWithPath("data.joinId").description("활동이 금지된 회원의 로그인 ID"),
+                                fieldWithPath("data.email").description("활동이 금지된 회원의 개인 ID"),
+                                fieldWithPath("data.name").description("활동이 금지된 회원의 이름"),
+                                fieldWithPath("data.nickname").description("활동이 금지된 회원의 활동명"),
+                                fieldWithPath("data.dateOfBirth").description("활동이 금지된 회원의 생년월일"),
+                                fieldWithPath("data.gender").description("활동이 금지된 회원의 성별"),
+                                fieldWithPath("data.simpleAddress").description("활동이 금지된 회원의 간략한 주소지"),
+                                fieldWithPath("data.sharedVocabularyCount").description("활동이 금지된 회원이 공유한 단어장 개수"),
+                                fieldWithPath("data.bbsCount").description("활동이 금지된 회원이 작성한 게시글 수"),
+                                fieldWithPath("data.roles").description("활동이 금지된 회원의 권한"),
+                                fieldWithPath("data.registerDate").description("활동이 금지된 회원의 가입 일시"),
+                                fieldWithPath("data.updateDate").description("활동이 금지된 회원의 회원 정보 수정 일시"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
         Member findMember = memberService.getMember(userMember.getId());
@@ -1204,7 +1465,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         memberCreateDto.setPassword("testUserPassword");
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        memberService.secession(userMember.getId());
+        memberService.secession(userMember.getId(), memberCreateDto.getPassword());
 
         //when
         ResultActions perform = mockMvc
@@ -1231,9 +1492,27 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + userMember.getId()))
-//                .andExpect(jsonPath("_links.get-member.href").value(linkToGetMember(userMember.getId()).toUri().toString()))
-//                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
+                .andDo(document("member-admin-role-to-user",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("권한이 복구된 회원의 식별 ID"),
+                                fieldWithPath("data.joinId").description("권한이 복구된 회원의 로그인 ID"),
+                                fieldWithPath("data.email").description("권한이 복구된 회원의 개인 Email"),
+                                fieldWithPath("data.name").description("권한이 복구된 회원의 이름"),
+                                fieldWithPath("data.nickname").description("권한이 복구된 회원의 활동명"),
+                                fieldWithPath("data.dateOfBirth").description("권한이 복구된 회원의 생년월일"),
+                                fieldWithPath("data.gender").description("권한이 복구된 회원의 성별"),
+                                fieldWithPath("data.simpleAddress").description("권한이 복구된 회원의 간략한 주소지"),
+                                fieldWithPath("data.sharedVocabularyCount").description("권한이 복구된 회원이 공유했던 단어장 개수"),
+                                fieldWithPath("data.bbsCount").description("권한이 복구된 회원이 작성했던 게시글 개수"),
+                                fieldWithPath("data.roles").description("권한이 복구된 회원의 권한"),
+                                fieldWithPath("data.registerDate").description("권한이 복구된 회원의 가입 일시"),
+                                fieldWithPath("data.updateDate").description("권한이 복구된 회원의 수정 일시"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }

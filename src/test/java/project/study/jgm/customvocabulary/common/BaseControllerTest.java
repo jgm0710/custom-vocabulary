@@ -68,7 +68,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @AutoConfigureRestDocs
 @ActiveProfiles("test")
 @Disabled
-@Import(RestDocsConfig.class)
 @Transactional
 public abstract class BaseControllerTest {
 
@@ -164,6 +163,14 @@ public abstract class BaseControllerTest {
 
     protected final String testImageFilePath2 = "/static/test/사진2.jpg";
 
+    protected final String testZipFilePath = "/static/test/새 폴더.zip";
+
+    protected final String X_AUTH_TOKEN_DESCRIPTION = "해당 리소스에 접근하기 위해 발급된 Access Token 기입";
+
+    protected final String MESSAGE_DESCRIPTION = "해당 요청에 대한 응답의 간략한 설명";
+
+    protected final String br = " + \n";
+
     @BeforeEach
     public void setup(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
@@ -172,6 +179,7 @@ public abstract class BaseControllerTest {
                 .alwaysDo(print())
                 .apply(documentationConfiguration(restDocumentation)
                         .operationPreprocessors()
+                        .withRequestDefaults(prettyPrint())
                         .withResponseDefaults(prettyPrint()))
                 .build();
 
