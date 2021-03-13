@@ -1583,6 +1583,17 @@ class CategoryApiControllerTest extends BaseControllerTest {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andDo(document("get-shared-category-list",
+                        relaxedResponseFields(
+                                fieldWithPath("data[0].id").description("공유 카테고리 목록 중 첫 번째 카테고리의 식별 ID"),
+                                fieldWithPath("data[0].name").description("공유 카테고리 목록 중 첫 번째 카테고리의 이름"),
+                                fieldWithPath("data[0].parentId").description("공유 카테고리 목록 중 첫 번째 카테고리의 부모 카테고리의 식별 ID"),
+                                fieldWithPath("data[0].subCategoryList[]").description("공유 카테고리 목록 중 첫 번째 카테고리에 포함된 하위 카테고리 목록"),
+                                fieldWithPath("data[0].vocabularyCount").description("공유 카테고리 목록 중 첫 번째 카테고리에 포함된 공유 단어장의 개수"),
+                                fieldWithPath("data[0].orders").description("공유 카테고리 목록 중 첫 번째 카테고리의 정렬 순서"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
