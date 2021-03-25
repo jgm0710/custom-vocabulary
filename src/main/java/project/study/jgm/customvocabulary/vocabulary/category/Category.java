@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.LAZY;
 public class Category {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
     private Long id;
     

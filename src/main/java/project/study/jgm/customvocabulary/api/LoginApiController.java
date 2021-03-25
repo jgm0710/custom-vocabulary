@@ -1,6 +1,7 @@
 package project.study.jgm.customvocabulary.api;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +26,7 @@ import static project.study.jgm.customvocabulary.common.dto.MessageVo.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api")
+@Slf4j
 public class LoginApiController {
 
     private final MemberService memberService;
@@ -37,12 +39,15 @@ public class LoginApiController {
 
         try {
             TokenDto tokenDto = memberService.login(loginDto);
+            log.info("Login success!");
 
             return ResponseEntity.ok(new ResponseDto<>(tokenDto, LOGIN_SUCCESSFULLY));
 
         } catch (UsernameNotFoundException e) {
+            log.info("User not found -> login fail...");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         } catch (PasswordMismatchException e) {
+            log.info("Password mismatch -> login fail...");
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
 
@@ -60,8 +65,10 @@ public class LoginApiController {
             return ResponseEntity.ok(new ResponseDto<>(tokenDto, REFRESH_SUCCESSFULLY));
 
         } catch (RefreshTokenNotFoundException e) {
+            log.info("Refresh token not found -> refresh login fail...");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
         } catch (RefreshTokenExpirationException e) {
+            log.info("Refresh token expiration -> refresh login fail...");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
         }
     }

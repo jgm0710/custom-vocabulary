@@ -12,128 +12,128 @@
 
 [[overview]]
 = 개요
-== link:../index.adoc[home]
+== link:/docs/index.html[home]
 == 오류 코드
 
 |===
 | 발생 API | CAUSE | CODE | MESSAGE
 
-| <<resources-member-join>>
+| <<resources-join>>
 | 회원가입 시 로그인 ID, Email, Password, 이름, Nickname, 성별 등의 정보를 기입하지 않았을 경우
 | 400
 | null [errors -> hasError 응답]
 
-| <<resources-member-join>>
+| <<resources-join>>
 | 회원가입 시 로그인 ID 나 Nickname 이 중복되는 다른 회원이 존재하는 경우
 | 400
 | ID 나 Nickname 중 중복된 회원이 있습니다.
 
-| <<resources-member-get-one>>
+| <<resources-get-member>>
 | 권한이 없는 회원(탈퇴하거나, 활동이 정지된 회원, 또는 인증되지 않은 사용자)이 회원 정보를 조회하는 경우
 | 403
 | null
 
-| <<resources-member-get-one>>
+| <<resources-get-member>>
 | 회원조회 시 해당 식별 ID의 회원을 찾을 수 없는 경우
 | 404
 | 해당 회원을 찾을 수 없습니다.
 
-| <<resources-member-get-one>>
+| <<resources-get-member>>
 | 인증된 회원과 조회하려는 회원이 다른 경우
 | 401
 | 다른 회원의 정보는 조회가 불가능합니다.
 
-| <<resources-member-modify>>
+| <<resources-modify-member>>
 | 회원 정보 수정 시 수정할 로그인 ID, 개인 Email, 이름, Nickname, 성별 등의 정보를 기입하지 않은 경우
 | 400
 | null [errors -> hasError 응답]
 
-| <<resources-member-modify>>
+| <<resources-modify-member>>
 | 회원 정보 수정 시 로그인 ID 나 Nickname 이 중복되는 다른 회원이 존재하는 경우
 | 400
 | ID 나 Nickname 중 중복된 회원이 있습니다.
 
-| <<resources-member-modify>>
+| <<resources-modify-member>>
 | 인증되지 않은 사용자가 회원 정보를 수정하는 경우
 | 403
 | null
 
-| <<resources-member-modify>>
+| <<resources-modify-member>>
 | 인증된 회원과 정보를 수정할 회원이 다른 경우
 | 401
 | 다른 회원의 정보는 수정할 수 없습니다.
 
-| <<resources-member-modify>>
+| <<resources-modify-member>>
 | 회원 수정 시 본인 확인을 위한 비밀번호를 잘못 입력한 경우
 | 400
 | 비밀번호가 일치하지 않습니다. 비밀번호를 다시 확인해주세요.
 
-| <<resources-member-update-password>>
+| <<resources-update-password>>
 | 비밀번호 수정 시 기존 비밀번호나, 변경할 비밀번호를 입력하지 않은 경우
 | 400
 | null [errors -> hasError 응답]
 
-| <<resources-member-update-password>>
+| <<resources-update-password>>
 | 인증되지 않은 사용자가 비밀번호를 변경하는 경우
 | 403
 | null
 
-| <<resources-member-update-password>>
+| <<resources-update-password>>
 | 인증된 회원과 비밀번호를 변경할 회원이 다른 경우
 | 401
 | 다른 회원의 정보는 수정할 수 없습니다.
 
-| <<resources-member-update-password>>
+| <<resources-update-password>>
 | 비밀번호 변경 시 기존 비밀번호를 틀린 경우
 | 400
 | 비밀번호가 일치하지 않습니다. 비밀번호를 다시 확인해주세요.
 
-| <<resources-member-secession>>
+| <<resources-secession>>
 | 인증되지 않은 사용자가 회원탈퇴를 하는 경우
 | 403
 | null
 
-| <<resources-member-secession>>
+| <<resources-secession>>
 | 회원 탈퇴 시 본인인증을 위한 비밀번호를 틀린 경우
 | 400
 | 비밀번호가 일치하지 않습니다. 비밀번호를 다시 확인해주세요.
 
-| <<resources-member-secession>>
+| <<resources-secession>>
 | 인증된 회원과 탈퇴하려는 회원이 다른 경우
 | 401
 | 다른 회원의 정보는 수정할 수 없습니다.
 
-| <<resources-member-admin-get-list>>
+| <<resources-get-member-list>>
 | 관리자 권한이 없는 사용자가 회원 목록을 조회하는 경우
 | 403
 | null
 
-| <<resources-member-admin-get-list>>
+| <<resources-get-member-list>>
 | 검색 조건을 지정하지 않고, 키워드만 입력한 경우
 | 400
 | null [errors -> hasError 응답]
 
-| <<resources-member-admin-get-list>>
+| <<resources-get-member-list>>
 | 페이징 정보를 잘못 입력한 경우 (pageNum 이 1보다 작은 경우, limit 가 1보다 작거나 100보다 큰 경우)
 | 400
 | null [errors -> hasError 응답]
 
-| <<resources-member-admin-ban>>
+| <<resources-ban>>
 | 관리자 권한이 없는 사용자가 회원의 활동을 금지시키는 경우
 | 403
 | null
 
-| <<resources-member-admin-ban>>
+| <<resources-ban>>
 | 회원을 정지 시킬 회원을 찾을 수 없는 경우
 | 404
 | 해당 회원을 찾을 수 없습니다.
 
-| <<resources-member-admin-role-to-user>>
+| <<resources-restoration>>
 | 관리자 권한이 없는 사용자가 회원의 권한을 복구하는 경우
 | 403
 | null
 
-| <<resources-member-admin-role-to-user>>
+| <<resources-restoration>>
 | 이미 활동 권한이 있거나, 관리자인 사용자의 권한을 복구하는 경우
 | 400
 | 회원이 이미 권한을 가지고 있습니다.
@@ -146,38 +146,45 @@
 [[resources-member]]
 == 회원 리소스
 
-[[resources-member-join]]
+[[resources-join]]
 === 회원가입
-operation::member-join[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
 
-[[resources-member-get-one]]
+- 회원가입 리소스는 `/api/members` 의 형태로 요청합니다.
+
+operation::join[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+
+[[resources-get-member]]
 === 회원조회
 
-관리자가 아닐 경우 다른 회원의 정보는 조회가 불가능합니다. +
+- 회원조회 리소스는 `/api/members/{memberId}` 의 형태로 요청합니다.
+- 관리자가 아닐 경우 다른 회원의 정보는 조회가 불가능합니다. +
 때문에 인증된 사용자 만이 해당 리소스에 접근이 가능하고, 탈퇴하거나 활동이 금지된 회원은 해당 리소스에 접근이 불가능합니다.
 
-operation::member-get-one[snippets='request-headers,response-fields,curl-request,http-response']
+operation::get-member[snippets='request-headers,response-fields,curl-request,http-response']
 
-[[resources-member-modify]]
+[[resources-modify-member]]
 === 회원수정
 
-회원 정보 수정의 경우, 해당 회원에 대한 비밀번호 확인을 필요로 합니다.
+- 회원수정 리소스는 `/api/members/{memberId}` 의 형태로 요청합니다.
+- 회원 정보 수정의 경우, 해당 회원에 대한 비밀번호 확인을 필요로 합니다.
 
-operation::member-modify[snippets='request-headers,request-parameters,request-fields,response-fields,curl-request,http-response']
+operation::modify-member[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
 
-[[resources-member-update-password]]
+[[resources-update-password]]
 === 비밀번호 변경
 
-비밀번호 변경의 경우, 해당 회원의 본인 확인을 위한 oldPassword 와 새로운 비밀번호 변경을 위한 newPassword 를 필요로 합니다.
+- 비밀번호 변경 리소스는 `/api/members/password/{memberId}` 의 형태로 요청합니다.
+- 비밀번호 변경의 경우, 해당 회원의 본인 확인을 위한 oldPassword 와 새로운 비밀번호 변경을 위한 newPassword 를 필요로 합니다.
 
-operation::member-update-password[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+operation::update-password[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
 
-[[resources-member-secession]]
-== 회원탈퇴
+[[resources-secession]]
+=== 회원탈퇴
 
-회원탈퇴의 경우 본인인증을 위한 비밀번호 확인을 필요로 합니다.
+- 회원탈퇴 리소스는 `/api/members/secession/{memberId}` 의 형태로 요청합니다.
+- 회원탈퇴의 경우 본인인증을 위한 비밀번호 확인을 필요로 합니다.
 
-operation::member-secession[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+operation::secession[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
 
 [[resources-member-admin]]
 == 관리자 리소스
@@ -185,21 +192,29 @@ operation::member-secession[snippets='request-headers,request-parameters,respons
 Custom Vocabulary 는 1 개의 관리자 계정을 통해 기능을 관리하려 합니다. +
 관리자 회원 가입 기능은 별도로 제공하지 않습니다.
 
-[[resources-member-admin-get-list]]
+[[resources-get-member-list]]
 === 회원목록 조회
 
-회원 목록 조회의 경우 관리자만 가능합니다.
+- 회원목록 조회 리소스는 `/api/members` 의 형태로 요청합니다.
+- 회원 목록 조회의 경우 관리자만 가능합니다. +
+때문에 관리자 권한이 없는 사용자는 해당 리소스에 접근이 불가능합니다.
 
-operation::member-admin-get-list[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+operation::get-member-list[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
 
-[[resources-member-admin-ban]]
+[[resources-ban]]
 === 회원의 활동 금지
-operation::member-admin-ban[snippets='request-headers,response-fields,curl-request,http-response']
 
-[[resources-member-admin-role-to-user]]
+- 회원의 할동 금지 리소스는 `/api/members/ban/{memberId}` 의 형태로 요청합니다.
+- 회원의 할동 금지는 관리자만 가능합니다. +
+때문에 관리자 권한이 없는 사용자는 해당 리소스에 접근이 불가능합니다.
+
+operation::ban[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-restoration]]
 === 회원 권한 복구
 
-탈퇴하거나 활동이 금지된 회원의 권한을 정상적으로 복구하기 위한 리소스입니다.
+- 회원 권한 복구 리소스는
+- 탈퇴하거나 활동이 금지된 회원의 권한을 정상적으로 복구하기 위한 리소스입니다.
 
-operation::member-admin-role-to-user[snippets='request-headers,response-fields,curl-request,http-response']
+operation::restoration[snippets='request-headers,response-fields,curl-request,http-response']
 

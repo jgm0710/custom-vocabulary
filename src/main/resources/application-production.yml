@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    username: customvoca
+    password: customvoca
+    url: jdbc:mariadb://customvoca.cqgsbyjoicbf.ap-northeast-2.rds.amazonaws.com:3306/customvoca?serverTimezone=UTC&characterEncoding=UTF-8
+    driver-class-name: org.mariadb.jdbc.Driver
+
+#  jpa:
+#    hibernate:
+#      ddl-auto: create
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        default_batch_fetch_size: 500
+#
+#  servlet:
+#    multipart:
+#      enabled: true
+#      file-size-threshold: 2KB
+#      max-file-size: 200MB
+#      max-request-size: 215MB
+#
+#file:
+#  bbs-upload-dir: C:\Users\jgm\Desktop\project\upload\bbs-file
+#  word-image-dir: C:\Users\jgm\Desktop\project\upload\word-file
+#  vocabulary-thumbnail-image-dir: C:\Users\jgm\Desktop\project\upload\vocabulary-file
+#  thumbnail-prefix: s_
+#
+#logging:
+#  level:
+#    org.hibernate.SQL: debug
+#    org.hibernate.type.descriptor.sql.BasicBinder: trace
+#    org.springframework.security: debug #spring security에 대해 어떤 메세지가 출력이 되는지 확인
+#
+#jwt-security:
+#  secret-key: costomvocaSecretKey
+#  token-valid-second: 3000
+#  expiration-cycle-days: 14
+

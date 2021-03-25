@@ -27,7 +27,7 @@ import static javax.persistence.FetchType.LAZY;
 public class Vocabulary {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "vocabulary_id")
     private Long id;
 
@@ -105,14 +105,6 @@ public class Vocabulary {
         return vocabulary;
     }
 
-    public void setTotalWordCount(int totalWordCount) {
-        this.totalWordCount = totalWordCount;
-    }
-
-    public void updateTotalWordCount(int totalWordCount) {
-        this.totalWordCount = totalWordCount;
-    }
-
     public void removeWordList() {
         this.wordList.clear();
         this.totalWordCount = 0;
@@ -129,6 +121,9 @@ public class Vocabulary {
 
     public void delete() {
         this.division = VocabularyDivision.DELETE;
+        if (this.category != null) {
+            this.category.deleteVocabulary();
+        }
     }
 
     public void moveCategory(Category category) {
@@ -200,6 +195,9 @@ public class Vocabulary {
 
     public void unshared() {
         this.division = VocabularyDivision.UNSHARED;
+        if (this.category != null) {
+            this.category.deleteVocabulary();
+        }
         this.writer.deleteSharedVocabulary();
     }
 
@@ -289,6 +287,7 @@ public class Vocabulary {
         this.totalWordCount = wordList.size();
 
         for (Word word : wordList) {
+//            this.wordList.add(word);
             word.setVocabulary(this);
 
             if (word.isMemorisedCheck()==true) {

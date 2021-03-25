@@ -12,7 +12,7 @@
 
 [[overview]]
 = 개요
-== link:../index.adoc[home]
+== link:/docs/index.html[home]
 == 오류 코드
 |===
 | 발생 API | CAUSE | CODE | MESSAGE

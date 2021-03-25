@@ -1,0 +1,511 @@
+= Custom Vocabulary API Guide
+정구민;
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+:operation-curl-request-title: Example request
+:operation-http-response-title: Example response
+:docinfo: shared-head
+
+[[overview]]
+= 개요
+== link:/docs/index.html[home]
+== 오류 코드
+
+|===
+| 발생 API | CAUSE | CODE | MESSAGE
+
+| <<resources-add-personal-vocabulary>> / <<resources-update-word-list>> / <<resources-check-memorize>>
+ / <<resources-modify-personal-vocabulary>> / <<resources-share-personal-vocabulary>> / <<resources-get-personal-vocabulary-list>>
+ / <<resources-download-shared-vocabulary>> / <<resources-unshared-shared-vocabulary>> / <<resources-add-like-to-shared-vocabulary>>
+ / <<resources-unlike-shared-vocabulary>> / <<resources-move-category>>
+| 인증되지 않은 사용자가 리소스에 접근하는 경우
+| 403
+| null
+
+| <<resources-add-personal-vocabulary>>
+| 개인 단어장 생성 시 제목, 난이도, Main 언어, Sub 언어 등을 입력하지 않은 경우
+| 400
+| null [errors -> hasError 응답]
+
+| <<resources-add-personal-vocabulary>>
+| 개인 단어장 생성 시 해당 단어장을 포함할 카테고리를 찾을 수 없는 경우
+| 404
+| 요청한 카테고리를 찾을 수 없습니다.
+
+| <<resources-add-personal-vocabulary>>
+| 개인 단어장 생성 시 해당 단어장에 추가할 썸네일 파일을 찾을 수 없는 경우
+| 404
+| 단어장에 등록된 파일을 찾을 수 없습니다.
+
+| <<resources-add-personal-vocabulary>>
+| 공유 카테고리에 개인 단어장을 추가하는 경우
+| 400
+| 카테고리와 단어장의 구분이 일치하지 않습니다.
+
+| <<resources-update-word-list>>
+| Main 단어, Sub 단어를 입력하지 않은 경우
+| 400
+| null [errors -> hasError 응답]
+
+| <<resources-update-word-list>>
+| 다른 회원의 개인 단어장 단어 목록을 변경하는 경우
+| 401
+| 다른 회원의 생성한 단어장의 단어 목록을 변경할 수 없습니다.
+
+| <<resources-update-word-list>>
+| 개인 단어장 단어 목록 변경 시 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-update-word-list>>
+| 단어 목록 변경 시 단어장에 추가된 이미지 파일을 찾을 수 없는 경우
+| 404
+| 단어에 등록된 이미지 파일을 찾을 수 없습니다.
+
+| <<resources-update-word-list>>
+| 자신이 생성한 개인 단어장이 아닌 단어장의 단어 목록을 변경하는 경우 (다운로드 받은 단어장, 공유한 단어장의 단어 목록은 수정이 불가능합니다.)
+| 400
+| 구분이 잘못된 요청입니다. : 개인 단어장 이외에는 단어 목록을 수정할 수 없습니다. 다운로드 받은 단어장, 삭제된 단어장 또한 단어 목록 수정이 불가능합니다.
+
+| <<resources-update-word-list>>
+| 삭제된 단어장의 단어 목록을 변경하는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 개인 단어장 이외에는 단어 목록을 수정할 수 없습니다. 다운로드 받은 단어장, 삭제된 단어장 또한 단어 목록 수정이 불가능합니다.
+
+| <<resources-check-memorize>>
+| 다른 회원의 개인 단어장에 등록된 단어에 암기 체크를 하는 경우
+| 401
+| 다른 회원의 개인 단어장에 등록된 단어에는 암기 체크를 할 수 없습니다.
+
+| <<resources-check-memorize>>
+| 단어 암기 체크 시 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-check-memorize>>
+| 단어 암기 체크 시 단어를 찾을 수 없는 경우
+| 404
+| 요청한 단어를 찾을 수 없습니다.
+
+| <<resources-check-memorize>>
+| 개인 단어장(자신이 생성한 단어장, 다운로드 받은 단어장)이 아닌 단어장의 단어에 암기 체크를 하는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 개인 단어장 이외에는 암기 체크를 할 수 없습니다. 삭제된 단어장 또한 암기 체크를 할 수 없습니다.
+
+| <<resources-check-memorize>>
+| 삭제된 단어장의 단어에 암기 체크를 하는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 개인 단어장 이외에는 암기 체크를 할 수 없습니다. 삭제된 단어장 또한 암기 체크를 할 수 없습니다.
+
+| <<resources-modify-personal-vocabulary>>
+| 다른 회원의 개인 단어장을 수정하는 경우
+| 401
+| 다른 회원의 단어장은 수정할 수 없습니다.
+
+| <<resources-modify-personal-vocabulary>>
+| 개인 단어장 수정 시 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-modify-personal-vocabulary>>
+| 개인 단어장 수정 시 등록할 썸네일 이미지 파일을 찾을 수 없는 경우
+| 404
+| 단어장에 등록된 파일을 찾을 수 없습니다.
+
+| <<resources-modify-personal-vocabulary>>
+| 공유 단어장을 수정하는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 개인 단어장 외에는 수정할 수 없습니다. 다운로드 받은 단어장, 삭제된 단어장 또한 수정할 수 없습니다.
+
+| <<resources-share-personal-vocabulary>>
+| 다른 회원의 개인 단어장을 공유하는 경우
+| 401
+| 다른 회원의 단어장은 공유할 수 없습니다.
+
+| <<resources-share-personal-vocabulary>>
+| 단어장 공유 시 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-share-personal-vocabulary>>
+| 단어장 공유 시 단어장이 소속될 공유 카테고리를 찾을 수 없는 경우
+| 404
+| 요청한 카테고리를 찾을 수 없습니다.
+
+| <<resources-share-personal-vocabulary>>
+| 단어장 공유 시 단어장이 소속될 카테고리가 공유 카테고리가 아닌 경우
+| 404
+| 구분이 잘못된 요청입니다. : 단어를 공유할 카테고리가 공유 카테고리가 아닙니다.
+
+| <<resources-share-personal-vocabulary>>
+| 이미 공유된 단어장이나 다운로드 받은 단어장을 공유하는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 자신이 생성한 단어장만 공유할 수 있습니다. 삭제된 단어장, 다운로드 받은 단어장, 이미 공유된 단어장은 공유할 수 없습니다.
+
+| <<resources-get-personal-vocabulary-list>>
+| 관리자 권한이 없는 사용자가 다른 회원의 개인 단어장 목록을 조회하는 경우
+| 401
+| 다른 회원의 개인 단어장 목록은 조회할 수 없습니다.
+
+| <<resources-get-personal-vocabulary-list>>
+| 개인 단어장 목록 조회 시 페이징 정보를 잘 못 입력한 경우 (pageNum 을 1보다 작게 입력한 경우, limit 의 값이 1~100 사이의 수가 아닌 경우)
+| 400
+| null [errors -> hasError 응답]
+
+| <<resources-get-personal-vocabulary-list>>
+| 특정 카테고리에 소속된 개인 단어장 목록 조회 시 해당 카테고리가 공유 카테고리인 경우
+| 400
+| 구분이 잘못된 요청입니다. : 개인 카테고리의 단어 목록만 조회할 수 있습니다.
+
+| <<resources-get-personal-vocabulary-list>>
+| 특정 카테고리에 소속된 개인 단어장 목록 조회 시 해당 카테고리가 다른 회원이 생성한 개인 카테고리인 경우
+| 400
+| 해당 기능을 사용하는 회원과 카테고리를 소유한 회원이 다릅니다.
+
+| <<resources-get-personal-vocabulary-list>>
+| 특정 카테고리에 소속된 개인 단어장 목록 조회 시 해당 카테고리를 찾을 수 없는 경우
+| 404
+| 요청한 카테고리를 찾을 수 없습니다.
+
+| <<resources-get-shared-vocabulary-list-of-member>>
+| 특정 회원의 공유 단어장 목록 조회 시 페이징 값을 잘 못 입력한 경우 (pageNum 을 1보다 작게 입력한 경우, limit 의 값이 1~100 사이의 수가 아닌 경우)
+| 400
+| null [errors -> hasError 응답]
+
+| <<resources-get-shared-vocabulary-list>>
+| 공유 단어장 목록 조회 시 페이징 값을 잘 못 입력한 경우 (pageNum 을 1보다 작게 입력한 경우, limit 의 값이 1~100 사이의 수가 아닌 경우)
+| 400
+| null [errors -> hasError 응답]
+
+| <<resources-download-shared-vocabulary>>
+| 다운로드 받을 공유 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-download-shared-vocabulary>>
+| 공유 단어장 다운로드 시 해당 단어장을 소속시킬 개인 카테고리를 찾을 수 없는 경우
+| 404
+| 요청한 카테고리를 찾을 수 없습니다.
+
+| <<resources-download-shared-vocabulary>>
+| 다운로드 받을 단어장이 공유 단어장이 아닌 경우
+| 400
+| 구분이 잘못된 요청입니다. : 공유 단어장이 아닐 경우 다운로드가 불가능합니다.
+
+| <<resources-download-shared-vocabulary>>
+| 다운로드 받은 단어장을 공유 카테고리에 소속시키는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 공유 카테고리에는 공유 단어장을 다운로드 할 수 없습니다. 카테고리를 다시 확인해주세요.
+
+| <<resources-download-shared-vocabulary>>
+| 다운로드 받은 단어장을 다른 회원의 개인 카테고리에 소속시킬 경우
+| 400
+| 해당 기능을 사용하는 회원과 카테고리를 소유한 회원이 다릅니다.
+
+| <<resources-unshared-shared-vocabulary>>
+| 다른 회원이 공유한 단어장을 공유 해제하는 경우
+| 401
+| 다른 회원의 공유 단어장은 공유 해제가 불가능합니다.
+
+| <<resources-unshared-shared-vocabulary>>
+| 공유 해제할 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-unshared-shared-vocabulary>>
+| 공유 단어장이 아닌 단어장(개인 단어장, 다운로드 받은 단어장, 삭제된 단어장, 이미 공유가 해제된 단어장)을 공유 해제하는 경우
+| 404
+| 구분이 잘못된 요청입니다. : 공유 단어장 외에는 공유를 취소할 수 없습니다.
+
+| <<resources-add-like-to-shared-vocabulary>>
+| 공유 단어장에 좋아요 등록 시 해당 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-add-like-to-shared-vocabulary>>
+| 공유 단어장이 아닌 단어장(개인 단어장, 삭제된 단어장, 공유가 해제된 단어장 등)에 좋아요를 등록하는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 공유 단어장 외에는 좋아요를 등록하는 것이 불가능합니다. 공유가 해제된 단어장 또한 좋아요 등록이 불가능합니다.
+
+| <<resources-add-like-to-shared-vocabulary>>
+| 이미 좋아요를 등록한 단어장에 다시 좋아요를 등록하는 경우
+| 400
+| 이미 좋아요를 등록한 대상입니다.
+
+| <<resources-add-like-to-shared-vocabulary>>
+| 자신이 공유한 단어장에 좋아요를 등록하는 경우
+| 400
+| 자신이 등록한 대상에는 좋아요를 등록할 수 없습니다.
+
+| <<resources-unlike-shared-vocabulary>>
+| 좋아요가 등록 되지 않은 공유 단어장의 좋아요를 해제하는 경우
+| 400
+| 해당 회원이 이 대상에 등록한 좋아요를 찾을 수 없습니다.
+
+| <<resources-move-category>>>>
+| 카테고리 이동 시 이동시킬 단어장을 찾을 수 없는 경우
+| 404
+| 요청한 단어장을 찾을 수 없습니다.
+
+| <<resources-move-category>>>>
+| 카테고리 이동 시 이동시킬 카테고리를 찾을 수 없는 경우
+| 404
+| 요청한 카테고리를 찾을 수 없습니다.
+
+| <<resources-move-category>>>>
+| 카테고리 이동 시 이동 전 카테고리와 이동하기 위해 지정한 카테고리가 같은 경우 (== 카테고리를 이동시키지 않은 경우)
+| 404
+| 소속 카테고리가 변경되지 않았습니다. 카테고리를 이동해 주세요.
+
+| <<resources-move-category-of-personal-vocabulary>>
+| 개인 단어장을 다른 회원의 카테고리로 이동시키는 경우
+| 400
+| 현재 회원과 이동하려는 카테고리의 회원이 다릅니다.
+
+| <<resources-move-category-of-personal-vocabulary>>
+| 다른 회원의 개인 단어장의 카테고리를 이동시키는 경우
+| 401
+| 다른 회원의 단어장의 카테고리는 이동시킬 수 없습니다.
+
+| <<resources-move-category-of-personal-vocabulary>>
+| 개인 단어장을 공유 카테고리에 이동시키는 경우
+| 400
+| 카테고리와 단어장의 구분이 일치하지 않습니다. : 자신이 생성하거나 다운로드 받은 단어장은 개인카테고리로만 이동시킬 수 있습니다.
+
+| <<resources-move-category-of-personal-vocabulary>>
+| 삭제된 단어장의 카테고리를 이동시키는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 삭제되거나 공유가 해제된 단어장은 카테고리 이동이 불가능합니다.
+
+| <<resources-move-category-of-shared-vocabulary>>
+| 공유 단어장을 개인 카테고리로 이동시키는 경우
+| 400
+| 카테고리와 단어장의 구분이 일치하지 않습니다. : 공유단어장은 공유카테고리로만 이동시킬 수 있습니다.
+
+| <<resources-move-category-of-shared-vocabulary>>
+| 공유 해제된 단어장의 카테고리를 이동시키는 경우
+| 400
+| 구분이 잘못된 요청입니다. : 삭제되거나 공유가 해제된 단어장은 카테고리 이동이 불가능합니다.
+
+| <<resources-get-vocabulary>>
+| 조회할 단어장을 찾을 수 없는 경우
+| 401
+| 삭제된 단어장은 조회가 불가능합니다.
+
+| <<resources-get-personal-vocabulary>>
+| 인증되지 않은 사용자가 개인 단어장을 조회하는 경우
+| 401
+| 인증되지 않은 사용자는 해당 항목에 접근할 수 없습니다.
+
+| <<resources-get-personal-vocabulary>>
+| 다른 회원의 개인 단어장을 조회하는 경우
+| 401
+| 다른 회원의 개인 단어장은 조회할 수 없습니다.
+
+| <<resources-get-personal-vocabulary>>
+| 관리자 권한이 없는 사용자가 삭제된 단어장을 조회하는 경우
+| 401
+| 삭제된 단어장은 조회가 불가능합니다.
+
+| <<resources-get-shared-vocabulary>>
+| 관리자 권한이 없는 사용자가 공유가 해제된 단어장을 조회하는 경우
+| 401
+| 공유가 취소된 단어장은 조회가 불가능합니다.
+
+| <<resources-get-deleted-vocabulary-list-of-member>>
+| 관리자 권한이 없는 사용자가 특정 회원의 삭제된 단어장 목록을 조회하는 경우
+| 403
+| null
+
+|===
+
+[[resources]]
+= 리소스
+
+[[resources-personal-vocabulary]]
+== 개인 단어장 리소스
+
+[[resources-add-personal-vocabulary]]
+=== 개인 단어장 생성
+
+- 개인 단어장 생성 리소스는 `/api/vocabulary/personal` 의 형태로 요청합니다.
+- 인증된 회원이 개인 단어장을 생성합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 현재 Custom Vocabulary 는 한->영 사전, 영->한 사전, 단어->뜻(한->한) 사전 기능만을 지원합니다.
+- 카테고리와 썸네일 이미지는 생략 가능합니다.
+- 단어 목록 추가의 경우 단어장을 생성한 뒤 단어 목록 수정 리소스를 통해서 단어 목록을 추가해야 합니다.
+
+operation::add-personal-vocabulary[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+
+[[resources-update-word-list]]
+=== 개인 단어장 단어 목록 수정
+
+- 개인 단어장 단어 목록 수정 리소스는 `/api/vocabulary/personal/words/{vocabularyId}` 의 형태로 요청합니다.
+- 해당 리소스는 인증되지 않은 사용자는 접근이 불가능하며, 다른 회원이 생성한 단어장의 단어 목록 수정도 불가능합니다.
+
+operation::update-word-list[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+
+[[resources-check-memorize]]
+=== 단어 암기 체크
+
+- 단어 암기 체크 리소스는 `/api/vocabulary/personal/memorized/{vocabularyId}/{wordId}` 의 형태로 요청합니다.
+- 단어 암기 체크의 경우 개인 단어장(자신이 생성한 단어장, 다운로드 받은 단어장)의 단어에만 암기 체크를 할 수 있습니다.
+- 해당 리소스는 인증되지 않은 사용자는 접근이 불가능하며, 다른 회원이 생성한 단어장의 단어에는 암기 체크를 할 수 없습니다.
+
+operation::check-memorize[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-modify-personal-vocabulary]]
+=== 개인 단어장 수정
+
+- 개인 단어장 수정 리소스는 `/api/vocabulary/personal/{vocabularyId}` 의 형태로 요청합니다.
+- 자신이 생성한 개인 단어장만 수정이 가능하며 다운로드 받은 단어장, 공유한 단어장은 수정이 불가능합니다.
+- 인증된 회원이 자신이 생성한 단어장을 수정합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+
+operation::modify-personal-vocabulary[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+
+[[resources-share-personal-vocabulary]]
+=== 개인 단어장 공유
+
+- 개인 단어장 공유 리소스는 `/api/vocabulary/shared/{vocabularyId}` 의 형태로 요청합니다.
+- 자신이 생성한 개인 단어장만 공유가 가능합니다.
+- 인증된 회원이 자신이 생성한 단어장을 공유합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 다른 회원이 생성한 단어장은 공유가 불가능합니다. (다운로드 받은 단어장도 공유할 수 없습니다.)
+
+operation::share-personal-vocabulary[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+
+[[resources-get-personal-vocabulary-list]]
+=== 개인 단어장 목록 조회
+
+- 개인 단어장 목록 조회 리소스는 `/api/vocabulary/personal/{memberId}` 뒤에 parameters 를 붙여서 요청합니다.
+- 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 관리자 권한이 없는 사용자는 다른 회원의 개인 단어장 목록 조회가 불가능합니다.
+
+operation::get-personal-vocabulary-list[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+
+[[resources-delete-personal-vocabulary]]
+=== 개인 단어장 삭제
+
+- 개인 단어장 삭제 리소스는 `/api/vocabulary/personal/{vocabularyId}` 의 형태로 요청합니다.
+- 인증된 사용자가 자신의 개인 단어장을 삭제합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 다른 회원의 개인 단어장은 삭제가 불가능합니다.
+
+operation::delete-personal-vocabulary[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-shared-vocabulary]]
+== 공유 단어장 리소스
+
+[[resources-get-shared-vocabulary-list-of-member]]
+=== 특정 회원의 공유 단어장 목록 조회
+
+- 특정 회원의 공유 단어장 목록 조회 리소스는 `/api/vocabulary/shared/{memberId}` 의 형태로 요청합니다.
+- 해당 리소스는 인증되지 않은 사용자도 접근이 가능합니다. (인증 여부에 따른 응답의 차이는 없습니다.)
+
+operation::get-shared-vocabulary-list-of-member[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-get-shared-vocabulary-list]]
+=== 공유 단어장 목록 조회
+
+- 공유 단어장 목록 조회 리소스는 `/api/vocabulary/shared` 뒤에 parameters 를 붙여서 요청합니다.
+- 해당 리소스는 인증되지 않은 사용자도 접근이 가능합니다. (인증 여부에 따른 응답의 차이는 없습니다.)
+
+operation::get-shared-vocabulary-list[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+
+[[resources-download-shared-vocabulary]]
+=== 공유 단어장 다운로드
+
+- 공유 단어장 다운로드 리소스는 `/api/vocabulary/shared/download/{vocabularyId}` 의 형태로 요청합니다.
+- 인증된 사용자가 공유 단어장을 자신의 개인 단어장 목록에 다운로드합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+
+operation::download-shared-vocabulary[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+
+[[resources-unshared-shared-vocabulary]]
+=== 공유 단어장 공유 해제
+
+- 공유 단어장 공유 해제 리소스는 `/api/vocabulary/shared/{vocabularyId}` 의 형태로 요청합니다.
+- 해당 리소스는 인증된 사용자만이 접근 가능하며, 다른 회원이 공유한 단어장은 공유 해제가 불가능합니다.
+- 관리자 권한의 사용자는 다른 회원이 공유한 단어장에 대한 공유 해제가 가능합니다.
+
+operation::unshared-shared-vocabulary[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-add-like-to-shared-vocabulary]]
+=== 공유 단어장에 좋아요 등록
+
+- 공유 단어장에 좋아요 등록 리소스는 `/api/vocabulary/shared/like/{vocabularyId}` 의 형태로 요청합니다.
+- 인증된 사용자가 지정된 공유 단어장에 좋아요를 등록합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 자신이 공유한 단어장에는 좋아요를 등록할 수 없습니다.
+- 이미 좋아요를 등록한 경우 다시 좋아요를 등록할 수 없습니다.
+
+operation::add-like-to-shared-vocabulary[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-unlike-shared-vocabulary]]
+=== 공유 단어장 좋아요 해제
+
+- 공유 단어장 좋아요 해제 리소스는 `/api/vocabulary/shared/like/{vocabularyId}` 의 형태로 요청합니다.
+- 인증된 사용자가 지정된 공유 단어장에 등록된 좋아요를 해제합니다. 때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+
+operation::unlike-shared-vocabulary[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-vocabulary-common]]
+== 공통 사용 리소스
+
+[[resources-move-category]]
+=== 카테고리 이동
+
+- 카테고리 이동 리소스는 `/api/vocabulary/belongedCategory/{vocabularyId}` 의 형태로 요청합니다.
+- 카테고리 이동 리소스는 개인 단어장 카테고리 이동, 공유 단어장 카테고리 이동의 응답 fields 가 다릅니다.
+- 다른 회원이 생성하거나 공유한 단어장의 카테고리는 이동시킬 수 없습니다. +
+때문에 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 이동할 카테고리를 지정하지 않은 경우 단어장은 어떠한 카테고리에도 소속되지 않게 됩니다.
+
+[[resources-move-category-of-personal-vocabulary]]
+==== 개인 단어장 카테고리 이동
+
+- 다운로드 받은 단어장의 카테고리 이동도 개인 단어장 카테고리 이동에 해당합니다.
+
+operation::move-category-of-personal-vocabulary[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+
+[[resources-move-category-of-shared-vocabulary]]
+=== 공유 단어장 카테고리 이동
+
+operation::move-category-of-shared-vocabulary[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+
+[[resources-get-vocabulary]]
+=== 단어장 조회
+
+- 단어장 조회 리소스는 `/api/vocabulary/{vocabularyId}` 의 형태로 요청합니다.
+- 단어장 조회 리소스는 개인 단어장 조회, 공유 단어장 조회의 응답 fields 가 다릅니다.
+
+
+[[resources-get-personal-vocabulary]]
+=== 개인 단어장 조회
+
+- 다운로드된 단어장 조회도 개인 단어장 조회에 해당합니다.
+- 관리자 권한이 없는 회원은 다른 회원의 개인 단어장을 조회할 수 없습니다.
+- 인증되지 않은 사용자는 해당 리소스에 접근이 불가능합니다.
+- 관리자 권한의 사용자는 삭제된 개인 단어장도 조회가 가능합니다.
+
+operation::get-personal-vocabulary[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-get-shared-vocabulary]]
+=== 공유 단어장 조회
+
+- 공유 단어장 조회의 경우 인증되지 않은 사용자도 접근이 가능합니다. +
+다만 이 경우 해당 단어장에 좋아요 등록, 해제, 확인 권한을 갖지 않으며, 수정 및 삭제 권한 또한 갖지 않습니다.
+- 관리자 권한의 사용자는 공유가 해제된 단어장 또한 조회가 가능합니다.
+
+operation::get-shared-vocabulary[snippets='request-headers,response-fields,curl-request,http-response']
+
+[[resources-vocabulary-admin]]
+== 관리자 리소스
+
+[[resources-get-deleted-vocabulary-list-of-member]]
+=== 특정 회원의 삭제된 단어장 목록 조회
+
+- 특정 회원의 삭제된 단어장 목록 조회 리소스느 `/api/vocabulary/deleted/{memberId}` 의 형태로 요청합니다.
+- 관리자 권한이 없는 사용자는 해당 리소스에 접근이 불가능합니다.
+
+operation::get-deleted-vocabulary-list-of-member[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+

@@ -2,10 +2,10 @@ package project.study.jgm.customvocabulary.vocabulary.exception;
 
 public class DivisionMismatchException extends RuntimeException {
     public DivisionMismatchException() {
-        super("Category와 Vocabulary의 구분이 일치하지 않습니다.");
+        super("카테고리와 단어장의 구분이 일치하지 않습니다.");
     }
 
     public DivisionMismatchException(String message) {
-        super("Category와 Vocabulary의 구분이 일치하지 않습니다. : " + message);
+        super("카테고리와 단어장의 구분이 일치하지 않습니다. : " + message);
     }
 }

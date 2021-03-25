@@ -40,6 +40,7 @@ import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuild
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -91,7 +92,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 //                .andExpect(jsonPath("_links.self.href").exists())
 //                .andExpect(jsonPath("_links.login.href").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MEMBER_JOIN_SUCCESSFULLY))
-                .andDo(document("member-join",
+                .andDo(document("join",
                         requestHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type")
                         ),
@@ -210,7 +211,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
 //                .andExpect(jsonPath("_links.self.href").exists())
 //                .andExpect(jsonPath("_links.index.href").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_MEMBER_SUCCESSFULLY))
-                .andDo(document("member-get-one",
+                .andDo(document("get-member",
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
@@ -390,6 +391,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto tokenDto = memberService.login(loginDto);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
+        memberUpdateDto.setPassword(memberCreateDto.getPassword());
+
         //when
 
         //then
@@ -397,7 +400,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + joinMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password", memberCreateDto.getPassword())
+//                                .param("password", memberCreateDto.getPassword())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -419,16 +422,14 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MODIFIED_MEMBER_INFO_SUCCESSFULLY))
-                .andDo(document("member-modify",
+                .andDo(document("modify-member",
                         requestHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
-                        requestParameters(
-                                parameterWithName("password").description("본인 확인을 위한 해당 회원의 로그인 비밀번호")
-                        ),
                         requestFields(
                                 fieldWithPath("joinId").description("수정할 로그인 ID"),
+                                fieldWithPath("password").description("본인확인을 위한 비밀번호"),
                                 fieldWithPath("email").description("수정할 개인 Email"),
                                 fieldWithPath("name").description("수정할 이름"),
                                 fieldWithPath("nickname").description("수정할 활동명"),
@@ -471,6 +472,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         Member user2 = memberService.userJoin(memberCreateDto1);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto(user2.getJoinId(), "update nickname");
+        memberUpdateDto.setPassword(memberCreateDto1.getPassword());
         //when
 
         //then
@@ -478,7 +480,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + joinMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password", memberCreateDto.getPassword())
+//                                .param("password", memberCreateDto.getPassword())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -617,6 +619,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         Member adminMember = memberService.adminJoin(memberCreateDto1);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
+        memberUpdateDto.setPassword(memberCreateDto.getPassword());
         //when
 
         //then
@@ -624,7 +627,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + adminMember.getId())
                                 .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
-                                .param("password", memberCreateDto.getPassword())
+//                                .param("password", memberCreateDto.getPassword())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -648,6 +651,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
         TokenDto tokenDto = memberService.login(loginDto);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
+        memberUpdateDto.setPassword("fdasfdsafdas");
+
         //when
 
         //then
@@ -655,7 +660,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         put("/api/members/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password", "fdjasklfdjak")
+//                                .param("password", "fdjasklfdjak")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(memberUpdateDto))
                 )
@@ -696,7 +701,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.CHANGED_PASSWORD_SUCCESSFULLY))
-                .andDo(document("member-update-password",
+                .andDo(document("update-password",
                         requestHeaders(
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
                                 headerWithName(X_AUTH_TOKEN).description("해당 리소스에 접근하기 위해 발급된 Access Token 기입")
@@ -907,7 +912,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/secession/" + userMember.getId())
+                        delete("/api/members/secession/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
                                 .param("password", memberCreateDto.getPassword())
                 );
@@ -917,7 +922,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.SECESSION_SUCCESSFULLY))
-                .andDo(document("member-secession",
+                .andDo(document("secession",
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
@@ -953,7 +958,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/secession/" + userMember.getId())
+                        delete("/api/members/secession/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
                                 .param("password", "ㄹㅇㅁㄴㄹㅇㄴㅁ")
                 );
@@ -978,7 +983,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/secession/" + userMember.getId())
+                        delete("/api/members/secession/" + userMember.getId())
 //                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
                                 .param("password", memberCreateDto.getPassword())
                 );
@@ -1009,7 +1014,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/secession/" + userMember2.getId())
+                        delete("/api/members/secession/" + userMember2.getId())
                                 .header(X_AUTH_TOKEN, userMember1TokenDto.getAccessToken())
                                 .param("password", memberCreateDto.getPassword())
                 );
@@ -1101,7 +1106,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").value(true))
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_MEMBER_LIST_BY_ADMIN_SUCCESSFULLY))
-                .andDo(document("member-admin-get-list",
+                .andDo(document("get-member-list",
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                                 ),
@@ -1328,7 +1333,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.BAN_SUCCESSFULLY))
-                .andDo(document("member-admin-ban",
+                .andDo(document("ban",
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
@@ -1470,7 +1475,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/changeToUser/" + userMember.getId())
+                        put("/api/members/restoration/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1492,7 +1497,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY))
-                .andDo(document("member-admin-role-to-user",
+                .andDo(document("restoration",
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
@@ -1537,7 +1542,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/changeToUser/" + userMember.getId())
+                        put("/api/members/restoration/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1559,7 +1564,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("data.updateDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.CHANGE_MEMBER_ROLE_TO_USER_SUCCESSFULLY))
-//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + userMember.getId()))
+//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/restoration/" + userMember.getId()))
 //                .andExpect(jsonPath("_links.get-member.href").value(linkToGetMember(userMember.getId()).toUri().toString()))
 //                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
         ;
@@ -1586,7 +1591,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/changeToUser/" + userMember.getId())
+                        put("/api/members/restoration/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, userMember1TokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1616,7 +1621,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/changeToUser/" + userMember.getId())
+                        put("/api/members/restoration/" + userMember.getId())
 //                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1644,7 +1649,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/changeToUser/" + adminMember2.getId())
+                        put("/api/members/restoration/" + adminMember2.getId())
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1653,7 +1658,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").value(new MemberAlreadyHasAuthorityException().getMessage()))
-//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + adminMember2.getId()))
+//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/restoration/" + adminMember2.getId()))
 //                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
         ;
     }
@@ -1676,7 +1681,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         //when
         ResultActions perform = mockMvc
                 .perform(
-                        put("/api/members/changeToUser/" + userMember.getId())
+                        put("/api/members/restoration/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                 )
                 .andDo(print());
@@ -1685,7 +1690,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("message").value(new MemberAlreadyHasAuthorityException().getMessage()))
-//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/changeToUser/" + userMember.getId()))
+//                .andExpect(jsonPath("_links.self.href").value(MEMBER_API_CONTROLLER_REQUEST_VALUE + "/restoration/" + userMember.getId()))
 //                .andExpect(jsonPath("_links.index.href").value(linkToIndex().toUri().toString()))
         ;
     }

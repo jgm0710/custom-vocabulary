@@ -189,8 +189,11 @@ public class VocabularyApiController {
             if (!findVocabulary.getProprietor().getId().equals(member.getId())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(SHARE_VOCABULARY_OF_DIFFERENT_MEMBER));
             }
+
             Vocabulary sharedVocabulary = vocabularyService.share(vocabularyId, categoryId);
+
             SharedVocabularyDetailDto sharedVocabularyDetailDto = SharedVocabularyDetailDto.sharedVocabularyToDetail(sharedVocabulary, modelMapper);
+            sharedVocabularyDetailDto.setViewLike(false);
             sharedVocabularyDetailDto.setPermissionToDeleteAndModify(true);
             URI getSharedVocabularyUri = linkTo(VocabularyApiController.class).slash("shared").slash(sharedVocabulary.getId()).toUri();
 
@@ -396,7 +399,7 @@ public class VocabularyApiController {
      */
 
     @GetMapping("/shared/{memberId}")
-    public ResponseEntity<?> getSharedVocabularyListByMember(
+    public ResponseEntity<?> getSharedVocabularyListOfMember(
             @PathVariable Long memberId,
             @ModelAttribute @Valid CriteriaDto criteriaDto,
             BindingResult bindingResult
@@ -428,12 +431,12 @@ public class VocabularyApiController {
 
     @GetMapping("/shared")
     public ResponseEntity<?> getSharedVocabularyList(
-            @RequestBody @Valid SharedVocabularySearchDto searchDto,
-            Errors errors
+            @ModelAttribute @Valid SharedVocabularySearchDto searchDto,
+            BindingResult bindingResult
     ) {
 
-        if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult);
         }
 
         QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(searchDto.getCriteriaDto(), searchDto.getCategoryId(), searchDto.getTitle(), searchDto.getSortCondition());
@@ -488,8 +491,10 @@ public class VocabularyApiController {
             Vocabulary findVocabulary = vocabularyService.getVocabulary(vocabularyId);
             decreaseViewWhenGettingSharedVocabulary(findVocabulary);
 
-            if (!findVocabulary.getWriter().getId().equals(member.getId())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(UNSHARED_SHARED_VOCABULARY_OF_DIFFERENT_MEMBER));
+            if (!member.getRoles().contains(MemberRole.ADMIN)) {
+                if (!findVocabulary.getWriter().getId().equals(member.getId())) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(UNSHARED_SHARED_VOCABULARY_OF_DIFFERENT_MEMBER));
+                }
             }
 
             vocabularyService.unshared(vocabularyId);

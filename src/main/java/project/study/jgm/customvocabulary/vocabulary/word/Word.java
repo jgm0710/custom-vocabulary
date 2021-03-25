@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.LAZY;
 public class Word {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "word_id")
     private Long id;
 

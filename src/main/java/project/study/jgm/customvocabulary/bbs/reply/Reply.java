@@ -22,7 +22,7 @@ import static javax.persistence.FetchType.LAZY;
 public class Reply {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reply_id")
     private Long id;
 

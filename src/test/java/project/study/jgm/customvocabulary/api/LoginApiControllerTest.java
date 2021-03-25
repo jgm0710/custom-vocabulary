@@ -73,6 +73,7 @@ class LoginApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("password").description("회원 가입 시 입력한 로그인 비밀번호")
                         ),
                         responseFields(
+                                fieldWithPath("data.memberId").description("로그인된 회원의 식별 ID"),
                                 fieldWithPath("data.accessToken").description("리소스에 접근하기 위한 Access Token"),
                                 fieldWithPath("data.accessTokenExpirationSecond").description("Access Token 유효 시간 [sec]"),
                                 fieldWithPath("data.refreshToken").description("Access Token 을 재발급하기 위한 Refresh Token"),
@@ -177,6 +178,7 @@ class LoginApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("refreshToken").description("로그인 시 발급해주는 Refresh Token 을 기입")
                         ),
                         responseFields(
+                                fieldWithPath("data.memberId").description("로그인된 회원의 식별 ID"),
                                 fieldWithPath("data.accessToken").description("재발급된 Access Token"),
                                 fieldWithPath("data.accessTokenExpirationSecond").description("재발급된 Access Token 유효 시간"),
                                 fieldWithPath("data.refreshToken").description("사용한 Refresh Token"),

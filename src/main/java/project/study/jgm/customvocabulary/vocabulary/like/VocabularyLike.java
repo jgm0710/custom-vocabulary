@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.LAZY;
 public class VocabularyLike {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "vocabulary_like_id")
     private Long id;
 

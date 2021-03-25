@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class TokenDto {
 
+    private Long memberId;
+
     private String accessToken;
 
     private long accessTokenExpirationSecond;

@@ -20,7 +20,7 @@ import static javax.persistence.FetchType.LAZY;
 public class ReplyLike {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reply_like_id")
     private Long id;
 

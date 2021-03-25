@@ -19,7 +19,7 @@ public class WordRequestDto {
     private String mainWord;
     @NotBlank(message = "Sub word 를 입력해주세요.")
     private String subWord;
-    private boolean memorisedCheck;
+    private boolean memorisedCheck = false;
 
 //.imageFileId
 //.mainWord

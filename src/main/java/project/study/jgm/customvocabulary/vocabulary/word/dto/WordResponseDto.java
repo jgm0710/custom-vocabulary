@@ -15,6 +15,7 @@ import project.study.jgm.customvocabulary.vocabulary.word.upload.WordImageFile;
 @NoArgsConstructor
 public class WordResponseDto {
 
+    private Long id;
     private UploadFileResponseDto imageInfo;
     private String mainWord;
     private String subWord;
@@ -25,6 +26,7 @@ public class WordResponseDto {
         UploadFileResponseDto uploadFileResponseDto = modelMapper.map(wordImageFile, UploadFileResponseDto.class);
 
         return WordResponseDto.builder()
+                .id(word.getId())
                 .imageInfo(uploadFileResponseDto)
                 .mainWord(word.getMainWord())
                 .subWord(word.getSubWord())

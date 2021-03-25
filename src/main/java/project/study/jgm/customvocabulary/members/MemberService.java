@@ -198,6 +198,7 @@ public class MemberService {
         List<String> roles = findMember.getRoles().stream().map(memberRole -> memberRole.getRoleName()).collect(Collectors.toList());
         String accessToken = jwtTokenProvider.createToken(findMember.getJoinId(), roles);
         return TokenDto.builder()
+                .memberId(findMember.getId())
                 .accessToken(accessToken)
                 .accessTokenExpirationSecond(securityProperties.getTokenValidSecond())
                 .refreshToken(findMember.getLoginInfo().getRefreshToken())

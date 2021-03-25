@@ -2,6 +2,7 @@ package project.study.jgm.customvocabulary.vocabulary;
 
 import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class VocabularyService {
 
     private final VocabularyRepository vocabularyRepository;
@@ -130,6 +132,7 @@ public class VocabularyService {
 
         vocabulary.addWordList(wordList);
 
+        em.flush();
     }
 
     public void checkMemorise(Long wordId) {
@@ -181,7 +184,9 @@ public class VocabularyService {
             }
         }
 
-        return vocabularyRepository.save(sharedVocabulary);
+        Vocabulary savedVocabulary = vocabularyRepository.save(sharedVocabulary);
+
+        return savedVocabulary;
     }
 
     public void deletePersonalVocabulary(Long vocabularyId) {

@@ -1,6 +1,7 @@
 package project.study.jgm.customvocabulary.api;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +34,7 @@ import static project.study.jgm.customvocabulary.common.dto.MessageVo.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/members")
+@Slf4j
 public class MemberApiController {
 
     private final MemberService memberService;
@@ -86,6 +88,7 @@ public class MemberApiController {
             }
 
         } catch (MemberNotFoundException e) {
+            log.info("Member not found -> Get member fail...");
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ResponseDto<>(e.getMessage()));
         }
@@ -95,7 +98,7 @@ public class MemberApiController {
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity modifyMember(
             @PathVariable("memberId") Long memberId,
-            @RequestParam String password,
+//            @RequestParam String password,
             @RequestBody @Valid MemberUpdateDto memberUpdateDto,
             Errors errors,
             @CurrentUser Member member
@@ -112,7 +115,7 @@ public class MemberApiController {
         }
 
         try {
-            memberService.modifyMember(memberId, password, memberUpdateDto);
+            memberService.modifyMember(memberId, memberUpdateDto.getPassword(), memberUpdateDto);
         } catch (MemberNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ResponseDto<>(e.getMessage()));
@@ -160,7 +163,7 @@ public class MemberApiController {
                 .ok(new ResponseDto<>(CHANGED_PASSWORD_SUCCESSFULLY));
     }
 
-    @PutMapping("/secession/{memberId}")
+    @DeleteMapping("/secession/{memberId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity secession(@PathVariable("memberId") Long memberId,
                                     @RequestParam String password,
@@ -228,7 +231,7 @@ public class MemberApiController {
         return ResponseEntity.ok(new ResponseDto<>(memberAdminViewDto, BAN_SUCCESSFULLY));
     }
 
-    @PutMapping("/changeToUser/{memberId}")
+    @PutMapping("/restoration/{memberId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity changeMemberRoleToUser(
             @PathVariable("memberId") Long memberId

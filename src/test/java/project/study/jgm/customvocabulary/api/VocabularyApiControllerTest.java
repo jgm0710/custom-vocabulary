@@ -3,6 +3,7 @@ package project.study.jgm.customvocabulary.api;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
@@ -43,7 +44,13 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -111,7 +118,42 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.PERSONAL.name()))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.ADD_VOCABULARY_SUCCESSFULLY))
-
+                .andDo(document("add-personal-vocabulary",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("categoryId").description("생성될 단어장이 포함될 개인 카테고리 (생략 가능)"),
+                                fieldWithPath("title").description("생성될 단어장의 제목"),
+                                fieldWithPath("difficulty").description("생성될 단어장의 난이도"),
+                                fieldWithPath("mainLanguage").description("생성될 단어장의 뜻으로 사용될 Main 언어 : 한국어, 영어 [KOREAN, ENGLISH]"),
+                                fieldWithPath("subLanguage").description("생성될 단어장의 외워야 할 언어로 사용될 Sub 언어 : 한국어, 영어 [KOREAN, ENGLISH]"),
+                                fieldWithPath("imageFileId").description("생성될 단어장에 추가할 썸네일 이미지 파일의 식별 ID")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("생성된 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("생성된 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("생성된 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("생성된 단어장이 포함된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("생성된 단어장이 포함된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("생성된 단어장에 추가된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("생성된 단어장에 추가된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("생성된 단어장에 추가된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("생성된 단어장에 추가된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("생성된 단어장에 추가된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("생성된 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("생성된 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("생성된 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[]").description("생성된 단어장에 포함된 단어 목록"),
+                                fieldWithPath("data.difficulty").description("생성된 단어장의 난이도"),
+                                fieldWithPath("data.memorisedCount").description("생성된 단어장의 암기된 단어의 개수"),
+                                fieldWithPath("data.totalWordCount").description("생성된 단어장의 단어 목록의 총 개수"),
+                                fieldWithPath("data.division").description("생성된 단어장의 구분 : 자신이 생성한 개인 단어장, 공유 단어장을 다운로드한 복사된 단어장 [PERSONAL, COPIED]"),
+                                fieldWithPath("data.registerDate").description("생성된 단어장의 생성 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -389,6 +431,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         OnlyWordRequestListDto onlyWordRequestListDto = new OnlyWordRequestListDto(wordRequestDtoList);
 
+        em.flush();
+        em.clear();
 
         //when
         ResultActions perform = mockMvc.perform(
@@ -430,6 +474,48 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.PERSONAL.name()))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.UPDATE_WORD_LIST_OF_PERSONAL_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("update-word-list",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("wordList[0].imageFileId").description("개인 단어장의 변경할 단어 목록 중 첫 번째 단어에 추가된 이미지 파일의 식별 ID"),
+                                fieldWithPath("wordList[0].mainWord").description("개인 단어장의 변경할 단어 목록 중 첫 번째 단어의 Main 단어"),
+                                fieldWithPath("wordList[0].subWord").description("개인 단어장의 변경할 단어 목록 중 첫 번째 단어의 Sub 단어"),
+                                fieldWithPath("wordList[0].memorisedCheck").description("개인 단어장의 변경할 단어 목록 중 첫 번째 단어의 암기 상태")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("단어 목록이 변경된 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("단어 목록이 변경된 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("단어 목록이 변경된 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("단어 목록이 변경된 단어장이 포함된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("단어 목록이 변경된 단어장이 포함된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("단어 목록이 변경된 단어장에 추가된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("단어 목록이 변경된 단어장에 추가된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("단어 목록이 변경된 단어장에 추가된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("단어 목록이 변경된 단어장에 추가된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("단어 목록이 변경된 단어장에 추가된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("단어 목록이 변경된 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("단어 목록이 변경된 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("단어 목록이 변경된 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("단어 목록이 변경된 단어장에 포함된 단어 목록 중 첫 번째 단어의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("단어 목록이 변경된 단어장의 난이도"),
+                                fieldWithPath("data.memorisedCount").description("단어 목록이 변경된 단어장의 암기된 단어의 개수"),
+                                fieldWithPath("data.totalWordCount").description("단어 목록이 변경된 단어장의 단어 목록의 총 개수"),
+                                fieldWithPath("data.division").description("단어 목록이 변경된 단어장의 구분 : 자신이 생성한 개인 단어장, 공유 단어장을 다운로드한 복사된 단어장 [PERSONAL, COPIED]"),
+                                fieldWithPath("data.registerDate").description("단어 목록이 변경된 단어장의 생성 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -867,8 +953,24 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.subWord").value(findWord.getSubWord()))
                 .andExpect(jsonPath("data.memorisedCheck").value(true))
                 .andExpect(jsonPath("message").value(MessageVo.CHECK_MEMORIZE_SUCCESSFULLY))
+                .andDo(document("check-memorize",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("암기 체크된 단어의 식별 ID"),
+                                fieldWithPath("data.imageInfo.fileId").description("암기 체크된 단어에 등록된 파일의 식별 ID"),
+                                fieldWithPath("data.imageInfo.fileName").description("암기 체크된 단어에 등록된 파일의 이름"),
+                                fieldWithPath("data.imageInfo.fileDownloadUri").description("암기 체크된 단어에 등록된 파일의 다운로드 URI"),
+                                fieldWithPath("data.imageInfo.fileType").description("암기 체크된 단어에 등록된 파일의 타입"),
+                                fieldWithPath("data.imageInfo.size").description("암기 체크된 단어에 등록된 파일의 크기"),
+                                fieldWithPath("data.mainWord").description("암기 체크된 단어의 Main 단어"),
+                                fieldWithPath("data.subWord").description("암기 체크된 단어의 Sub 단어"),
+                                fieldWithPath("data.memorisedCheck").description("암기 체크된 단어의 암기 상태"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
-
     }
 
     @Test
@@ -1289,6 +1391,47 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.PERSONAL.name()))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MODIFY_PERSONAL_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("modify-personal-vocabulary",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type"),
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestFields(
+                                fieldWithPath("title").description("수정할 제목"),
+                                fieldWithPath("difficulty").description("수정할 난이도"),
+                                fieldWithPath("imageFileId").description("수정 시 등록할 썸네일 이미지 파일의 식별 ID")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("수정된 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("수정된 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("수정된 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("수정된 단어장이 포함된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("수정된 단어장이 포함된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("수정된 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("수정된 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("수정된 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("수정된 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("수정된 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("수정된 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("수정된 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("수정된 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("수정된 단어장의 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("수정된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("수정된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("수정된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("수정된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("수정된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("수정된 단어장의 단어 목록 중 첫 번째 단어의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("수정된 단어장의 단어 목록 중 첫 번째 단어의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("수정된 단어장의 단어 목록 중 첫 번째 단어의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("수정된 단어장의 난이도"),
+                                fieldWithPath("data.memorisedCount").description("수정된 단어장의 암기된 단어의 수"),
+                                fieldWithPath("data.totalWordCount").description("수정된 단어장의 총 단어 개수"),
+                                fieldWithPath("data.division").description("수정된 단어장의 구분([PERSONAL] 단어장만 수정 가능)"),
+                                fieldWithPath("data.registerDate").description("수정된 단어장의 생성 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -1650,6 +1793,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.title").value(personalVocabularySample.getTitle()))
                 .andExpect(jsonPath("data.mainLanguage").value(personalVocabularySample.getMainLanguage().name()))
                 .andExpect(jsonPath("data.subLanguage").value(personalVocabularySample.getSubLanguage().name()))
+                .andExpect(jsonPath("data.wordList[0].id").exists())
                 .andExpect(jsonPath("data.wordList[0].imageInfo.fileId").exists())
                 .andExpect(jsonPath("data.wordList[0].imageInfo.fileName").exists())
                 .andExpect(jsonPath("data.wordList[0].imageInfo.fileDownloadUri").exists())
@@ -1667,6 +1811,49 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.SHARE_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("share-personal-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("categoryId").description("단어장 공유 시 해당 단어가 소속될 카테고리 지정(생략 가능)")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("공유된 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("공유된 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("공유된 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("공유된 단어장이 소속된 공유 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("공유된 단어장이 소속된 공유 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("공유된 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("공유된 단어장에 등록된 썸네일 이미지 파일의이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("공유된 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("공유된 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("공유된 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("공유된 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("공유된 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("공유된 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("공유된 단어장의 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("공유된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("공유된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("공유된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("공유된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("공유된 단어장의 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("공유된 단어장의 단어 목록 중 첫 번째 단어의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("공유된 단어장의 단어 목록 중 첫 번째 단어의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("공유된 단어장의 단어 목록 중 첫 번째 단어의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("공유된 단어장의 난이도"),
+                                fieldWithPath("data.views").description("공유된 단어장의 조회 수"),
+                                fieldWithPath("data.likeCount").description("공유된 단어장에 등록된 좋아요 수"),
+                                fieldWithPath("data.downloadCount").description("공유된 단어장이 다운로드 된 횟수"),
+                                fieldWithPath("data.totalWordCount").description("공유된 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.division").description("공유된 단어장의 구분 (공유 단어장이므로 [SHARED] 가 나옴)"),
+                                fieldWithPath("data.like").description("자신이 공유한 단어장 이므로 좋아요 등록 여부는 무시합니다."),
+                                fieldWithPath("data.viewLike").description("공유된 단어장에 대한 인증된 회원의 좋아요 등록, 해제, 확인 권한 여부 (자신이 생성한 단어장이므로 viewLike=false)"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("해당 공유 단어장에 대한 인증된 회원의 수정 및 삭제 권한 여부"),
+                                fieldWithPath("data.registerDate").description("공유된 단어장의 생성 날자"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -2035,6 +2222,45 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_PERSONAL_VOCABULARY_LIST_SUCCESSFULLY))
+                .andDo(document("get-personal-vocabulary-list",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("pageNum").description("조회할 페이지 (1보다 작을 수 없습니다.)"),
+                                parameterWithName("limit").description("조회할 개수 (1~100 사이의 값만 입력 가능합니다.)"),
+                                parameterWithName("categoryId").description("어떤 카테고리에 소속된 단어장을 조회할 것인지 기입 (기입하지 않으면 특정 카테고리에 소속되지 않은 단어장 목록이 조회됩니다.)")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.id").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.nickname").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].category.id").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.list[0].category.name").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileId").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileName").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileDownloadUri").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileType").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.list[0].thumbnailInfo.size").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.list[0].title").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 제목"),
+                                fieldWithPath("data.list[0].mainLanguage").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 Main 언어"),
+                                fieldWithPath("data.list[0].subLanguage").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 Sub 언어"),
+                                fieldWithPath("data.list[0].difficulty").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 난이도"),
+                                fieldWithPath("data.list[0].memorisedCount").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 암기된 단어의 개수"),
+                                fieldWithPath("data.list[0].totalWordCount").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.list[0].division").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 구분 [PERSONAL, COPIED]"),
+                                fieldWithPath("data.list[0].registerDate").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
+                                fieldWithPath("data.paging.totalCount").description("해당 검색 조건에 만족하는 단어장의 총 개수 (카테고리만 지정이 가능하므로 해당 카테고리에 소속된 단어장의 총 개수)"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("단어장 목록의 조회된 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("단어장 목록의 조회된 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
+                                fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요청된 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("해당 검색 조건에 만족하는 단어장 목록의 총 페이지 개수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -2466,6 +2692,44 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.PERSONAL.name()))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MOVE_CATEGORY_OF_PERSONAL_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("move-category-of-personal-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("categoryId").description("이동할 카테고리의 식별 ID")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("카테고리를 이동한 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("카테고리를 이동한 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("카테고리를 이동한 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("이동된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("이동된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("카테고리를 이동한 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("카테고리를 이동한 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("카테고리를 이동한 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("카테고리를 이동한 단어장의 난이도"),
+                                fieldWithPath("data.memorisedCount").description("카테고리를 이동한 단어장의 암기된 단어 개수"),
+                                fieldWithPath("data.totalWordCount").description("카테고리를 이동한 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.division").description("카테고리를 이동한 단어장의 구분 [PERSONAL, COPIED]"),
+                                fieldWithPath("data.registerDate").description("카테고리를 이동한 단어장의 생성 날짜 (다운로드 받은 단어장의 경우 다운로드된 날짜)"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -2838,7 +3102,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("message").value("Category와 Vocabulary의 구분이 일치하지 않습니다. : 자신이 생성하거나 다운로드 받은 단어장은 개인카테고리로만 이동시킬 수 있습니다."))
+                .andExpect(jsonPath("message").value("카테고리와 단어장의 구분이 일치하지 않습니다. : 자신이 생성하거나 다운로드 받은 단어장은 개인카테고리로만 이동시킬 수 있습니다."))
         ;
 
     }
@@ -2993,6 +3257,49 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.MOVE_CATEGORY_OF_SHARED_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("move-category-of-shared-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("categoryId").description("이동할 카테고리의 식별 ID")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("카테고리를 이동한 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("카테고리를 이동한 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("카테고리를 이동한 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("이동된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("이동된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("카테고리를 이동한 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("카테고리를 이동한 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("카테고리를 이동한 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("카테고리를 이동한 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("카테고리를 이동한 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("카테고리를 이동한 단어장의 난이도"),
+                                fieldWithPath("data.views").description("카테고리를 이동한 단어장의 조회 수"),
+                                fieldWithPath("data.likeCount").description("카테고리를 이동한 단어장에 등록된 좋아요 수"),
+                                fieldWithPath("data.downloadCount").description("카테고리를 이동한 단어장이 다운로드된 횟수"),
+                                fieldWithPath("data.like").description("인증된 해원이 해당 단어장에 좋아요를 등록했는지 여부 (자신이 공유한 단어장만 카테고리 위치를 수정할 수 있으므로 해당 데이터는 무시합니다.)"),
+                                fieldWithPath("data.viewLike").description("해당 단어장에 대한 인증된 회원의 좋아요 등록, 해제, 확인 권한 여부"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("해당 단어장에 대한 인증된 회원의 수정 및 삭제 권한 여부"),
+                                fieldWithPath("data.totalWordCount").description("카테고리를 이동한 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.division").description("카테고리를 이동한 단어장의 구분 [PERSONAL, COPIED]"),
+                                fieldWithPath("data.registerDate").description("카테고리를 이동한 단어장의 생성 날짜 (다운로드 받은 단어장의 경우 다운로드된 날짜)"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -3035,7 +3342,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("message").value("Category와 Vocabulary의 구분이 일치하지 않습니다. : 공유단어장은 공유카테고리로만 이동시킬 수 있습니다."))
+        .andExpect(jsonPath("message").value("카테고리와 단어장의 구분이 일치하지 않습니다. : 공유단어장은 공유카테고리로만 이동시킬 수 있습니다."))
         ;
 
     }
@@ -3143,6 +3450,41 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.PERSONAL.name()))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_PERSONAL_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("get-personal-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("조회된 개인 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("조회된 개인 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("조회된 개인 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("조회된 개인 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("조회된 개인 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("조회된 개인 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("조회된 개인 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("조회된 개인 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("조회된 개인 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("조회된 개인 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("조회된 개인 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("조회된 개인 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("조회된 개인 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("조회된 개인 단어장에 등록된 단어 목록 중 첫 번째 단어의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("조회된 개인 단어장의 난이도"),
+                                fieldWithPath("data.memorisedCount").description("조회된 개인 단어장의 암기된 단어 개수"),
+                                fieldWithPath("data.totalWordCount").description("조회된 개인 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.division").description("조회된 개인 단어장의 구분 [PERSONAL, COPIED, DELETE]"),
+                                fieldWithPath("data.registerDate").description("조회된 개인 단어장의 생성 날짜 (다운로드된 단어장의 경우 다운로드 날짜)"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION))
+                        )
+                )
         ;
 
     }
@@ -3634,6 +3976,46 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.permissionToDeleteAndModify").value(true))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_SHARED_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("get-shared-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("조회된 공유 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("조회된 공유 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("조회된 공유 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("조회된 공유 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("조회된 공유 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("조회된 공유 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("조회된 공유 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("조회된 공유 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("조회된 공유 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("조회된 공유 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("조회된 공유 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("조회된 공유 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("조회된 공유 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("조회된 공유 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("조회된 공유 단어장의 난이도"),
+                                fieldWithPath("data.views").description("조회된 공유 단어장의 조회 수"),
+                                fieldWithPath("data.likeCount").description("조회된 공유 단어장에 등록된 좋아요 수"),
+                                fieldWithPath("data.downloadCount").description("조회된 공유 단어장이 다운로드된 횟수"),
+                                fieldWithPath("data.totalWordCount").description("조회된 공유 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.division").description("조회된 공유 단어장의 구분 [SHARED, UNSHARED]"),
+                                fieldWithPath("data.like").description("해당 단어장에 인증된 회원이 좋아요를 등록했는지 여부"),
+                                fieldWithPath("data.viewLike").description("해당 단어장에 대한 인증된 회원의 좋아요 등록, 해제, 확인 권한 여부"),
+                                fieldWithPath("data.permissionToDeleteAndModify").description("해당 단어장에 대한 인증된 회원의 수정 및 삭제 권한"),
+                                fieldWithPath("data.registerDate").description("조회된 공유 단어장의 공유된 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -3760,7 +4142,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
     @Test
     @DisplayName("인증되지 않은 사용자가 특정 회원이 공유한 단어장 목록 조회")
-    public void getSharedVocabularyListByMember() throws Exception {
+    public void getSharedVocabularyListOfMember() throws Exception {
         //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
@@ -3819,8 +4201,111 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("User 권한의 사용자가 특정 회원이 공유한 단어장 목록 조회")
+    public void getSharedVocabularyListOfMember_By_User() throws Exception {
+        //given
+        final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        final Member user1 = memberService.userJoin(memberCreateDto);
+
+        final Category personalCategorySample = createPersonalCategorySample(user1);
+
+        final Category sharedCategory = createCategory(null, CategoryDivision.SHARED, "shared category", null, 1);
+        final Category sharedCategory2 = createCategory(null, CategoryDivision.SHARED, "shared category2", null, 2);
+
+
+        for (int i = 0; i < 5; i++) {
+            final Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "personal to shared vocabulary" + i);
+            vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
+            final Vocabulary personalVocabularySample1 = createPersonalVocabularySample(user1, personalCategorySample, "personal to shared vocabulary" + i * 4);
+            vocabularyService.share(personalVocabularySample1.getId(), sharedCategory2.getId());
+        }
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("user2", "user2");
+        Member user2 = memberService.userJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user2.getLoginInfo().getRefreshToken());
+        TokenDto user2TokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        final ResultActions perform = mockMvc.perform(
+                get("/api/vocabulary/shared/" + user1.getId())
+                        .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.list[0].id").exists())
+                .andExpect(jsonPath("data.list[0].writer.id").exists())
+                .andExpect(jsonPath("data.list[0].writer.nickname").exists())
+                .andExpect(jsonPath("data.list[0].category.id").exists())
+                .andExpect(jsonPath("data.list[0].category.name").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileId").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileName").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileDownloadUri").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.fileType").exists())
+                .andExpect(jsonPath("data.list[0].thumbnailInfo.size").exists())
+                .andExpect(jsonPath("data.list[0].title").exists())
+                .andExpect(jsonPath("data.list[0].mainLanguage").exists())
+                .andExpect(jsonPath("data.list[0].subLanguage").exists())
+                .andExpect(jsonPath("data.list[0].difficulty").exists())
+                .andExpect(jsonPath("data.list[0].views").exists())
+                .andExpect(jsonPath("data.list[0].likeCount").exists())
+                .andExpect(jsonPath("data.list[0].downloadCount").exists())
+                .andExpect(jsonPath("data.list[0].totalWordCount").exists())
+                .andExpect(jsonPath("data.list[0].division").exists())
+                .andExpect(jsonPath("data.list[0].registerDate").exists())
+                .andExpect(jsonPath("data.paging.totalCount").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").exists())
+                .andExpect(jsonPath("data.paging.criteriaDto.limit").exists())
+                .andExpect(jsonPath("data.paging.startPage").exists())
+                .andExpect(jsonPath("data.paging.endPage").exists())
+                .andExpect(jsonPath("data.paging.prev").exists())
+                .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andExpect(jsonPath("message").value(MessageVo.GET_SHARED_VOCABULARY_LIST_BY_MEMBER_SUCCESSFULLY))
+                .andDo(document("get-shared-vocabulary-list-of-member",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.id").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.nickname").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].category.id").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.list[0].category.name").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileId").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileName").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileDownloadUri").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileType").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.list[0].thumbnailInfo.size").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.list[0].title").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 제목"),
+                                fieldWithPath("data.list[0].mainLanguage").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 Main 언어"),
+                                fieldWithPath("data.list[0].subLanguage").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 Sub 언어"),
+                                fieldWithPath("data.list[0].difficulty").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 난이도"),
+                                fieldWithPath("data.list[0].views").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 조회 수"),
+                                fieldWithPath("data.list[0].likeCount").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 좋아요 수"),
+                                fieldWithPath("data.list[0].downloadCount").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장이 다운로드 된 횟수"),
+                                fieldWithPath("data.list[0].totalWordCount").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.list[0].division").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 구분 (공유 단어장 목록 조회이므로 [SHARED] 가 나옴)"),
+                                fieldWithPath("data.list[0].registerDate").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
+                                fieldWithPath("data.paging.totalCount").description("요청된 회원이 공유한 단어장의 총 개수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("단어장 목록의 조회된 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("단어장 목록의 조회된 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
+                                fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요천된 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("해당 검색 조건에 만족하는 단어장 목록의 총 페이지 개수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
+
+    }
+
+    @Test
     @DisplayName("특정 회원이 공유한 단어장 목록 조회 시 페이징 값을 잘 못 입력한 경우")
-    public void getSharedVocabularyListByMember_WrongCriteria() throws Exception {
+    public void getSharedVocabularyListOfMember_WrongCriteria() throws Exception {
         //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
@@ -3900,17 +4385,15 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         em.flush();
         em.clear();
 
-        final SharedVocabularySearchDto searchDto = SharedVocabularySearchDto.builder()
-//                .categoryId(sharedCategory1.getId())
-                .criteriaDto(new CriteriaDto(1, 20))
-                .sortCondition(VocabularySortCondition.LATEST_DESC)
-//                .title()
-                .build();
         //when
         final ResultActions perform = mockMvc.perform(
                 get("/api/vocabulary/shared")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(searchDto))
+                .param("categoryId",sharedCategory1.getId().toString())
+                .param("criteriaDto.pageNum","1")
+                .param("criteriaDto.limit","20")
+                .param("sortCondition",VocabularySortCondition.LATEST_DESC.name())
+                .param("title","vocabulary")
         ).andDo(print());
 
         //then
@@ -3945,6 +4428,50 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_SHARED_VOCABULARY_LIST_SUCCESSFULLY))
+                .andDo(document("get-shared-vocabulary-list",
+                        requestHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type")
+                        ),
+                        requestParameters(
+                                parameterWithName("criteriaDto.pageNum").description("조회할 페이지 (1보다 작을 수 없습니다.)"),
+                                parameterWithName("criteriaDto.limit").description("조회할 개수 (1~100 사이의 값만 입력 가능합니다.)"),
+                                parameterWithName("categoryId").description("어떤 카테고리에 소속된 단어장을 조회할 것인지 기입 (기입하지 않으면 특정 카테고리에 소속되지 않은 단어장 목록이 조회됩니다.)"),
+                                parameterWithName("title").description("해당 제목을 포함한 공유 단어장을 조회"),
+                                parameterWithName("sortCondition").description("정렬 조건 " + br +
+                                        "[LATEST_ASC, LATEST_DESC, VIEWS_ASC, VIEWS_DESC, LIKE_ASC, LIKE_DESC, DOWNLOAD_ASC, DOWNLOAD_DESC, DIFFICULTY_ASC, DIFFICULTY_DESC]")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.id").description("조회된 공유 단어장 목록 중 첫 번째 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.nickname").description("조회된 공유 단어장 목록 중 첫 번째 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].category.id").description("조회된 공유 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.list[0].category.name").description("조회된 공유 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileId").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileName").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileDownloadUri").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileType").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.list[0].thumbnailInfo.size").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.list[0].title").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 제목"),
+                                fieldWithPath("data.list[0].mainLanguage").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 Main 언어"),
+                                fieldWithPath("data.list[0].subLanguage").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 Sub 언어"),
+                                fieldWithPath("data.list[0].difficulty").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 난이도"),
+                                fieldWithPath("data.list[0].views").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 조회수"),
+                                fieldWithPath("data.list[0].likeCount").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 좋아요 수"),
+                                fieldWithPath("data.list[0].downloadCount").description("조회된 공유 단어장 목록 중 첫 번째 단어장이 다운로드된 횟수"),
+                                fieldWithPath("data.list[0].totalWordCount").description("조회된 공유 단어장 목록 중 첫 번째 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.list[0].division").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 구분 (공유 단어장 목록 조회 이므로 [SHARED]만 응답)"),
+                                fieldWithPath("data.list[0].registerDate").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
+                                fieldWithPath("data.paging.totalCount").description("요청의 검색 조건에 의해 조회된 공유 단어장의 총 개수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("공유 단어장 목록의 조회된 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("공유 단어장 목록의 조회된 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
+                                fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요청된 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("요청의 검색 조건에 의해 조회된 공유 단어장 목록의 총 페이지 수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -3992,17 +4519,15 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         em.flush();
         em.clear();
 
-        final SharedVocabularySearchDto searchDto = SharedVocabularySearchDto.builder()
-//                .categoryId(sharedCategory1.getId())
-                .criteriaDto(new CriteriaDto(-1, -1))
-                .sortCondition(VocabularySortCondition.LATEST_DESC)
-//                .title()
-                .build();
         //when
         final ResultActions perform = mockMvc.perform(
                 get("/api/vocabulary/shared")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(searchDto))
+//                        .param("categoryId",sharedCategory1.getId().toString())
+                        .param("criteriaDto.pageNum","-1")
+                        .param("criteriaDto.limit","-1")
+                        .param("sortCondition",VocabularySortCondition.LATEST_DESC.name())
+//                        .param("title","vocabulary")
         ).andDo(print());
 
         //then
@@ -4093,6 +4618,44 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.division").value(VocabularyDivision.COPIED.name()))
                 .andExpect(jsonPath("data.registerDate").exists())
                 .andExpect(jsonPath("message").value(MessageVo.DOWNLOAD_SHARED_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("download-shared-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("categoryId").description("다운로드 받은 단어장이 소속될 카테고리 지정 (생략 가능)")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.id").description("다운로드된 단어장의 식별 ID"),
+                                fieldWithPath("data.writer.id").description("다운로드된 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.writer.nickname").description("다운로드된 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.category.id").description("다운로드된 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.category.name").description("다운로드된 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileId").description("다운로드된 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.thumbnailInfo.fileName").description("다운로드된 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.thumbnailInfo.fileDownloadUri").description("다운로드된 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.thumbnailInfo.fileType").description("다운로드된 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.thumbnailInfo.size").description("다운로드된 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.title").description("다운로드된 단어장의 제목"),
+                                fieldWithPath("data.mainLanguage").description("다운로드된 단어장의 Main 언어"),
+                                fieldWithPath("data.subLanguage").description("다운로드된 단어장의 Sub 언어"),
+                                fieldWithPath("data.wordList[0].id").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileId").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileName").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 이름"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileDownloadUri").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.wordList[0].imageInfo.fileType").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 타입"),
+                                fieldWithPath("data.wordList[0].imageInfo.size").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어에 등록된 이미지 파일의 크기"),
+                                fieldWithPath("data.wordList[0].mainWord").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어의 Main 단어"),
+                                fieldWithPath("data.wordList[0].subWord").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어의 Sub 단어"),
+                                fieldWithPath("data.wordList[0].memorisedCheck").description("다운로드된 단어장에 등록된 단어 목록 중 첫 번째 단어의 암기 상태"),
+                                fieldWithPath("data.difficulty").description("다운로드된 단어장의 난이도"),
+                                fieldWithPath("data.memorisedCount").description("다운로드된 단어장의 암기된 단어 개수"),
+                                fieldWithPath("data.totalWordCount").description("다운로드된 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.division").description("다운로드된 단어장의 구분 (다운로드된 단어장이므로 [COPIED]만 응답)"),
+                                fieldWithPath("data.registerDate").description("다운로드된 단어장의 다운로드 날짜"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -4439,6 +5002,15 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         perform
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value(MessageVo.DELETE_PERSONAL_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("delete-personal-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("개인 단어장 삭제는 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -4654,7 +5226,83 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.UNSHARED_SHARED_VOCABULARY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.UNSHARED_SHARED_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("unshared-shared-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("공유 단어장 공유 해제 리소스는 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("관리자에 의한 공유 단어장 공유 해제")
+    public void unsharedSharedVocabulary_By_Admin() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample);
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), null);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                delete("/api/vocabulary/shared/" + sharedVocabulary.getId())
+                        .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value(MessageVo.UNSHARED_SHARED_VOCABULARY_SUCCESSFULLY))
+        ;
+
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자가 공유 단어장을 공유 해제하는 경우")
+    public void unsharedSharedVocabulary_Unauthenticated() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        Category personalCategorySample = createPersonalCategorySample(user1);
+
+        Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample);
+
+        Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), null);
+
+        MemberCreateDto memberCreateDto1 = getMemberCreateDto("adminMember", "adminMember");
+        Member admin = memberService.adminJoin(memberCreateDto1);
+
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(admin.getLoginInfo().getRefreshToken());
+        TokenDto adminTokenDto = memberService.refresh(onlyTokenDto);
+
+        //when
+        ResultActions perform = mockMvc.perform(
+                delete("/api/vocabulary/shared/" + sharedVocabulary.getId())
+//                        .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
+        ).andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isForbidden())
+//                .andExpect(jsonPath("message").value(MessageVo.UNSHARED_SHARED_VOCABULARY_SUCCESSFULLY))
+        ;
 
     }
 
@@ -4812,7 +5460,17 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_SHARED_VOCABULARY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.ADD_LIKE_TO_SHARED_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("add-like-to-shared-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("공유 단어장에 좋아요 등록은 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
         boolean existLike = vocabularyLikeService.getExistLike(user2.getId(), sharedVocabulary.getId());
         assertTrue(existLike);
@@ -5017,7 +5675,17 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_SHARED_VOCABULARY_SUCCESSFULLY));
+                .andExpect(jsonPath("message").value(MessageVo.UNLIKE_SHARED_VOCABULARY_SUCCESSFULLY))
+                .andDo(document("unlike-shared-vocabulary",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data").description("공유 단어장 좋아요 해제는 별도의 data 를 출력하지 않습니다."),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
+        ;
 
         boolean existLike = vocabularyLikeService.getExistLike(user2.getId(), sharedVocabulary.getId());
         assertFalse(existLike);
@@ -5158,6 +5826,44 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_DELETED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY))
+                .andDo(document("get-deleted-vocabulary-list-of-member",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        requestParameters(
+                                parameterWithName("pageNum").description("조회할 페이지"),
+                                parameterWithName("limit").description("조회할 개수")
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("삭제된 단어장 목록 중 첫 번째 단어장의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.id").description("삭제된 단어장 목록 중 첫 번째 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.nickname").description("삭제된 단어장 목록 중 첫 번째 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].category.id").description("삭제된 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.list[0].category.name").description("삭제된 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileId").description("삭제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileName").description("삭제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileDownloadUri").description("삭제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileType").description("삭제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.list[0].thumbnailInfo.size").description("삭제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.list[0].title").description("삭제된 단어장 목록 중 첫 번째 단어장의 제목"),
+                                fieldWithPath("data.list[0].mainLanguage").description("삭제된 단어장 목록 중 첫 번째 단어장의 Main 언어"),
+                                fieldWithPath("data.list[0].subLanguage").description("삭제된 단어장 목록 중 첫 번째 단어장의 Sub 언어"),
+                                fieldWithPath("data.list[0].difficulty").description("삭제된 단어장 목록 중 첫 번째 단어장의 난이도"),
+                                fieldWithPath("data.list[0].memorisedCount").description("삭제된 단어장 목록 중 첫 번째 단어장의 암기된 단어 개수"),
+                                fieldWithPath("data.list[0].totalWordCount").description("삭제된 단어장 목록 중 첫 번째 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.list[0].division").description("삭제된 단어장 목록 중 첫 번째 단어장의 구분 [DELETED]"),
+                                fieldWithPath("data.list[0].registerDate").description("삭제된 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
+                                fieldWithPath("data.paging.totalCount").description("해당 회원의 삭제된 개인 단어장의 총 개수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청된 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("요청된 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
+                                fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요청된 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("요청에 의해 조회된 삭제된 단어장 목록의 총 페이지 개수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
     }
@@ -5311,6 +6017,42 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
                 .andExpect(jsonPath("message").value(MessageVo.GET_UNSHARED_VOCABULARY_LIST_OF_MEMBER_SUCCESSFULLY))
+                .andDo(document("get-unshared-vocabulary-list-of-member",
+                        requestHeaders(
+                                headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
+                        ),
+                        responseFields(
+                                fieldWithPath("data.list[0].id").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.id").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장을 생성한 회원의 식별 ID"),
+                                fieldWithPath("data.list[0].writer.nickname").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장을 생성한 회원의 활동명"),
+                                fieldWithPath("data.list[0].category.id").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 식별 ID"),
+                                fieldWithPath("data.list[0].category.name").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장이 소속된 카테고리의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileId").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 식별 ID"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileName").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 이름"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileDownloadUri").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 다운로드 URI"),
+                                fieldWithPath("data.list[0].thumbnailInfo.fileType").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 타입"),
+                                fieldWithPath("data.list[0].thumbnailInfo.size").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 썸네일 이미지 파일의 크기"),
+                                fieldWithPath("data.list[0].title").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 제목"),
+                                fieldWithPath("data.list[0].mainLanguage").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 Main 언어"),
+                                fieldWithPath("data.list[0].subLanguage").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 Sub 언어"),
+                                fieldWithPath("data.list[0].difficulty").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 난이도"),
+                                fieldWithPath("data.list[0].views").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 조회 수"),
+                                fieldWithPath("data.list[0].likeCount").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 좋아요 수"),
+                                fieldWithPath("data.list[0].downloadCount").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장이 다운로드된 횟수"),
+                                fieldWithPath("data.list[0].totalWordCount").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장에 등록된 단어의 총 개수"),
+                                fieldWithPath("data.list[0].division").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 구분 [UNSHARED]"),
+                                fieldWithPath("data.list[0].registerDate").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
+                                fieldWithPath("data.paging.totalCount").description("특정 회원의 공유 해제된 단어장의 총 개수"),
+                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청된 페이지"),
+                                fieldWithPath("data.paging.criteriaDto.limit").description("요청된 개수"),
+                                fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
+                                fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
+                                fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.next").description("현재 요청된 페이지 기준 다음 페이지 목록이 있는지 여부"),
+                                fieldWithPath("data.paging.totalPage").description("요청에 의해 조회되는 특정 회원의 공유 해제된 단어장의 총 페이지 수"),
+                                fieldWithPath("message").description(MESSAGE_DESCRIPTION)
+                        )
+                ))
         ;
 
 

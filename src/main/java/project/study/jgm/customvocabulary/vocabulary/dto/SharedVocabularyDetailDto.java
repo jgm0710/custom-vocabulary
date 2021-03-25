@@ -85,6 +85,7 @@ public class SharedVocabularyDetailDto {
         for (Word word : wordList) {
             final UploadFileResponseDto imageInfo = modelMapper.map(word.getWordImageFile(), UploadFileResponseDto.class);
             final WordResponseDto wordResponseDto = WordResponseDto.builder()
+                    .id(word.getId())
                     .imageInfo(imageInfo)
                     .mainWord(word.getMainWord())
                     .subWord(word.getSubWord())

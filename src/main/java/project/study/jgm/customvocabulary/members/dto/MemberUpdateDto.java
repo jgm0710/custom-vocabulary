@@ -25,6 +25,9 @@ public class MemberUpdateDto {
     @NotBlank(message = "ID를 입력해주세요.")
     private String joinId;
 
+    @NotBlank(message = "본인인증을 위한 비밀번호를 입력해주세요")
+    private String password;
+
     @NotBlank(message = "Email을 입력해주세요.")
     private String email;
 
