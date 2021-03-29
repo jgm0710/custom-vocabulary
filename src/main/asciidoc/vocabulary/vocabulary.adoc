@@ -411,7 +411,7 @@ operation::get-shared-vocabulary-list-of-member[snippets='request-headers,respon
 - 공유 단어장 목록 조회 리소스는 `/api/vocabulary/shared` 뒤에 parameters 를 붙여서 요청합니다.
 - 해당 리소스는 인증되지 않은 사용자도 접근이 가능합니다. (인증 여부에 따른 응답의 차이는 없습니다.)
 
-operation::get-shared-vocabulary-list[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
+operation::get-shared-vocabulary-list[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
 
 [[resources-download-shared-vocabulary]]
 === 공유 단어장 다운로드

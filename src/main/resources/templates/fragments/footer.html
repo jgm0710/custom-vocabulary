@@ -41,8 +41,7 @@
             <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                <a class="btn btn-primary" href="member/login.html"
-                   th:href="@{/members/login}">Logout</a>
+                <button id="confirm-logout-btn" class="btn btn-primary">Logout</button>
             </div>
         </div>
     </div>
@@ -61,6 +60,13 @@
 <!-- Custom scripts for all pages-->
 <script src="js/sb-admin-2.min.js"
         th:src="@{/js/sb-admin-2.min.js}"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.js"
+        integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js" integrity="sha512-aUhL2xOCrpLEuGD5f6tgHbLYEXRpYZ8G5yD+WlFrXrPy2IrWBlu6bih5C9H6qGsgqnU6mgx6KtU8TreHpASprw==" crossorigin="anonymous"></script>-->
+
+<script th:src="@{/custom/custom.js}"></script>
 
 </body>
 
