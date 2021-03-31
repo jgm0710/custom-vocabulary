@@ -34,6 +34,6 @@ public class BbsSearchValidator {
     }
 
     private void addUnauthorizedSearchToBindingResult(BindingResult bindingResult) {
-        bindingResult.rejectValue("bbsStatus","UnauthorizedSearch", "Users cannot view the list of deleted posts.");
+        bindingResult.rejectValue("bbsStatus", "UnauthorizedSearch", "Users cannot view the list of deleted posts.");
     }
 }

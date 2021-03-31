@@ -1,6 +1,12 @@
 $(document).ready(function () {
-    getMemberInfo();
 
+    getMemberInfo();
+    confirmLogout();
+    ifAccessTokenIsNull();
+
+});
+
+function confirmLogout() {
     $('#confirm-logout-btn').click(function () {
         console.log("Confirm logout.");
         console.log("Delete tokens");
@@ -8,7 +14,23 @@ $(document).ready(function () {
         localStorage.clear();
         location.reload();
     });
-});
+}
+
+function ifAccessTokenIsNull() {
+    let accessToken = localStorage.getItem('accessToken');
+    if (accessToken == null) {
+        $('#user-nickname').append("Login");
+        $('#userDropdown').append(
+            `
+            <img class="img-profile rounded-circle" src="img/undraw_rocket.svg">
+            `
+        );
+        $('#user-dropdown-item').remove();
+        $('#userDropdown').click(function () {
+            $(location).attr('href', '/members/login');
+        });
+    }
+}
 
 function getMemberInfo() {
     let memberId = localStorage.getItem('memberId');
@@ -31,6 +53,29 @@ function getMemberInfo() {
                     let nickname = response.data.nickname;
 
                     $('#user-nickname').append(nickname);
+
+                    let gender = response.data.gender;
+
+                    console.log(gender);
+                    if (gender == "MALE") {
+                        $('#userDropdown').append(
+                            `
+                             <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                            `
+                        );
+                    }else if (gender == "FEMALE") {
+                        $('#userDropdown').append(
+                            `
+                             <img class="img-profile rounded-circle" src="img/undraw_profile_1.svg">
+                            `
+                        );
+                    } else {
+                        $('#userDropdown').append(
+                            `
+                            <img class="img-profile rounded-circle" src="img/undraw_rocket.svg">
+                            `
+                        );
+                    }
                 },
                 403: function () {
                     console.log("Access fail.");

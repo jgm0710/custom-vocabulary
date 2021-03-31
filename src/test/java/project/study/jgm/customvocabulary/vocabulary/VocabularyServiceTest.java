@@ -184,8 +184,8 @@ class VocabularyServiceTest extends BaseServiceTest {
 
             WordRequestDto wordRequestDto = WordRequestDto.builder()
                     .imageFileId(wordImageFile.getId())
-                    .mainWord("main"+i*2)
-                    .subWord("sub"+i*2)
+                    .mainWord("main" + i * 2)
+                    .subWord("sub" + i * 2)
                     .build();
             wordRequestDtoList2.add(wordRequestDto);
         }
@@ -200,8 +200,8 @@ class VocabularyServiceTest extends BaseServiceTest {
 
             WordRequestDto wordRequestDto = WordRequestDto.builder()
                     .imageFileId(wordImageFile.getId())
-                    .mainWord("main"+i)
-                    .subWord("sub"+i)
+                    .mainWord("main" + i)
+                    .subWord("sub" + i)
                     .build();
             wordRequestDtoList.add(wordRequestDto);
         }
@@ -395,7 +395,6 @@ class VocabularyServiceTest extends BaseServiceTest {
         Category sharedCategory = createSharedCategoryByService();
 
 
-
         //when
         Vocabulary sharedVocabulary = vocabularyService.share(personalVocabulary.getId(), sharedCategory.getId());
 
@@ -505,7 +504,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         em.clear();
 
         //when
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(new CriteriaDto(), user1.getId(), category1.getId(), VocabularyDivision.PERSONAL,VocabularyDivision.COPIED);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(new CriteriaDto(), user1.getId(), category1.getId(), VocabularyDivision.PERSONAL, VocabularyDivision.COPIED);
         List<Vocabulary> findVocabularyList = results.getResults();
 
 
@@ -545,7 +544,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         }
 
         //when
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(new CriteriaDto(1,30), sharedCategory2.getId(), null, null);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(new CriteriaDto(1, 30), sharedCategory2.getId(), null, null);
         List<Vocabulary> findSharedVocabularyList = results.getResults();
 
         //then
@@ -606,7 +605,6 @@ class VocabularyServiceTest extends BaseServiceTest {
         assertEquals(VocabularyDivision.UNSHARED, findVocabulary.getDivision());
 
     }
-
 
 
     private Category createSharedCategoryByService(String name, int orders) {

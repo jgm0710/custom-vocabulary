@@ -41,8 +41,7 @@ public class ReplyChildResponseDto {
             if (member != null) {
                 if (member.getRoles().contains(MemberRole.ADMIN)) {
                     allowModificationAndDeletion = true;
-                }
-                else {
+                } else {
                     if (reply.getMember().getId().equals(member.getId())) {
                         allowModificationAndDeletion = true;
                     }

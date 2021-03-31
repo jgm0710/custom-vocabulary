@@ -27,10 +27,10 @@ public class BindingResultSerializer extends JsonSerializer<BindingResult> {
         bindingResult.getFieldErrors().forEach(fieldError -> {
             try {
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("objectName",fieldError.getObjectName());
-                jsonGenerator.writeStringField("code",fieldError.getCode());
-                jsonGenerator.writeStringField("defaultMessage",fieldError.getDefaultMessage());
-                jsonGenerator.writeStringField("field",fieldError.getField());
+                jsonGenerator.writeStringField("objectName", fieldError.getObjectName());
+                jsonGenerator.writeStringField("code", fieldError.getCode());
+                jsonGenerator.writeStringField("defaultMessage", fieldError.getDefaultMessage());
+                jsonGenerator.writeStringField("field", fieldError.getField());
                 Object rejectedValue = fieldError.getRejectedValue();
                 if (rejectedValue != null) {
                     jsonGenerator.writeStringField("rejectedValue", rejectedValue.toString());

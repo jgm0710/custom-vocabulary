@@ -104,7 +104,7 @@ class MemberServiceTest {
         return memberCreateDto;
     }
 
-    private MemberCreateDto getMemberCreateDto(String  joinId, String nickname) {
+    private MemberCreateDto getMemberCreateDto(String joinId, String nickname) {
         MemberCreateDto memberCreateDto = MemberCreateDto.builder()
                 .joinId(joinId)
                 .email("test@email.com")
@@ -142,7 +142,7 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("로그인 할 때 회원 정보가 없는 경우")
-    public void login_Not_Found() throws Exception{
+    public void login_Not_Found() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         memberService.userJoin(memberCreateDto);
@@ -156,7 +156,7 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("로그인 할 때 비밀번호가 일치하지 않는 경우")
-    public void login_Password_Mismatch() throws Exception{
+    public void login_Password_Mismatch() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         memberService.userJoin(memberCreateDto);
@@ -193,10 +193,10 @@ class MemberServiceTest {
         assertEquals(tokenDto.getRefreshToken(), tokenDto1.getRefreshToken());
         assertEquals(tokenDto.getRefreshTokenExpirationPeriodDateTime(), tokenDto1.getRefreshTokenExpirationPeriodDateTime());
     }
-    
+
     @Test
     @DisplayName("refresh token 으로 로그인 할 경우 refresh token 이 유효하지 않을 경우")
-    public void refresh_Wrong() throws Exception{
+    public void refresh_Wrong() throws Exception {
         //given
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         memberService.userJoin(memberCreateDto);
@@ -369,6 +369,7 @@ class MemberServiceTest {
         assertThrows(MemberNotFoundException.class, () -> memberService.secession(3000L, "fdsafdas"));
 
     }
+
     /**
      * ADMIN
      */
@@ -431,7 +432,7 @@ class MemberServiceTest {
             });
         } else if (searchType == MemberSearchType.EMAIL) {
             memberList.forEach(member -> {
-                assertTrue( member.getEmail().contains(content));
+                assertTrue(member.getEmail().contains(content));
             });
         } else if (searchType == MemberSearchType.NAME) {
             memberList.forEach(member -> {
@@ -455,7 +456,7 @@ class MemberServiceTest {
                     break;
                 }
             }
-        }else if (sortType == MemberSortType.OLDEST) {
+        } else if (sortType == MemberSortType.OLDEST) {
             var tmp = 0L;
 
             for (Member member : memberList) {
@@ -466,7 +467,7 @@ class MemberServiceTest {
                     break;
                 }
             }
-        }else if (sortType == MemberSortType.BBS_COUNT_DESC) {
+        } else if (sortType == MemberSortType.BBS_COUNT_DESC) {
             var tmp = 10000;
 
             for (Member member : memberList) {
@@ -477,7 +478,7 @@ class MemberServiceTest {
                     break;
                 }
             }
-        }else if (sortType == MemberSortType.BBS_COUNT_ASC) {
+        } else if (sortType == MemberSortType.BBS_COUNT_ASC) {
             var tmp = 0;
 
             for (Member member : memberList) {
@@ -675,6 +676,7 @@ class MemberServiceTest {
         //then
 
     }
+
     @Test
     @DisplayName("회원 정보 수정 시 중복된 joinId 가 있는 경우")
     public void modifyMember_ExistDuplicatedMemberException1() throws Exception {

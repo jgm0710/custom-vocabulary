@@ -64,7 +64,7 @@ public class FileApiController {
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(new ResponseDto<>(uploadFileResponseDtos, UPLOAD_BBS_FILE_LIST_SUCCESSFULLY));
-        }catch (OriginalFilenameNotFoundException | FileStorageException | DeniedFileExtensionException e) {
+        } catch (OriginalFilenameNotFoundException | FileStorageException | DeniedFileExtensionException e) {
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
         }
     }

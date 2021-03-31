@@ -1032,7 +1032,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("인증되지 않은 사용자가 단어에 암기 체크를 하는 경우")
     public void checkMemorise_UnAuthentication() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1077,7 +1077,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다른 회원의 단어장의 단어에 암기 체크를 하는 경우")
     public void checkMemorise_Of_DifferentMember() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1129,7 +1129,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("단어 암기 체크 시 단어장을 찾을 수 없는 경우")
     public void checkMemorise_VocabularyNotFound() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1177,7 +1177,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("단어 암기 체크 시 단어를 찾을 수 없는 경우")
     public void checkMemorise_WordNotFound() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1225,7 +1225,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 단어장에 암기 체크를 하는 경우")
     public void checkMemorise_Of_ShardVocabulary() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1277,7 +1277,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("삭제된 단어장의 단어에 암기 체크를 하는 경우")
     public void checkMemorise_Of_DeletedVocabulary() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1439,7 +1439,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("인증되지 않은 사용자가 개인 단어장을 수정하는 경우")
     public void modifyPersonalVocabulary_UnAuthentication() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1488,7 +1488,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다른 회원의 단어장을 수정하는 경우")
     public void modifyPersonalVocabulary_Of_DifferentMember() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1541,7 +1541,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("관리자가 다른 회원의 단어장을 수정하는 경우")
     public void modifyPersonalVocabulary_By_Admin() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1594,7 +1594,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장 수정 시 단어장을 찾을 수 없는 경우")
     public void modifyPersonalVocabulary_VocabularyNotFound() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1644,7 +1644,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장 수정 시 썸네일 파일을 찾을 수 없는 경우")
     public void modifyPersonalVocabulary_VocabularyThumbnailImageFileNotFoundException() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1694,7 +1694,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 단어장을 수정하는 경우")
     public void modifySharedVocabulary() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -1766,7 +1766,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         em.flush();
         em.clear();
-
 
 
         //when
@@ -1882,7 +1881,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         em.clear();
 
 
-
         //when
         final ResultActions perform = mockMvc
                 .perform(
@@ -1923,7 +1921,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         em.flush();
         em.clear();
-
 
 
         //when
@@ -1969,7 +1966,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         em.clear();
 
 
-
         //when
         final ResultActions perform = mockMvc
                 .perform(
@@ -2010,7 +2006,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         em.clear();
 
 
-
         //when
         final ResultActions perform = mockMvc
                 .perform(
@@ -2049,7 +2044,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         em.flush();
         em.clear();
-
 
 
         //when
@@ -2094,7 +2088,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         em.clear();
 
 
-
         //when
         final ResultActions perform = mockMvc
                 .perform(
@@ -2133,7 +2126,6 @@ class VocabularyApiControllerTest extends BaseControllerTest {
 
         em.flush();
         em.clear();
-
 
 
         //when
@@ -2533,7 +2525,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("message").value("구분이 잘못된 요청입니다. : 개인 카테고리의 단어 목록만 조회할 수 있습니다."))
+                .andExpect(jsonPath("message").value("구분이 잘못된 요청입니다. : 개인 카테고리의 단어 목록만 조회할 수 있습니다."))
         ;
 
     }
@@ -2622,7 +2614,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
                         .param("pageNum", 1 + "")
                         .param("limit", 15 + "")
-                        .param("categoryId", 10000L+"")
+                        .param("categoryId", 10000L + "")
         ).andDo(print());
 
 
@@ -2856,7 +2848,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다른 회원의 개인 단어장의 카테고리를 이동시키는 경우")
     public void moveCategory_Of_PersonalVocabulary_Of_DifferentMember() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -2897,7 +2889,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장 카테고리 이동 시 단어장을 찾을 수 없는 경우")
     public void moveCategory_VocabularyNotFound() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -2933,7 +2925,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장 카테고리 이동 시 카테고리를 찾을 수 없는 경우")
     public void moveCategory_CategoryNotFound() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -2956,7 +2948,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         final ResultActions perform = mockMvc.perform(
                 put("/api/vocabulary/belongedCategory/" + personalVocabularySample.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
-                        .param("categoryId", 10000L+"")
+                        .param("categoryId", 10000L + "")
         ).andDo(print());
 
 
@@ -2970,7 +2962,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장 카테고리 이동 시 이동할 카테고리가 null 인 경우")
     public void moveCategory_CategoryIsNull() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3034,7 +3026,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장 카테고리 이동 시 카테고리가 바뀌지 않은 경우")
     public void moveCategory_DoNotMove() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3071,7 +3063,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장을 공유 카테고리로 이동시키는 경우")
     public void moveCategory_To_SharedCategory() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3110,7 +3102,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장을 다른 회원의 카테고리에 이동시키는 경우")
     public void moveCategory_To_CategoryOfDifferentMember() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3153,7 +3145,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("삭제된 단어장의 카테고리를 이동시키는 경우")
     public void moveCategory_Of_DeletedVocabulary() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3342,7 +3334,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("message").value("카테고리와 단어장의 구분이 일치하지 않습니다. : 공유단어장은 공유카테고리로만 이동시킬 수 있습니다."))
+                .andExpect(jsonPath("message").value("카테고리와 단어장의 구분이 일치하지 않습니다. : 공유단어장은 공유카테고리로만 이동시킬 수 있습니다."))
         ;
 
     }
@@ -3492,7 +3484,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("USER 권한의 사용자가 다른 회원의 단어장을 조회하는 경우")
     public void getPersonalVocabulary_Unauthorized() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3518,7 +3510,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 get("/api/vocabulary/" + personalVocabularySample.getId())
                         .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
         ).andDo(print());
-        
+
 
         //then
         perform
@@ -3530,7 +3522,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("관리자가 회원의 개인 단어장을 조회")
     public void getPersonalVocabulary_By_Admin() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3596,7 +3588,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("인증되지 않은 사용자가 개인 단어장 조회")
     public void getPersonalVocabulary_Unauthenticated() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3631,7 +3623,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("USER 권한의 사용자가 개인 삭제된 단어장을 조회하는 경우")
     public void getDeletedVocabulary_By_User() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3659,7 +3651,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 get("/api/vocabulary/" + personalVocabularySample.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
         ).andDo(print());
-        
+
 
         //then
         perform
@@ -3671,7 +3663,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("관리자가 삭제된 단어장을 조회하는 경우")
     public void getDeletedVocabulary_By_Admin() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3740,7 +3732,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("단어장 조회 시 단어장을 찾을 수 없는 경우")
     public void getPersonalVocabulary_VocabularyNotFound() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3774,7 +3766,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다운로드 받은 단어장 조회")
     public void getCopiedVocabulary() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -3845,7 +3837,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("인증되지 않은 사용자가 공유 단어장 조회")
     public void getSharedVocabulary() throws Exception {
-         //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -4389,11 +4381,11 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         final ResultActions perform = mockMvc.perform(
                 get("/api/vocabulary/shared")
                         .contentType(MediaType.APPLICATION_JSON)
-                .param("categoryId",sharedCategory1.getId().toString())
-                .param("criteriaDto.pageNum","1")
-                .param("criteriaDto.limit","20")
-                .param("sortCondition",VocabularySortCondition.LATEST_DESC.name())
-                .param("title","vocabulary")
+                        .param("categoryId", sharedCategory1.getId().toString())
+                        .param("criteriaDto.pageNum", "1")
+                        .param("criteriaDto.limit", "20")
+                        .param("sortCondition", VocabularySortCondition.LATEST_DESC.name())
+                        .param("title", "vocabulary")
         ).andDo(print());
 
         //then
@@ -4524,9 +4516,9 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 get("/api/vocabulary/shared")
                         .contentType(MediaType.APPLICATION_JSON)
 //                        .param("categoryId",sharedCategory1.getId().toString())
-                        .param("criteriaDto.pageNum","-1")
-                        .param("criteriaDto.limit","-1")
-                        .param("sortCondition",VocabularySortCondition.LATEST_DESC.name())
+                        .param("criteriaDto.pageNum", "-1")
+                        .param("criteriaDto.limit", "-1")
+                        .param("sortCondition", VocabularySortCondition.LATEST_DESC.name())
 //                        .param("title","vocabulary")
         ).andDo(print());
 
@@ -4714,7 +4706,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("단어장 다운로드 시 다운로드 받을 단어장을 찾을 수 없는 경우")
     public void downloadSharedVocabulary_VocabularyNotFound() throws Exception {
-           //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -4767,7 +4759,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("단어장 다운로드 시 다운로드 받을 개인 카테고리를 찾을 수 없는 경우")
     public void downloadSharedVocabulary_PersonalCategoryNotFound() throws Exception {
-           //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -4820,7 +4812,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다운로드 받을 단어장이 공유 단어장이 아닌 경우")
     public void downloadSharedVocabulary_VocabularyIsNotShared() throws Exception {
-           //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -4874,7 +4866,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다운로드 시 다운로드 받을 카테고리가 개인 카테고리가 아닌 경우")
     public void downloadSharedVocabulary_TargetCategoryIsNotShared() throws Exception {
-           //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -4928,7 +4920,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다운로드 받을 회원과 다운로드 받을 카테고리를 소유한 회원이 다를 경우")
     public void downloadSharedVocabulary_MemberAndCategoryMemberDifferentException() throws Exception {
-           //given
+        //given
         final MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         final Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5018,7 +5010,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("인증되지 않은 사용자가 단어장 삭제")
     public void deletePersonalVocabulary_Unauthenticated() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5045,7 +5037,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다운로드 받은 단어장 삭제")
     public void deleteDownloadVocabulary() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5080,7 +5072,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다른 회원의 단어장을 삭제하는 경우")
     public void deletePersonalVocabulary_Of_DifferentMember() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5111,7 +5103,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 단어장을 삭제하는 경우")
     public void deleteSharedVocabulary() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5134,7 +5126,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("message").value("구분이 잘못된 요청입니다. : 개인 단어장에 속한 단어장이 아니면 삭제가 불가능합니다."))
+                .andExpect(jsonPath("message").value("구분이 잘못된 요청입니다. : 개인 단어장에 속한 단어장이 아니면 삭제가 불가능합니다."))
         ;
 
     }
@@ -5142,7 +5134,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("단어장 삭제 시 단어장을 찾을 수 없는 경우")
     public void deletePersonalVocabulary_VocabularyNotFound() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5170,7 +5162,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("이미 삭제된 단어장을 삭제하는 경우")
     public void deleteDeletedVocabulary() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5309,7 +5301,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("다른 회원이 공유한 단어장을 공유 해제하는 경우")
     public void unsharedSharedVocabulary_Of_DifferentMember() throws Exception {
-         //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5342,7 +5334,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 단어장 공유 해제 시 단어장을 찾을 수 없는 경우")
     public void unsharedSharedVocabulary_VocabularyNotFound() throws Exception {
-         //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5372,7 +5364,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장을 공유 해제하는 경우")
     public void unsharedPersonalVocabulary() throws Exception {
-         //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5403,7 +5395,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("이미 공유 해제 상태인 단어장을 공유 해제 하는 경우")
     public void unshared_UnsharedVocabulary() throws Exception {
-         //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5480,7 +5472,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 단어장에 좋아요 등록 시 단어장을 찾을 수 없는 경우")
     public void addLikeToSharedVocabulary_VocabularyNotFound() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5513,7 +5505,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("개인 단어장에 좋아요를 등록하는 경우")
     public void addLikeToPersonalVocabulary() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5546,7 +5538,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유가 해제된 단어장에 좋아요를 등록하는 경우")
     public void addLikeToUnsharedVocabulary() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5580,7 +5572,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 단어장에 좋아요 등록 시 이미 좋아요를 등록한 단어장인 경우")
     public void addLikeToSharedVocabulary_ExistLike() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5615,7 +5607,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("자기 자신이 공유한 단어장에 좋아요를 등록하는 경우")
     public void addLikeToSharedVocabulary_SelfLike() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("user1", "user1");
         Member user1 = memberService.userJoin(memberCreateDto);
 
@@ -5965,7 +5957,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         }
 
         for (int i = 0; i < 5; i++) {
-            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i*4);
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i * 4);
             Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
             vocabularyService.unshared(sharedVocabulary.getId());
         }
@@ -6075,7 +6067,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         }
 
         for (int i = 0; i < 5; i++) {
-            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i*4);
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i * 4);
             Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
             vocabularyService.unshared(sharedVocabulary.getId());
         }
@@ -6124,7 +6116,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         }
 
         for (int i = 0; i < 5; i++) {
-            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i*4);
+            Vocabulary personalVocabularySample = createPersonalVocabularySample(user1, personalCategorySample, "unshared vocabulary" + i * 4);
             Vocabulary sharedVocabulary = vocabularyService.share(personalVocabularySample.getId(), sharedCategory.getId());
             vocabularyService.unshared(sharedVocabulary.getId());
         }

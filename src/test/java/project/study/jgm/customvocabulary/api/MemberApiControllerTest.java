@@ -310,7 +310,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("관리자가 다른 사용자를 조회하는 경우")
     public void admin_Get_Of_DifferentMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         memberService.adminJoin(memberCreateDto);
 
         LoginDto adminLoginDto = getLoginDto(memberCreateDto);
@@ -356,7 +356,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("인증된 사용자와 조회하려는 사용자가 다른 경우")
     public void getMember_Unauthorized() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -385,7 +385,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 정보 수정")
     public void modifyMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member joinMember = memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -463,7 +463,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 정보 수정 시 아이디가 중복된 회원이 있는 경우")
     public void modifyMember_ExistDuplicatedMemberException() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member joinMember = memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -494,7 +494,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("회원 수정 시 수정 정보가 비어 있는 경우")
     public void modifyMember_Empty() throws Exception {
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member joinMember = memberService.userJoin(memberCreateDto);
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
@@ -583,7 +583,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("인증되지 않은 사용자가 회원 정보를 수정할 경우")
     public void modify_Unauthorized() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member joinMember = memberService.userJoin(memberCreateDto);
 
         MemberUpdateDto memberUpdateDto = getMemberUpdateDto();
@@ -609,7 +609,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("다른 회원의 정보를 수정할 경우")
     public void modify_DifferentMember() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         memberService.userJoin(memberCreateDto);
 
         LoginDto userLoginDto = getLoginDto(memberCreateDto);
@@ -644,7 +644,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("회원 수정 시 비밀번호를 잘못 입력한 경우")
     public void modifyMember_Password_Mismatch() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -678,7 +678,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @DisplayName("비밀번호 수정")
     public void updatePassword() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -727,7 +727,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("비밀번호 수정 시 수정 정보가 없는 경우")
     public void updatePassword_Empty() throws Exception {
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -1109,7 +1109,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andDo(document("get-member-list",
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
-                                ),
+                        ),
                         requestParameters(
                                 parameterWithName("criteriaDto.pageNum").description("조회할 Page 번호"),
                                 parameterWithName("criteriaDto.limit").description("조회할 개수"),
@@ -1118,7 +1118,7 @@ public class MemberApiControllerTest extends BaseControllerTest {
                                 parameterWithName("keyword").description("검색 키워드 (검색 시 검색 조건에 해당 키워드를 포함하는 결과들을 반환해 줌.)"),
                                 parameterWithName("sortType").description("정렬 조건 : 최신 순, 오래된 순, 게시글 많이 작성한 순, 게시글 조금 작성한 순, 공유한 단어장이 많은 순, 공유한 단어장이 적은 순  " +
                                         " [LATEST, OLDEST, BBS_COUNT_DESC, BBS_COUNT_ASC, SHARED_VOCABULARY_COUNT_DESC, SHARED_VOCABULARY_COUNT_ASC]")
-                                ),
+                        ),
                         relaxedResponseFields(
                                 fieldWithPath("data.list[0].id").description("회원 목록 중 첫 번째 회원의 식별 ID"),
                                 fieldWithPath("data.list[0].joinId").description("회원 목록 중 첫 번째 회원의 로그인 ID"),
@@ -1264,8 +1264,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/members")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", ""+pageNum)
-                                .param("criteriaDto.limit", ""+limit)
+                                .param("criteriaDto.pageNum", "" + pageNum)
+                                .param("criteriaDto.limit", "" + limit)
                                 .param("searchType", MemberSearchType.JOIN_ID.name())
                                 .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())

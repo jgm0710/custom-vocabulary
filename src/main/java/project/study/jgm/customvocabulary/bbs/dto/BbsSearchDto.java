@@ -24,6 +24,6 @@ public class BbsSearchDto {
     private CriteriaDto criteriaDto = new CriteriaDto();
 
     @Default
-    private BbsStatus bbsStatus=BbsStatus.REGISTER;
+    private BbsStatus bbsStatus = BbsStatus.REGISTER;
 
 }

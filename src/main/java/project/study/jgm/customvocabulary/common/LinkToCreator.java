@@ -35,6 +35,7 @@ public class LinkToCreator {
         Link link = getMemberListLink(memberSearchDto);
         return link.withRel(rel);
     }
+
     private static Link getMemberListLink(MemberSearchDto memberSearchDto) {
         String parameter = "";
         boolean firstFlag = true;

@@ -100,7 +100,7 @@ class BbsServiceTest {
     @MethodSource(value = "paramsForGetBbsListTest")
     void getBbsList(BbsSearchType bbsSearchType, String keyword, BbsSortType bbsSortType) {
         Member member1 = getMember("testNickname1");
-        Member member2 = getMember("testjoinId","testNickname2");
+        Member member2 = getMember("testjoinId", "testNickname2");
 
         em.flush();
         em.clear();
@@ -217,7 +217,7 @@ class BbsServiceTest {
         for (Bbs findBbs : findBbsList) {
             Bbs bbs = bbsList.stream().filter(b -> b.getId().equals(findBbs.getId())).findFirst().orElseThrow(EntityNotFoundException::new);
 
-            assertEquals(bbs.getId(),findBbs.getId());
+            assertEquals(bbs.getId(), findBbs.getId());
             assertEquals(bbs.getMember().getId(), findBbs.getMember().getId());
             assertEquals(bbs.getTitle(), findBbs.getTitle());
             assertEquals(bbs.getContent(), findBbs.getContent());
@@ -244,8 +244,8 @@ class BbsServiceTest {
 
         Bbs findBbs = bbsService.getBbs(bbsSample.getId());
 
-        assertEquals(findBbs.getTitle(),update_title);
-        assertEquals(findBbs.getContent(),update_content);
+        assertEquals(findBbs.getTitle(), update_title);
+        assertEquals(findBbs.getContent(), update_content);
     }
 
     @Test

@@ -14,6 +14,7 @@
 = 개요
 == link:/docs/index.html[home]
 == 오류 코드
+
 |===
 | 발생 API | CAUSE | CODE | MESSAGE
 
@@ -70,7 +71,8 @@
 | <<resources-modify-bbs>>
 | 삭제된 게시글을 수정하는 경우
 | 400
-| 삭제된 게시글 입니다. : 삭제된 게시글은 수정이 불가능합니다.
+| 삭제된 게시글 입니다.
+: 삭제된 게시글은 수정이 불가능합니다.
 
 | <<resources-delete-bbs>>
 | 인증되지 않은 사용자가 게시글을 삭제하는 경우
@@ -90,7 +92,8 @@
 | <<resources-delete-bbs>>
 | 이미 삭제된 게시글을 삭제하는 경우
 | 400
-| 삭제된 게시글 입니다. : 이미 삭제된 게시글은 삭제가 불가능합니다.
+| 삭제된 게시글 입니다.
+: 이미 삭제된 게시글은 삭제가 불가능합니다.
 
 | <<resources-add-like-to-bbs>>
 | 이미 좋아요를 등록한 게시글에 다시 좋아요를 등록하는 경우
@@ -110,7 +113,8 @@
 | <<resources-add-like-to-bbs>>
 | 삭제된 게시글에 좋아요를 등록하는 경우
 | 400
-| 삭제된 게시글 입니다. : 삭제된 게시글에는 좋아요를 누를 수 없습니다.
+| 삭제된 게시글 입니다.
+: 삭제된 게시글에는 좋아요를 누를 수 없습니다.
 
 | <<resources-unlike-bbs>>
 | 좋아요를 등록하지 않은 게시글의 좋아요를 해제하는 경우
@@ -128,7 +132,8 @@
 [[resources-add-bbs]]
 === 게시글 추가
 
-게시글을 등록은 인증된 회원만 가능합니다. 인증된 회원이 게시글을 작성하는 회원이 됩니다.
+게시글을 등록은 인증된 회원만 가능합니다.
+인증된 회원이 게시글을 작성하는 회원이 됩니다.
 
 operation::add-bbs[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
 
@@ -153,7 +158,8 @@ operation::get-bbs-list-by-admin[snippets='request-parameters,response-fields,cu
 또한 해당 사용자가 해당 게시글에 좋아요를 눌렀을 경우를 가정합니다. +
 본인이 작성한 게시글이 아니기 때문에, 삭제 및 수정에 대한 권한은 없습니다. +
 자신이 작성한 게시글을 조회하는 경우 좋아요 등록, 해제, 확인 등의 권한은 없고, 게시글에 대한 수정 및 삭제 권한을 갖습니다. +
-인증되지 않은 사용자도 게시글 조회가 가능합니다. 이 경우 좋아요 및 게시글의 수정, 삭제에 대한 권한은 갖지 않습니다.
+인증되지 않은 사용자도 게시글 조회가 가능합니다.
+이 경우 좋아요 및 게시글의 수정, 삭제에 대한 권한은 갖지 않습니다.
 
 operation::get-bbs[snippets='request-headers,response-fields,curl-request,http-response']
 

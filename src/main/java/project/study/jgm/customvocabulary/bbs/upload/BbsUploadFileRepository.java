@@ -8,5 +8,6 @@ import java.util.Optional;
 public interface BbsUploadFileRepository extends JpaRepository<BbsUploadFile, Long> {
 
     Optional<BbsUploadFile> findByFileName(String fileName);
+
     List<BbsUploadFile> findAllByBbsId(Long bbsId);
 }

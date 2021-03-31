@@ -239,7 +239,7 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andDo(document("get-bbs-list",
                         requestParameters(
                                 parameterWithName("searchType").description("게시글 목록 조회 시 검색 조건 :" + br +
-                                        "게시글 제목, 게시글 내용, 게시글 제목 또는 내용, 게시글 작성자 "+br+
+                                        "게시글 제목, 게시글 내용, 게시글 제목 또는 내용, 게시글 작성자 " + br +
                                         "[TITLE, CONTENT, TITLE_OR_CONTENT, WRITER]"),
                                 parameterWithName("keyword").description("게시글 목록 조회 시 검색 키워드"),
                                 parameterWithName("bbsSortType").description("게시글 목록 조회 시 정렬 조건"),
@@ -332,12 +332,12 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/bbs")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("searchType",BbsSearchType.TITLE.name())
-                                .param("keyword","s1")
-                                .param("criteriaDto.pageNum","1")
-                                .param("criteriaDto.limit","10")
-                                .param("bbsSortType",BbsSortType.REPLY_COUNT_ASC.name())
-                                .param("bbsStatus",BbsStatus.DELETE.name())
+                                .param("searchType", BbsSearchType.TITLE.name())
+                                .param("keyword", "s1")
+                                .param("criteriaDto.pageNum", "1")
+                                .param("criteriaDto.limit", "10")
+                                .param("bbsSortType", BbsSortType.REPLY_COUNT_ASC.name())
+                                .param("bbsStatus", BbsStatus.DELETE.name())
                 )
                 .andDo(print());
 
@@ -414,11 +414,11 @@ class BbsApiControllerTest extends BaseControllerTest {
                         get("/api/bbs")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
 //                                .param("searchType",BbsSearchType.TITLE.name())
-                                .param("keyword","1")
-                                .param("criteriaDto.pageNum","1")
-                                .param("criteriaDto.limit","10")
-                                .param("bbsSortType",BbsSortType.REPLY_COUNT_ASC.name())
-                                .param("bbsStatus",BbsStatus.REGISTER.name())
+                                .param("keyword", "1")
+                                .param("criteriaDto.pageNum", "1")
+                                .param("criteriaDto.limit", "10")
+                                .param("bbsSortType", BbsSortType.REPLY_COUNT_ASC.name())
+                                .param("bbsStatus", BbsStatus.REGISTER.name())
                 )
                 .andDo(print());
 
@@ -450,12 +450,12 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/bbs")
                                 .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
-                                .param("searchType",BbsSearchType.TITLE.name())
-                                .param("keyword","1")
-                                .param("criteriaDto.pageNum","1")
-                                .param("criteriaDto.limit","10")
-                                .param("bbsSortType",BbsSortType.REPLY_COUNT_ASC.name())
-                                .param("bbsStatus",BbsStatus.DELETE.name())
+                                .param("searchType", BbsSearchType.TITLE.name())
+                                .param("keyword", "1")
+                                .param("criteriaDto.pageNum", "1")
+                                .param("criteriaDto.limit", "10")
+                                .param("bbsSortType", BbsSortType.REPLY_COUNT_ASC.name())
+                                .param("bbsStatus", BbsStatus.DELETE.name())
                 )
                 .andDo(print());
 

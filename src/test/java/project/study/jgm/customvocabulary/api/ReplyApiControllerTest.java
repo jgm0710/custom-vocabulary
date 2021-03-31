@@ -59,7 +59,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @Transactional
     public void addReply() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -136,7 +136,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("인증되지 않은 사용자가 댓글을 등록하는 경우")
     public void addReply_Unauthorized() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -171,7 +171,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("댓글 등록 시 게시글을 찾을 수 없는 경우")
     public void addReply_BbsNotFound() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -208,7 +208,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("삭제된 게시글에 댓글을 작성하는 경우")
     public void addReply_To_DeletedBbs() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.DELETE);
@@ -245,7 +245,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("댓글 등록 시 댓글 내용이 비어있는 경우")
     public void addReply_Empty() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -284,7 +284,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("댓글에 댓글 등록")
     public void addReplyOfReply() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -362,7 +362,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("인증되지 않은 사용자가 댓글에 댓글을 등록하는 경우")
     public void addReplyOfReply_Unauthorized() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -400,7 +400,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
     @DisplayName("댓글에 댓글 등록 시 부모 댓글이 없는 경우")
     public void addReplyOfReply_Parent_NotFound() throws Exception {
         //given
-        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid","test");
+        MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member user1 = memberService.userJoin(memberCreateDto);
 
         Bbs bbsSample = getBbsSample(user1, BbsStatus.REGISTER);
@@ -1431,7 +1431,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("message").value("삭제된 댓글 입니다. : 삭제된 댓글에는 좋아요를 누를 수 없습니다."))
+                .andExpect(jsonPath("message").value("삭제된 댓글 입니다. : 삭제된 댓글에는 좋아요를 누를 수 없습니다."))
         ;
 
     }

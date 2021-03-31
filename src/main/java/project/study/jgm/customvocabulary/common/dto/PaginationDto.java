@@ -39,7 +39,7 @@ public class PaginationDto {
 
         int realEndPage = (int) Math.ceil(totalCount / (double) criteriaDto.getLimit());
         if (endPage > realEndPage) {
-         endPage = realEndPage;
+            endPage = realEndPage;
         }
 
         prev = startPage == 1 ? false : true;

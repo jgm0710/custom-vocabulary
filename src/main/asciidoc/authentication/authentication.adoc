@@ -14,18 +14,21 @@
 = 개요
 == link:/docs/index.html[home]
 == 오류 코드
+
 |===
 | 발생 API | CAUSE | CODE | MESSAGE
 
 | <<resources-authentication-login>>
 | 로그인 시 로그인 아이디에 해당하는 회원을 찾을 수 없는 경우
 | 404
-| 해당 아이디의 사용자가 없습니다. ID : [틀린 로그인 ID]
+| 해당 아이디의 사용자가 없습니다.
+ID : [틀린 로그인 ID]
 
 | <<resources-authentication-login>>
 | 로그인 시 로그인 비밀번호를 틀린 경우
 | 400
-| 비밀번호가 일치하지 않습니다. 비밀번호를 다시 확인해주세요.
+| 비밀번호가 일치하지 않습니다.
+비밀번호를 다시 확인해주세요.
 
 | <<resources-authentication-refresh>>
 | Refresh Token 이 틀린 경우
@@ -47,12 +50,15 @@
 
 [[resources-authentication-login]]
 === 로그인
+
 operation::authentication-login[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
 
 [[resources-authentication-refresh]]
 === Access Token 재발급
+
 operation::authentication-refresh[snippets='request-fields,response-fields,curl-request,http-response']
 
 [[resources-authentication-logout]]
 === 로그아웃
+
 operation::authentication-logout[snippets='request-headers,response-fields,curl-request,http-response']

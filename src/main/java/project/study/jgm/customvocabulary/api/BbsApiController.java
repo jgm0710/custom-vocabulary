@@ -128,7 +128,7 @@ public class BbsApiController {
 
         try {
             Bbs findBbs = bbsService.getBbs(bbsId);
-            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs,modelMapper);
+            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs, modelMapper);
 
             if (member != null) {
                 if (member.getRoles().contains(MemberRole.ADMIN)) {
@@ -192,7 +192,7 @@ public class BbsApiController {
             BbsDetailAdminViewDto bbsDetailAdminViewDto = BbsDetailAdminViewDto.bbsToDetailAdminView(findBbs, modelMapper);
             return ResponseEntity.ok(new ResponseDto<>(bbsDetailAdminViewDto, MODIFY_BBS_BY_ADMIN_SUCCESSFULLY));
         } else {
-            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs,modelMapper);
+            BbsDetailDto bbsDetailDto = BbsDetailDto.bbsToDetail(findBbs, modelMapper);
             bbsDetailDto.setViewLike(false);
             bbsDetailDto.setPermissionToDeleteAndModify(true);
             return ResponseEntity.ok(new ResponseDto<>(bbsDetailDto, MODIFIED_BBS_SUCCESSFULLY));
@@ -215,7 +215,7 @@ public class BbsApiController {
                 }
             }
 
-        }catch (BbsNotFoundException e) {
+        } catch (BbsNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseDto<>(e.getMessage()));
         }
 

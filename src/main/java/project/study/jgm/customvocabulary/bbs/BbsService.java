@@ -92,7 +92,7 @@ public class BbsService {
             }
         }
 
-        bbs.modify(updateDto,bbsUploadFileList);
+        bbs.modify(updateDto, bbsUploadFileList);
     }
 
     @Transactional

@@ -49,13 +49,15 @@
 
 
 | `201 Created`
-| 새 리소스를 성공적으로 생성함. 응답의 `Location` 헤더에 해당 리소스의 URI가 담겨있다.
+| 새 리소스를 성공적으로 생성함.
+응답의 `Location` 헤더에 해당 리소스의 URI가 담겨있다.
 
 | `204 No Content`
 | 기존 리소스를 성공적으로 수정함.
 
 | `400 Bad Request`
-| 잘못된 요청을 보낸 경우. 응답 본문에 더 오류에 대한 정보가 담겨있다.
+| 잘못된 요청을 보낸 경우.
+응답 본문에 더 오류에 대한 정보가 담겨있다.
 
 | `401 Unauthorized`
 | 해당 리소스에 유효한 인증 자격 증명이 없기 때문에 요청이 적용되지 않음.
@@ -67,19 +69,25 @@
 | 요청한 리소스가 없음.
 |===
 
-
 [[resources]]
 = 리소스 리스트
 
 리소스를 사용할 수 있습니다.
 
 == link:/docs/index.html[0. home]
+
 == link:/docs/member.html[1. 회원 리소스]
+
 == link:/docs/authentication.html[2. 인증 리소스]
+
 == link:/docs/file.html[3. 파일 리소스]
+
 == link:/docs/bbs.html[3. 게시글 리소스]
+
 == link:/docs/reply.html[4. 게시글 댓글 리소스]
+
 == link:/docs/category.html[5. 단어장 카테고리 리소스]
+
 == link:/docs/vocabulary.html[6. 단어장 리소스]
 
 

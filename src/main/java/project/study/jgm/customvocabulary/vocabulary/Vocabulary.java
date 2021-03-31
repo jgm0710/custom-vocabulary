@@ -290,7 +290,7 @@ public class Vocabulary {
 //            this.wordList.add(word);
             word.setVocabulary(this);
 
-            if (word.isMemorisedCheck()==true) {
+            if (word.isMemorisedCheck() == true) {
                 this.increaseMemorisedCount();
             }
         }

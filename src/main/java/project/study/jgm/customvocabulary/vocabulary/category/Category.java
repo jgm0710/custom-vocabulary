@@ -23,12 +23,12 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
     private Long id;
-    
+
     private String name;
 
     @ManyToOne(fetch = LAZY)
     private Member member;  //personal Category 의 경우 특정 Member 가 만든 카테고리이기 때문에 Member 에 대한 정보가 필요
-                            //null 이면 sharedCategory
+    //null 이면 sharedCategory
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "parent_id")

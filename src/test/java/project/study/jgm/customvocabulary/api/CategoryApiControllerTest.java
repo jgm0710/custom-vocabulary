@@ -1440,7 +1440,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("자식 공유 카테고리 생성 시 부모 카테고리를 찾을 수 없는 경우")
     public void addSharedCategory_ParentNotFound() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
         Member admin = memberService.adminJoin(memberCreateDto);
 
@@ -1522,7 +1522,7 @@ class CategoryApiControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("공유 자식 카테고리 생성 시 부모 카테고리가 개인 카테고리일 경우")
     public void addSharedCategory_DivisionBetweenParentAndChildIsDifferentException() throws Exception {
-          //given
+        //given
         MemberCreateDto memberCreateDto = getMemberCreateDto("adminMember", "adminMember");
         Member admin = memberService.adminJoin(memberCreateDto);
 

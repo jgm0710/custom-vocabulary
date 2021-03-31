@@ -45,7 +45,7 @@ public class BbsQueryRepository {
             return bbs.title.contains(bbsSearchDto.getKeyword());
         } else if (bbsSearchDto.getSearchType() == BbsSearchType.CONTENT) {
             return bbs.content.contains(bbsSearchDto.getKeyword());
-        }else if (bbsSearchDto.getSearchType() == BbsSearchType.TITLE_OR_CONTENT) {
+        } else if (bbsSearchDto.getSearchType() == BbsSearchType.TITLE_OR_CONTENT) {
             return bbs.title.contains(bbsSearchDto.getKeyword()).or(bbs.content.contains(bbsSearchDto.getKeyword()));
         } else if (bbsSearchDto.getSearchType() == BbsSearchType.WRITER) {
             return bbs.member.nickname.contains(bbsSearchDto.getKeyword());

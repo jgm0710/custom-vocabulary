@@ -14,6 +14,7 @@
 = 개요
 == link:/docs/index.html[home]
 == 오류 코드
+
 |===
 | 발생 API | CAUSE | CODE | MESSAGE
 
@@ -30,12 +31,16 @@
 | <<resources-file-bbs-download-file>> / <<resources-file-vocabulary-upload-thumbnail-file>> / <<resources-file-word-upload-image-file>>
 | 파일 다운로드 시 요청한 파일의 이름으로 해당 파일을 찾을 수 없는 경우
 | 404
-| 게시글에 업로드된 파일을 찾을 수 없습니다.  /   단어장에 등록된 파일을 찾을 수 없습니다. / 단어에 등록된 이미지 파일을 찾을 수 없습니다.
+| 게시글에 업로드된 파일을 찾을 수 없습니다.
+/ 단어장에 등록된 파일을 찾을 수 없습니다.
+/ 단어에 등록된 이미지 파일을 찾을 수 없습니다.
 
 | <<resources-file-bbs-display-thumbnail>>
 | 등록된 파일의 썸네일 이미지 다운로드 시 요청한 파일의 이름으로 해당 파일을 찾을 수 없는 경우
 | 404
-| 게시글에 업로드된 파일을 찾을 수 없습니다.  /   단어장에 등록된 파일을 찾을 수 없습니다. / 단어에 등록된 이미지 파일을 찾을 수 없습니다.
+| 게시글에 업로드된 파일을 찾을 수 없습니다.
+/ 단어장에 등록된 파일을 찾을 수 없습니다.
+/ 단어에 등록된 이미지 파일을 찾을 수 없습니다.
 
 | <<resources-file-bbs-display-thumbnail>>
 | 게시글에 등록된 파일의 썸네일 이미지 다운로드 시 요청한 파일이 이미지 파일이 아니어서 썸네일 이미지가 없는 경우
@@ -72,7 +77,8 @@ operation::file-bbs-upload-files[snippets='request-headers,response-fields,curl-
 === 게시글에 등록된 파일 다운로드
 
 - 게시글에 등록된 파일 다운로드 리소스는 `/api/bbs/downloadFile/{fileName}` 의 형태로 요청합니다.
-- `/api/bbs/downloadFile/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+- `/api/bbs/downloadFile/` 까지는 기본 요청 URI 입니다.
+이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
 
 operation::file-bbs-download-file[snippets='curl-request,http-response']
 
@@ -80,11 +86,11 @@ operation::file-bbs-download-file[snippets='curl-request,http-response']
 === 게시글에 등록된 파일의 썸네일 이미지 다운로드
 
 - 게시글에 등록된 파일의 썸네일 이미디 다운로드 리소스는 `/api/bbs/displayThumbnail/{fileName}` 의 형태로 요청합니다.
-- `/api/bbs/displayThumbnail/` 까지는 기본 요청 URI 입니다. 이후 썸네일 이미지를 다운로드 받을 이미지 파일의 이름을 붙여서 요청합니다. +
+- `/api/bbs/displayThumbnail/` 까지는 기본 요청 URI 입니다.
+이후 썸네일 이미지를 다운로드 받을 이미지 파일의 이름을 붙여서 요청합니다. +
 만약 요청한 파일이 이미지 파일이 아닐 경우 썸네일 이미지를 다운로드 받을 수 없습니다.
 
 operation::file-bbs-display-thumbnail[snippets='curl-request,http-response']
-
 
 [[resources-file-vocabulary]]
 == 단어장 썸네일 이미지 파일 리소스
@@ -103,7 +109,8 @@ operation::file-vocabulary-upload-thumbnail-file[snippets='request-headers,respo
 === 단어장에 등록된 이미지 파일 다운로드
 
 - 단어장에 등록된 이미지 파일 다운로드 리소스는 `/api/vocabulary/downloadImageFile/{fileName}` 의 형태로 요청합니다.
-- `/api/vocabulary/downloadImageFile/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+- `/api/vocabulary/downloadImageFile/` 까지는 기본 요청 URI 입니다.
+이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
 
 operation::file-vocabulary-download-thumbnail-file[snippets='curl-request,http-response']
 
@@ -111,11 +118,10 @@ operation::file-vocabulary-download-thumbnail-file[snippets='curl-request,http-r
 === 단어장에 등록된 이미지 파일의 썸네일 이미지 다운로드
 
 - 단어장에 등록된 이미지 파일의 썸네일 이미지 다운로드 리소스는 `/api/vocabulary/displayThumbnail/{fileName}` 의 형태로 요청합니다.
-`/api/vocabulary/displayThumbnail/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+`/api/vocabulary/displayThumbnail/` 까지는 기본 요청 URI 입니다.
+이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
 
 operation::file-vocabulary-display-thumbnail[snippets='curl-request,http-response']
-
-
 
 [[resources-file-word]]
 == 단어 이미지 파일 리소스
@@ -134,7 +140,8 @@ operation::file-word-upload-image-file[snippets='request-headers,response-fields
 === 단어에 등록된 이미지 파일 다운로드
 
 - 단어에 등록된 이미지 파일 다운로드 리소스는 `/api/vocabulary/word/downloadImageFile/{fileName}` 의 형태로 요청합니다.
-- `/api/vocabulary/word/downloadImageFile/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+- `/api/vocabulary/word/downloadImageFile/` 까지는 기본 요청 URI 입니다.
+이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
 
 operation::file-word-download-image-file[snippets='curl-request,http-response']
 
@@ -142,6 +149,7 @@ operation::file-word-download-image-file[snippets='curl-request,http-response']
 === 단어에 등록된 이미지 파일의 썸네일 이미지 다운로드
 
 - 단어에 등록된 이미지 파일의 썸네일 이미지 다운로드 리소스는 `/api/vocabulary/word/displayThumbnail/{fileName}` 의 형태로 요청합니다.
-- `/api/vocabulary/word/displayThumbnail/` 까지는 기본 요청 URI 입니다. 이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
+- `/api/vocabulary/word/displayThumbnail/` 까지는 기본 요청 URI 입니다.
+이후 다운로드 받을 파일의 이름을 붙여서 요청합니다.
 
 operation::file-word-display-thumbnail[snippets='curl-request,http-response']

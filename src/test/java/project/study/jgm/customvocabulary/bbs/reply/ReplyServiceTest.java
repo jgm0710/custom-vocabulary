@@ -58,7 +58,7 @@ class ReplyServiceTest {
         Reply parent = replyService.addReply(member1.getId(), bbs.getId(), test_content_reply);
 
         String child1_content = "child1 content";
-        Reply child1 = replyService.addReplyOfReply(member2.getId(),parent.getId(), child1_content);
+        Reply child1 = replyService.addReplyOfReply(member2.getId(), parent.getId(), child1_content);
         String child2_content = "child2 content";
         Reply child2 = replyService.addReplyOfReply(member2.getId(), parent.getId(), child2_content);
 

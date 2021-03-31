@@ -139,8 +139,8 @@
                                    Register Account
                                </a>-->
                             <input type="submit" id="register-btn" href="login.html"
+                                   value="Register Account"
                                    class="btn btn-primary btn-user btn-block">
-                            Register Account
                             </input>
                             <!--                            <hr>-->
                             <!--                            <a href="index.html" class="btn btn-google btn-user btn-block">-->
@@ -157,6 +157,10 @@
                         <div class="text-center">
                             <a class="small" href="login.html" th:href="@{/members/login}">Already have an account?
                                 Login!</a>
+                        </div>
+                        <br>
+                        <div class="text-center">
+                            <a class="small" href="login.html" th:href="@{/}">Home</a>
                         </div>
                     </div>
                 </div>
@@ -240,6 +244,7 @@
                     statusCode: {
                         201: function (response) {
                             alert(response.message);
+                            $(location).attr('href', '/');
                         },
                         400: function (response) {
                             let data = JSON.parse(response.responseText);

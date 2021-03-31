@@ -77,6 +77,6 @@ public class VocabularyLikeService {
     private boolean checkExistLike(Long memberId, Long vocabularyId) {
         VocabularyLike vocabularyLike = vocabularyLikeQueryRepository.findLikeByMemberAndVocabulary(memberId, vocabularyId);
 
-        return vocabularyLike!=null;
+        return vocabularyLike != null;
     }
 }

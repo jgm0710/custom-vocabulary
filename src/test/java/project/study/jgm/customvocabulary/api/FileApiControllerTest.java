@@ -187,7 +187,7 @@ class FileApiControllerTest extends BaseControllerTest {
 
         String fileName = bbsUploadFile.getFileName();
 
-        String fileDownloadUri = bbsUploadFile.getFileDownloadUri()+"아무거나 더 붙여서 못찾게 만들기";
+        String fileDownloadUri = bbsUploadFile.getFileDownloadUri() + "아무거나 더 붙여서 못찾게 만들기";
         String decode = URLDecoder.decode(fileDownloadUri, StandardCharsets.UTF_8);
 
         //when
@@ -242,7 +242,7 @@ class FileApiControllerTest extends BaseControllerTest {
 
         BbsUploadFile bbsUploadFile = bbsFileStorageService.uploadBbsFile(multipartFile);
 
-        String fileName = bbsUploadFile.getFileName()+"아무거나 붙여서 파일 못찾게 하기";
+        String fileName = bbsUploadFile.getFileName() + "아무거나 붙여서 파일 못찾게 하기";
 
         String decode = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
 

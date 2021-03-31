@@ -56,7 +56,6 @@ public class VocabularyService {
     private final EntityManager em;
 
 
-
     /**
      * personal
      */
@@ -234,7 +233,7 @@ public class VocabularyService {
         }
 
         if (vocabulary.getDivision() == VocabularyDivision.DELETE || vocabulary.getDivision() == VocabularyDivision.UNSHARED) {
-                throw new BadRequestByDivision("삭제되거나 공유가 해제된 단어장은 카테고리 이동이 불가능합니다.");
+            throw new BadRequestByDivision("삭제되거나 공유가 해제된 단어장은 카테고리 이동이 불가능합니다.");
         }
 
         vocabulary.moveCategory(newCategory);
@@ -264,7 +263,7 @@ public class VocabularyService {
                 throw new MemberAndCategoryMemberDifferentException();
             }
         }
-        return vocabularyQueryRepository.findAllByMember(criteriaDto, memberId, categoryId,divisions);
+        return vocabularyQueryRepository.findAllByMember(criteriaDto, memberId, categoryId, divisions);
     }
 
     /**

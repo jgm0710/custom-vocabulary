@@ -12,7 +12,7 @@ import project.study.jgm.customvocabulary.security.dto.TokenDto;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
-public class EntityModelCreator extends EntityModel<Errors>{
+public class EntityModelCreator extends EntityModel<Errors> {
 
     public static <T> EntityModel<MemberDetailDto> createMemberDetailResponse(MemberDetailDto memberDetailDto, Class<T> controller, Object... slashs) {
         Link selfLink = getSelfLink(controller, slashs);

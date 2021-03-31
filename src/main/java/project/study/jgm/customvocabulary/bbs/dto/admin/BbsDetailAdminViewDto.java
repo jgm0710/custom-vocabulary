@@ -40,7 +40,7 @@ public class BbsDetailAdminViewDto {
     private boolean permissionToDeleteAndModify;
 
     @Builder.Default
-    private List<UploadFileResponseDto> uploadFiles =new ArrayList<>();
+    private List<UploadFileResponseDto> uploadFiles = new ArrayList<>();
 
 //.id
 //.member

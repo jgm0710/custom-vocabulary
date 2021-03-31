@@ -14,10 +14,11 @@ import javax.validation.constraints.Min;
 @AllArgsConstructor
 public class CriteriaDto {
 
-    @Min(value = 1,message = "첫 페이지는 1페이지입니다.")
+    @Min(value = 1, message = "첫 페이지는 1페이지입니다.")
     private int pageNum;
 
-    @Min(value = 1, message = "1개 미만의 값은 검색할 수 없습니다.") @Max(value = 100,message = "100개 초과의 값은 검색할 수 없습니다.")
+    @Min(value = 1, message = "1개 미만의 값은 검색할 수 없습니다.")
+    @Max(value = 100, message = "100개 초과의 값은 검색할 수 없습니다.")
     private int limit;
 
     @JsonIgnore

@@ -91,7 +91,7 @@ class LoginApiControllerTest extends BaseControllerTest {
         //given
         String joinId = "testJoinid";
         String nickname = "test";
-        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId,nickname);
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         LoginDto loginDto = getLoginDto(memberCreateDto);
@@ -110,7 +110,7 @@ class LoginApiControllerTest extends BaseControllerTest {
         //then
         perform
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("message").value(new UsernameNotFoundException("해당 아이디의 사용자가 없습니다. ID : "+joinId2).getMessage()));
+                .andExpect(jsonPath("message").value(new UsernameNotFoundException("해당 아이디의 사용자가 없습니다. ID : " + joinId2).getMessage()));
 
     }
 
@@ -150,7 +150,7 @@ class LoginApiControllerTest extends BaseControllerTest {
         //given
         String joinId = "testJoinid";
         String nickname = "test";
-        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId,nickname);
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
         Member userMember = memberService.userJoin(memberCreateDto);
 
         String refreshToken = userMember.getLoginInfo().getRefreshToken();
