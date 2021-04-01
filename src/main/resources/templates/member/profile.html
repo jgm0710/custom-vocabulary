@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Shared Vocabulary</title>
+</head>
+<body>
+<th:block th:include="fragments/header"/>
+<div class="card">
+    <div class="card-header">
+        Profile
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">No.</div>
+                <input id="memberId" class="col-10 custom-text-box read-toggle" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">Login ID</div>
+                <input id="joinId" class="col-10 custom-text-box read-toggle" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">Email</div>
+                <input id="email" class="col-10 custom-text-box read-toggle" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">name</div>
+                <input id="name" class="col-10 custom-text-box read-toggle" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">Nickname</div>
+                <input id="nickname" class="col-10 custom-text-box read-toggle" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">생년월일</div>
+                <input id="dateOfBirth" class="col-10 custom-text-box" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">성별</div>
+                <input id="gender" class="col-10 custom-text-box" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">Simple Address</div>
+                <input id="simpleAddress" class="col-10 custom-text-box read-toggle" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">공유한 당어장 수</div>
+                <input id="sharedVocabularyCount" class="col-10 custom-text-box" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">작성한 게시글 수</div>
+                <input id="bbsCount" class="col-10 custom-text-box" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">가입일시</div>
+                <input id="registerDate" class="col-10 custom-text-box" type="text" readonly>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">개인정보 최종 수정일시</div>
+                <input id="updateDate" class="col-10 custom-text-box" type="text" readonly>
+            </div>
+        </li>
+    </ul>
+</div>
+<th:block th:include="fragments/footer"/>
+
+<script src="https://code.jquery.com/jquery-3.6.0.js"
+        integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+
+<script>
+    $(document).ready(function () {
+
+        let tokenInfo = getTokenInfo();
+
+        if (tokenInfo.accessToken == null) {
+            $(location).attr('href', '/');
+            localStorage.clear();
+            alert("인증되지 않은 회원은 프로필에 접근할 수 없습니다.");
+        }
+
+        let profile = getProfile(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken);
+
+        $('#memberId').val(profile.id);
+        $('#joinId').val(profile.joinId);
+        $('#email').val(profile.email);
+        $('#name').val(profile.name);
+        $('#nickname').val(profile.nickname);
+        $('#dateOfBirth').val(new Date(profile.dateOfBirth).toLocaleDateString());
+        $('#gender').val(getKoreanGender(profile.gender));
+        $('#simpleAddress').val(profile.simpleAddress);
+        $('#sharedVocabularyCount').val(profile.sharedVocabularyCount);
+        $('#bbsCount').val(profile.bbsCount);
+        $('#registerDate').val(new Date(profile.registerDate).toLocaleString());
+        $('#updateDate').val(new Date(profile.updateDate).toLocaleString());
+
+    });
+
+    function getKoreanGender(gender) {
+        let koreanGender;
+        if (gender == "MALE") {
+            koreanGender = "남성";
+        } else {
+            koreanGender = "여성";
+        }
+
+        return koreanGender;
+    }
+
+    function getProfile(memberId, accessToken, refreshToken) {
+        console.log("get member profile.");
+
+        let id = null;
+        let joinId = null;
+        let email = null;
+        let name = null;
+        let nickname = null;
+        let dateOfBirth = null;
+        let gender = null;
+        let simpleAddress = null;
+        let sharedVocabularyCount = null;
+        let bbsCount = null;
+        let registerDate = null;
+        let updateDate = null;
+
+        $.ajax({
+            method: "GET",
+            url: "/api/members/" + memberId,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Content-type", "application/json");
+                xhr.setRequestHeader("X-AUTH-TOKEN", accessToken);
+            },
+            async: false,
+            statusCode: {
+                200: function (response) {
+                    console.log("Get profile success!!");
+
+                    id = response.data.id;
+                    joinId = response.data.joinId;
+                    email = response.data.email;
+                    name = response.data.name;
+                    nickname = response.data.nickname;
+                    dateOfBirth = response.data.dateOfBirth;
+                    gender = response.data.gender;
+                    simpleAddress = response.data.simpleAddress;
+                    sharedVocabularyCount = response.data.sharedVocabularyCount;
+                    bbsCount = response.data.bbsCount;
+                    registerDate = response.data.registerDate;
+                    updateDate = response.data.updateDate;
+                },
+                403: function () {
+                    console.log("Access fail...");
+                    let refreshResult = refresh(refreshToken);
+                    console.log(refreshResult);
+
+                    if (refreshResult.state == 200) {
+                        let profile = getProfile(refreshResult.memberId, refreshResult.accessToken, refreshToken.refreshToken);
+
+                        id = profile.id;
+                        joinId = profile.joinId;
+                        email = profile.email;
+                        name = profile.name;
+                        nickname = profile.nickname;
+                        dateOfBirth = profile.dateOfBirth;
+                        gender = profile.gender;
+                        simpleAddress = profile.simpleAddress;
+                        sharedVocabularyCount = profile.sharedVocabularyCount;
+                        bbsCount = profile.bbsCount;
+                        registerDate = profile.registerDate;
+                        updateDate = profile.updateDate;
+
+                    } else {
+                        alert("Refresh token이 유효하지 않습니다.");
+                        localStorage.clear();
+                        $(location).attr('href', '/');
+                    }
+                },
+                404: function (response) {
+                    alert("잘 못된 요청입니다. 해당 회원을 찾을 수 없습니다.");
+                    localStorage.clear();
+                    $(location).attr('href', '/');
+                },
+                401: function (response) {
+                    alert("잘 못된 요청입니다. 다른 회원의 정보는 조회할 수 없습니다.");
+                    localStorage.clear();
+                    $(location).attr('href', '/');
+                }
+            }
+        });
+
+        return {
+            id: id,
+            joinId: joinId,
+            email: email,
+            name: name,
+            nickname: nickname,
+            dateOfBirth: dateOfBirth,
+            gender: gender,
+            simpleAddress: simpleAddress,
+            sharedVocabularyCount: sharedVocabularyCount,
+            bbsCount: bbsCount,
+            registerDate: registerDate,
+            updateDate: updateDate
+        }
+    }
+</script>
+<style>
+    .custom-text-box {
+        border: 2px solid #e3e6f0;
+        border-radius: 1em;
+    }
+
+    .custom-text-box:focus {
+        box-shadow: 0 0 5pt 2pt #D3D3D3;
+        outline-width: 0px;
+    }
+</style>
+</body>
+</html>

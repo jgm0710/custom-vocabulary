@@ -152,18 +152,33 @@
                         const refreshToken = response.data.refreshToken;
                         const message = response.message;
 
-                        console.log(accessToken);
-                        console.log(refreshToken);
-                        console.log(message);
-
                         alert(message);
 
-                        localStorage.setItem("memberId", memberId);
-                        localStorage.setItem("accessToken", accessToken);
-                        localStorage.setItem("refreshToken", refreshToken);
+                        let rememberMe = $('#customCheck').is(":checked");
+
+                        console.log("rememberMe" + rememberMe);
+
+
+                        if (rememberMe == true) {
+                            localStorage.setItem("memberId", memberId);
+                            localStorage.setItem("accessToken", accessToken);
+                            localStorage.setItem("refreshToken", refreshToken);
+                        } else {
+                            sessionStorage.setItem("memberId", memberId);
+                            sessionStorage.setItem("accessToken", accessToken);
+                            sessionStorage.setItem("refreshToken", refreshToken);
+                        }
 
 
                         $(location).attr('href', '/');
+                    },
+                    404: function (response) {
+                        let responseJson = JSON.parse(response.responseText);
+                        alert(responseJson.message);
+                    },
+                    400: function (response) {
+                        let responseJson = JSON.parse(response.responseText);
+                        alert(responseJson.message);
                     }
                 }
             });

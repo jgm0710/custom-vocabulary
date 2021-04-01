@@ -1,8 +1,10 @@
-$(document).ready(function () {
 
-    getMemberInfo();
+$(document).ready(function () {
+    let tokenInfo = getTokenInfo();
+
+    getMemberInfo(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken);
     confirmLogout();
-    ifAccessTokenIsNull();
+    ifAccessTokenIsNull(tokenInfo.accessToken);
 
 });
 
@@ -11,18 +13,18 @@ function confirmLogout() {
         console.log("Confirm logout.");
         console.log("Delete tokens");
 
-        localStorage.clear();
-        location.reload();
+        storageClear();
+
+        $(location).attr('href', '/');
     });
 }
 
-function ifAccessTokenIsNull() {
-    let accessToken = localStorage.getItem('accessToken');
+function ifAccessTokenIsNull(accessToken) {
     if (accessToken == null) {
         $('#user-nickname').append("Login");
         $('#userDropdown').append(
             `
-            <img class="img-profile rounded-circle" src="img/undraw_rocket.svg">
+            <img class="img-profile rounded-circle" src="/img/undraw_rocket.svg"">
             `
         );
         $('#user-dropdown-item').remove();
@@ -32,11 +34,7 @@ function ifAccessTokenIsNull() {
     }
 }
 
-function getMemberInfo() {
-    let memberId = localStorage.getItem('memberId');
-    let accessToken = localStorage.getItem('accessToken');
-    let refreshToken = localStorage.getItem('refreshToken');
-
+function getMemberInfo(memberId, accessToken, refreshToken) {
     console.log("CALL - Get member info");
 
     if (accessToken != null) {
@@ -56,23 +54,22 @@ function getMemberInfo() {
 
                     let gender = response.data.gender;
 
-                    console.log(gender);
                     if (gender == "MALE") {
                         $('#userDropdown').append(
                             `
-                             <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                             <img class="img-profile rounded-circle" src="/img/undraw_profile.svg">
                             `
                         );
                     }else if (gender == "FEMALE") {
                         $('#userDropdown').append(
                             `
-                             <img class="img-profile rounded-circle" src="img/undraw_profile_1.svg">
+                             <img class="img-profile rounded-circle" src="/img/undraw_profile_1.svg">
                             `
                         );
                     } else {
                         $('#userDropdown').append(
                             `
-                            <img class="img-profile rounded-circle" src="img/undraw_rocket.svg">
+                            <img class="img-profile rounded-circle" src="/img/undraw_rocket.svg">
                             `
                         );
                     }
@@ -87,7 +84,7 @@ function getMemberInfo() {
                     console.log("Member not found...");
                     console.log("Delete tokens.");
 
-                    localStorage.clear();
+                    storageClear();
                 },
                 401: function () {
                     alert("잘 못된 접근입니다.");
@@ -95,7 +92,7 @@ function getMemberInfo() {
                     console.log("Wrong request!");
                     console.log("Delete tokens.");
 
-                    localStorage.clear();
+                    storageClear();
                 }
             }
         });
@@ -121,7 +118,7 @@ function refreshAndTryGetMemberInfo(refreshToken) {
                 let accessToken = response.data.accessToken;
                 localStorage.setItem('accessToken', accessToken);
 
-                getMemberInfo();
+                getMemberInfo(response.data.memberId, response.data.accessToken, response.data.refreshToken);
             },
             401: function (response) {
                 console.log("Refresh fail...");
@@ -130,7 +127,7 @@ function refreshAndTryGetMemberInfo(refreshToken) {
                 console.log(message);
 
                 console.log("Delete tokens.");
-                localStorage.clear();
+                storageClear();
 
                 let loginConfirm = confirm("Refresh token 이 유효하지 않습니다. 로그인 하시겠습니까?");
                 if (loginConfirm) {
@@ -141,6 +138,6 @@ function refreshAndTryGetMemberInfo(refreshToken) {
                 }
             }
         }
-    })
+    });
 
 }

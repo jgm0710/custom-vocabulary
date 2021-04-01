@@ -63,6 +63,11 @@ public class MemberController {
         return years;
     }
 
+    @GetMapping("/profile")
+    public String profile() {
+        return "/member/profile";
+    }
+
     private DateDto getDateDto(int i) {
         String value = null;
 

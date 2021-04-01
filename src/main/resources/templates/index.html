@@ -6,6 +6,38 @@
 </head>
 <body>
 <th:block th:include="fragments/header"/>
+<div class="card" style="width: 15rem;">
+    <img src="/custom/img/personal-vocabulary.svg" class="card-img-top" alt="...">
+    <div class="card-body">
+        <h5 class="card-title">Card title</h5>
+<!--        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-item-custom">An item</li>
+        <li class="list-item-custom">A second item</li>
+        <li class="list-item-custom">A third item</li>
+    </ul>
+<!--    <div class="card-body">-->
+<!--        <a href="#" class="card-link card-custom">Card link</a>-->
+<!--        <a href="#" class="card-link card-custom">Another link</a>-->
+<!--    </div>-->
+</div>
 <th:block th:include="fragments/footer"/>
+<style>
+    .list-group{
+        padding: 0.1em;
+    }
+    .list-item-custom{
+        font-size: 0.2em;
+        padding: 2px;
+        list-style: none;
+    }
+    .card-body{
+        padding: 2px;
+    }
+    .card-title{
+        font-size: 1em;
+    }
+</style>
 </body>
 </html>
