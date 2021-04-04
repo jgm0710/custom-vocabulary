@@ -28,6 +28,7 @@ file:
 
 logging:
   level:
+    project.study.jgm.customvocabulary: debug
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
     org.springframework.security: debug #spring security에 대해 어떤 메세지가 출력이 되는지 확인

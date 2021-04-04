@@ -23,6 +23,19 @@ public class MemberController {
 
     @GetMapping("/join")
     public String register(Model model) {
+        addDateInfoToModel(model);
+
+        return "/member/register";
+    }
+
+    @GetMapping("/profile")
+    public String profile(Model model) {
+        addDateInfoToModel(model);
+
+        return "/member/profile";
+    }
+
+    private void addDateInfoToModel(Model model) {
         List<Integer> years = createYears();
         List<DateDto> month = createMonth();
         List<DateDto> days = createDays();
@@ -30,8 +43,6 @@ public class MemberController {
         model.addAttribute("years", years);
         model.addAttribute("month", month);
         model.addAttribute("days", days);
-
-        return "/member/register";
     }
 
     private List<DateDto> createDays() {
@@ -61,11 +72,6 @@ public class MemberController {
             j++;
         }
         return years;
-    }
-
-    @GetMapping("/profile")
-    public String profile() {
-        return "/member/profile";
     }
 
     private DateDto getDateDto(int i) {

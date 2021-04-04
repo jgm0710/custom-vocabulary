@@ -262,7 +262,7 @@ class MemberServiceTest {
 
     @Test
     @DisplayName("회원 수정")
-    void modifyMember() {
+    public void modifyMember() {
         MemberCreateDto memberCreateDto = getMemberCreateDto();
         Member joinMember = memberService.userJoin(memberCreateDto);
 

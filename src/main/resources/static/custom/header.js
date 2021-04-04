@@ -2,7 +2,7 @@
 $(document).ready(function () {
     let tokenInfo = getTokenInfo();
 
-    getMemberInfo(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken);
+    getMemberInfo(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, tokenInfo.tokenLocation);
     confirmLogout();
     ifAccessTokenIsNull(tokenInfo.accessToken);
 
@@ -34,7 +34,7 @@ function ifAccessTokenIsNull(accessToken) {
     }
 }
 
-function getMemberInfo(memberId, accessToken, refreshToken) {
+function getMemberInfo(memberId, accessToken, refreshToken, tokenLocation) {
     console.log("CALL - Get member info");
 
     if (accessToken != null) {
@@ -78,7 +78,7 @@ function getMemberInfo(memberId, accessToken, refreshToken) {
                     console.log("Access fail.");
                     console.log("Try refresh.");
 
-                    refreshAndTryGetMemberInfo(refreshToken);
+                    refreshAndTryGetMemberInfo(refreshToken, tokenLocation);
                 },
                 404: function () {
                     console.log("Member not found...");
@@ -101,7 +101,7 @@ function getMemberInfo(memberId, accessToken, refreshToken) {
     }
 }
 
-function refreshAndTryGetMemberInfo(refreshToken) {
+function refreshAndTryGetMemberInfo(refreshToken, tokenLocation) {
     const onlyTokenDto = {
         refreshToken: refreshToken
     }
@@ -116,7 +116,16 @@ function refreshAndTryGetMemberInfo(refreshToken) {
                 console.log("Refresh success!!");
                 console.log("Register accessToken!!");
                 let accessToken = response.data.accessToken;
-                localStorage.setItem('accessToken', accessToken);
+
+                console.log("tokenLocation equal");
+                console.log(tokenLocation);
+                if (tokenLocation == "LS") {
+                    localStorage.setItem('accessToken', accessToken);
+                }else if (tokenLocation == "SS") {
+                    sessionStorage.setItem('accessToken', accessToken);
+                } else {
+                    alert("토큰이 저장된 위치가 예상 범위 밖입니다.");
+                }
 
                 getMemberInfo(response.data.memberId, response.data.accessToken, response.data.refreshToken);
             },

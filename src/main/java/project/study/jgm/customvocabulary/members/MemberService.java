@@ -2,6 +2,7 @@ package project.study.jgm.customvocabulary.members;
 
 import javassist.bytecode.DuplicateMemberException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class MemberService {
 
     private final MemberRepository memberRepository;
@@ -103,13 +105,20 @@ public class MemberService {
             throw new PasswordMismatchException();
         }
 
-        if (findMember.getJoinId() != memberUpdateDto.getJoinId()) {
+        log.debug("JoinId of find member : [" + findMember.getJoinId()+"]");
+        log.debug("JoinId of updateDto : [" + memberUpdateDto.getJoinId()+"]");
+        log.debug("Nickname of find member : [" + findMember.getNickname()+"]");
+        log.debug("Nickname of updateDto : [" + memberUpdateDto.getNickname()+"]");
+
+        if (!findMember.getJoinId().equals(memberUpdateDto.getJoinId())) {
+            log.debug("JoinId modified.");
             if (checkExistJoinId(memberUpdateDto.getJoinId())) {
                 throw new ExistDuplicatedMemberException();
             }
         }
 
-        if (findMember.getNickname() != memberUpdateDto.getNickname()) {
+        if (!findMember.getNickname().equals(memberUpdateDto.getNickname())) {
+            log.debug("Nickname modified");
             if (checkExistNickname(memberUpdateDto.getNickname())) {
                 throw new ExistDuplicatedMemberException();
             }
@@ -143,11 +152,15 @@ public class MemberService {
      */
     public boolean checkExistJoinId(String joinId) {
         Member member = memberRepository.findByJoinId(joinId).orElse(null);
+        log.debug("Check exist join id.");
+        log.debug("Find member by join id :" + member);
         return member != null;
     }
 
     public boolean checkExistNickname(String nickname) {
         Member member = memberRepository.findByNickname(nickname).orElse(null);
+        log.debug("Check exist nickname.");
+        log.debug("Find member by nickname :" + member);
         return member != null;
     }
 

@@ -116,10 +116,13 @@ public class MemberApiController {
 
         try {
             memberService.modifyMember(memberId, memberUpdateDto.getPassword(), memberUpdateDto);
+            log.info(MODIFIED_MEMBER_INFO_SUCCESSFULLY);
         } catch (MemberNotFoundException e) {
+            log.info("Member not found -> Modify member info fail...");
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ResponseDto<>(e.getMessage()));
         } catch (PasswordMismatchException | ExistDuplicatedMemberException e) {
+            log.info("Bad request fail :" + e.getMessage());
             return ResponseEntity.badRequest()
                     .body(new ResponseDto<>(e.getMessage()));
         }

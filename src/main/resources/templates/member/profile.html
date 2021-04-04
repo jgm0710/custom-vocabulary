@@ -42,15 +42,79 @@
             </div>
         </li>
         <li class="list-group-item">
-            <div class="row">
-                <div class="col">생년월일</div>
-                <input id="dateOfBirth" class="col-10 custom-text-box" type="text" readonly>
+            <div id="textDateOfBirth">
+                <div class="row">
+                    <div class="col-2">생년월일</div>
+                    <input id="dateOfBirth" class="col custom-text-box" type="text" readonly>
+                </div>
+            </div>
+
+            <div id="selectDateOfBirth" style="display: none">
+                <div class="row">
+                    <div class="col-2">
+                        <span class="custom-span">생년월일</span>
+                    </div>
+                    <div class="col-md-auto">
+                        <select name="year"
+                                class="form-select form-select-sm"
+                                aria-label=".form-select-sm example">
+                            <option selected value="-1">year</option>
+                            <th:block th:each="num: ${years}">
+                                <option th:value="${num}" th:text="${num}" value="1"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <select name="month"
+                                class="form-select form-select-sm"
+                                aria-label=".form-select-sm example">
+                            <option selected value="-1">month</option>
+                            <th:block th:each="month: ${month}">
+                                <option th:value="${month.value}" th:text="${month.text}"
+                                        value="1"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <select name="day"
+                                class="form-select form-select-sm"
+                                aria-label=".form-select-sm example">
+                            <option selected value="-1">day</option>
+                            <th:block th:each="day: ${days}">
+                                <option th:value="${day.value}" th:text="${day.text}"
+                                        value="1"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                </div>
             </div>
         </li>
         <li class="list-group-item">
-            <div class="row">
-                <div class="col">성별</div>
-                <input id="gender" class="col-10 custom-text-box" type="text" readonly>
+            <div id="textGender">
+                <div class="row">
+                    <div class="col">성별</div>
+                    <input id="gender" class="col-10 custom-text-box" type="text" readonly>
+                    <div style="display: none">
+                        <input class="col-10 custom-text-box" type="text" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div id="selectGender" style="display: none">
+                <div class="row">
+                    <div class="col-2">
+                        <span class="custom-span">성별</span>
+                    </div>
+                    <div class="col-md-auto">
+                        <select name="gender"
+                                class="form-select form-select-sm"
+                                aria-label=".form-select-sm example">
+                            <option selected value="-1">Gender</option>
+                            <option th:value="MALE" th:text="남성" value="MALE"></option>
+                            <option th:value="FEMALE" th:text="여성" value="FEMALE"></option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </li>
         <li class="list-group-item">
@@ -61,7 +125,7 @@
         </li>
         <li class="list-group-item">
             <div class="row">
-                <div class="col">공유한 당어장 수</div>
+                <div class="col">공유한 단어장 수</div>
                 <input id="sharedVocabularyCount" class="col-10 custom-text-box" type="text" readonly>
             </div>
         </li>
@@ -85,10 +149,65 @@
         </li>
     </ul>
 </div>
-<th:block th:include="fragments/footer"/>
+<div id="custom-button-group" style="margin-top: 10px">
+    <input id="modify-btn" type="button" value="Modify" class="btn btn-outline-warning">
+    <input id="withdrawal-btn" type="button" value="Withdrawal" class="btn btn-outline-danger">
+    <input id="cancel-btn" type="hidden" value="Cancel" class="btn btn-outline-warning">
+    <!--    <input id="confirm-btn" type="hidden" value="Confirm" class="btn btn-outline-success" data-toggle="modal"-->
+    <!--           data-bs-target="#exampleModal">-->
+    <input id="confirm-btn" type="hidden" class="btn btn-outline-success" value="Confirm" data-bs-toggle="modal"
+           data-bs-target="#modifyConfirmationModal">
+</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.js"
-        integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<!-- Modify confirmation modal-->
+<!--<div class="modal fade" id="modifyConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
+<!--     aria-hidden="true">-->
+<!--    <div class="modal-dialog" role="document">-->
+<!--        <div class="modal-content">-->
+<!--            <div class="modal-header">-->
+<!--                <h5 class="modal-title" id="exampleModalLabel">프로필 수정 본인인증</h5>-->
+<!--                <button class="close" type="button" data-dismiss="modal" aria-label="Close">-->
+<!--                    <span aria-hidden="true">×</span>-->
+<!--                </button>-->
+<!--            </div>-->
+<!--            <div class="modal-body">본인 확인을 위한 비밀번호를 입력해주세요.</div>-->
+<!--            <div class="input-group input-group-sm mb-3">-->
+<!--                <input id="modifyConfirmPassword" type="password" class="form-control ml-3 mr-3"-->
+<!--                       aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">-->
+<!--            </div>-->
+<!--            <div class="modal-footer">-->
+<!--                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
+<!--                <button id="modify-confirm-btn" class="btn btn-primary">Modify Confirm</button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!-- Modal -->
+<div class="modal fade" id="modifyConfirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">프로필 수정 본인인증</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                본인 확인을 위한 비밀번호를 입력해주세요.
+            </div>
+            <div class="input-group input-group-sm mb-3">
+                <input id="modifyConfirmPassword" type="password" class="form-control ml-3 mr-3"
+                       aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="modify-confirm-btn" type="button" class="btn btn-primary">Modify confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:include="fragments/footer"/>
 
 <script>
     $(document).ready(function () {
@@ -103,6 +222,160 @@
 
         let profile = getProfile(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken);
 
+        fillInProfile(profile);
+
+        $('#modify-btn').click(function () {
+            switchToModifyMode();
+        });
+
+        $('#cancel-btn').click(function () {
+            switchToNormalMode();
+            fillInProfile(profile);
+        });
+
+        $('#modify-confirm-btn').click(function () {
+            let updateDto = getUpdateDto();
+            modifyProfile(tokenInfo.memberId, tokenInfo.accessToken+"i", tokenInfo.refreshToken, updateDto);
+        });
+
+    });
+
+    function modifyProfile(memberId, accessToken, refreshToken, updateDto) {
+        if (updateDto) {
+            console.log(updateDto);
+            $.ajax({
+                method: "PUT",
+                url: "/api/members/" + memberId,
+                data: JSON.stringify(updateDto),
+                async: false,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Content-type", "application/json");
+                    xhr.setRequestHeader("X-AUTH-TOKEN", accessToken);
+                },
+                contentType: "application/json",
+                statusCode: {
+                    200: function (response) {
+                        alert("프로필 수정이 정상적으로 완료되었습니다.");
+                        location.reload();
+                    },
+                    400: function (response) { // JoinId 나 Nickname 중복, 본인확인 비밀번호 틀림, validation Error
+                        console.log(response);
+                        let responseJson = JSON.parse(response.responseText);
+                        if (responseJson.message != undefined) {
+                            alert(responseJson.message);
+                        } else {
+                            let str = "";
+                            for (let i = 0; i < responseJson.length; i++) {
+                                str += responseJson[i].defaultMessage + "\n";
+                            }
+
+                            alert(str);
+
+                        }
+
+                        $('#modifyConfirmPassword').val("");
+                        $('#modifyConfirmationModal').modal("hide");
+                    },
+                    403: function () { // Access 실패
+                        let refreshResult = refresh(refreshToken);
+                        if (refreshResult.state == 200) {
+                            modifyProfile(refreshResult.memberId, refreshResult.accessToken, refreshResult.refreshToken, updateDto);
+                        } else {
+                            ifRefreshFail();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function getUpdateDto() {
+        const joinId = $('#joinId').val();
+        const email = $('#email').val();
+        const name = $('#name').val();
+        const nickname = $('#nickname').val();
+        let year = $('select[name=year]').val();
+        let month = $('select[name=month]').val();
+        let day = $('select[name=day]').val();
+        const dateOfBirth = year + "-" + month + "-" + day;
+        const gender = $('select[name=gender]').val();
+        const simpleAddress = $('#simpleAddress').val();
+        const confirmPassword = $('#modifyConfirmPassword').val();
+
+        if (year == -1 || month == -1 || day == -1) {
+            alert("생년월일을 선택해주세요.");
+            $('#modifyConfirmationModal').modal('hide');
+            return null;
+        }
+
+        if (gender == -1) {
+            alert("셩별을 선택해주세요.");
+            $('#modifyConfirmationModal').modal('hide');
+            return null;
+        }
+
+        if (confirmPassword == "" || confirmPassword == " ") {
+            alert("본인확인을 위한 비밀번호를 입력해 주세요.");
+            return null;
+        }
+
+        return {
+            joinId: joinId,
+            password: confirmPassword,
+            email: email,
+            name: name,
+            nickname: nickname,
+            dateOfBirth: dateOfBirth,
+            gender: gender,
+            simpleAddress: simpleAddress
+        };
+    }
+
+    function switchToNormalMode() {
+        $('#modify-btn').prop("type", "button");
+        $('#withdrawal-btn').prop("type", "button");
+        $('#cancel-btn').prop("type", "hidden");
+        $('#confirm-btn').prop("type", "hidden");
+
+        $('#joinId').prop('readOnly', true);
+        $('#email').prop('readOnly', true);
+        $('#name').prop('readOnly', true);
+        $('#nickname').prop('readOnly', true);
+        $('#simpleAddress').prop('readOnly', true);
+
+        $('#selectDateOfBirth').css('display', 'none');
+        $('#textDateOfBirth').css('display', 'block');
+
+        $('#textGender').css('display', 'block');
+        $('#selectGender').css('display', 'none');
+    }
+
+    function switchToModifyMode() {
+        $('#modify-btn').prop("type", "hidden");
+        $('#withdrawal-btn').prop("type", "hidden");
+        $('#cancel-btn').prop("type", "button");
+        $('#confirm-btn').prop("type", "button");
+
+        $('#joinId').prop('readOnly', false);
+        $('#email').prop('readOnly', false);
+        $('#name').prop('readOnly', false);
+        $('#nickname').prop('readOnly', false);
+        $('#simpleAddress').prop('readOnly', false);
+
+        $('#selectDateOfBirth').css('display', 'block');
+        $('#textDateOfBirth').css('display', 'none');
+
+        $('select[name=year]').val(-1);
+        $('select[name=month]').val(-1);
+        $('select[name=day]').val(-1);
+
+        $('select[name=gender]').val(-1);
+
+        $('#selectGender').css('display', 'block');
+        $('#textGender').css('display', 'none');
+    }
+
+    function fillInProfile(profile) {
         $('#memberId').val(profile.id);
         $('#joinId').val(profile.joinId);
         $('#email').val(profile.email);
@@ -115,8 +388,7 @@
         $('#bbsCount').val(profile.bbsCount);
         $('#registerDate').val(new Date(profile.registerDate).toLocaleString());
         $('#updateDate').val(new Date(profile.updateDate).toLocaleString());
-
-    });
+    }
 
     function getKoreanGender(gender) {
         let koreanGender;
@@ -192,9 +464,7 @@
                         updateDate = profile.updateDate;
 
                     } else {
-                        alert("Refresh token이 유효하지 않습니다.");
-                        localStorage.clear();
-                        $(location).attr('href', '/');
+                        ifRefreshFail();
                     }
                 },
                 404: function (response) {
@@ -226,6 +496,7 @@
         }
     }
 </script>
+
 <style>
     .custom-text-box {
         border: 2px solid #e3e6f0;

@@ -46,6 +46,7 @@ function getTokenInfo() {
     let accessToken = localStorage.getItem('accessToken');
     let memberId = localStorage.getItem('memberId');
     let refreshToken = localStorage.getItem('refreshToken');
+    let tokenLocation = "LS";
 
     if (accessToken == null) {
         console.log("Local storage is null.");
@@ -54,17 +55,29 @@ function getTokenInfo() {
         accessToken = sessionStorage.getItem('accessToken');
         memberId = sessionStorage.getItem('memberId');
         refreshToken = sessionStorage.getItem('refreshToken');
+        tokenLocation = "SS";
     }
 
     return {
         accessToken: accessToken,
         memberId: memberId,
-        refreshToken: refreshToken
+        refreshToken: refreshToken,
+        tokenLocation: tokenLocation
     };
 }
 
 function storageClear() {
-    console.log("Storage clear.");
-    localStorage.clear();
-    sessionStorage.clear();
+    console.log("Delete tokens");
+    localStorage.removeItem('memberId');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('memberId');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+}
+
+function ifRefreshFail() {
+    alert("Refresh token이 유효하지 않습니다.");
+    storageClear();
+    $(location).attr('href', '/');
 }
