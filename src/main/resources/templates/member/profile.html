@@ -236,7 +236,7 @@
 
         $('#modify-confirm-btn').click(function () {
             let updateDto = getUpdateDto();
-            modifyProfile(tokenInfo.memberId, tokenInfo.accessToken + "i", tokenInfo.refreshToken, updateDto);
+            modifyProfile(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, updateDto);
         });
 
         $('#withdrawal-confirm-btn').click(function () {
