@@ -1,0 +1,12 @@
+1613292660774|0|rollback|connection 5|url jdbc:h2:mem:testdb||
+1613292717584|0|rollback|connection 5|url jdbc:h2:mem:testdb||
+1613305413452|0|rollback|connection 5|url jdbc:h2:mem:testdb||
+1613462471785|0|rollback|connection 5|url jdbc:h2:mem:testdb||
+1613751225649|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1613903937131|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1613908436024|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1614092728648|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1614257735480|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1614257943058|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1614260121792|0|rollback|connection 7|url jdbc:h2:mem:testdb||
+1614323288379|0|rollback|connection 13|url jdbc:h2:mem:testdb||

@@ -276,3 +276,51 @@ function getProfile(memberId, accessToken, refreshToken) {
         updateDate: updateDate
     }
 }
+
+function withdrawal(memberId, accessToken, refreshToken, confirmPassword) {
+    const onlyPasswordDto = {
+        password: confirmPassword
+    };
+
+    $.ajax({
+        method: "DELETE",
+        url: "/api/members/secession/" + memberId,
+        async: false,
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.setRequestHeader("X-AUTH-TOKEN", accessToken);
+        },
+        contentType: "application/json",
+        data: JSON.stringify(onlyPasswordDto),
+        statusCode: {
+            200: function (response) { //회원탈퇴 성공
+                console.log("Withdrawal success.");
+                console.log("Delete tokens");
+                storageClear();
+
+                console.log("Go to home.");
+                alert("회원 탈퇴가 정상적으로 완료되었습니다.");
+                $(location).attr('href', '/');
+            },
+            403: function () { // Access 실패
+                console.log("Withdrawal access fail.");
+                let refreshResult = refresh(refreshToken);
+                if (refreshResult.state == 200) {
+                    console.log("Try again withdrawal.");
+                    withdrawal(refreshResult.memberId, refreshResult.accessToken, refreshResult.refreshToken, confirmPassword);
+                } else {
+                    ifRefreshFail();
+                }
+            },
+            400: function (response) { // 본인확인 비밀번호 틀림
+                let responseJson = JSON.parse(response.responseText);
+                $('#withdrawalConfirmPassword').val("");
+                alert(responseJson.message);
+            },
+            401: function (response) { // 다른 회원의 탈퇴를 요청하는 경우
+                let responseJson = JSON.parse(response.responseText);
+                alert(responseJson.message);
+            }
+        }
+    });
+}
