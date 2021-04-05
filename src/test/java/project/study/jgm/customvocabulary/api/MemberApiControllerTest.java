@@ -18,6 +18,7 @@ import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.dto.MemberCreateDto;
 import project.study.jgm.customvocabulary.members.dto.MemberUpdateDto;
+import project.study.jgm.customvocabulary.members.dto.OnlyConfirmPasswordDto;
 import project.study.jgm.customvocabulary.members.dto.PasswordUpdateDto;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSearchType;
 import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
@@ -25,6 +26,7 @@ import project.study.jgm.customvocabulary.members.exception.ExistDuplicatedMembe
 import project.study.jgm.customvocabulary.members.exception.MemberAlreadyHasAuthorityException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
+import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 import project.study.jgm.customvocabulary.security.exception.PasswordMismatchException;
 
@@ -245,10 +247,10 @@ public class MemberApiControllerTest extends BaseControllerTest {
         MemberCreateDto memberCreateDto = getMemberCreateDto("testJoinid", "test");
         Member userMember = memberService.userJoin(memberCreateDto);
 
-        memberService.secession(userMember.getId(), memberCreateDto.getPassword());
-
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
+
+        memberService.secession(userMember.getId(), memberCreateDto.getPassword());
 
         //when
 
@@ -909,12 +911,15 @@ public class MemberApiControllerTest extends BaseControllerTest {
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
 
+        OnlyConfirmPasswordDto onlyConfirmPasswordDto = new OnlyConfirmPasswordDto(memberCreateDto.getPassword());
+
         //when
         ResultActions perform = mockMvc
                 .perform(
                         delete("/api/members/secession/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password", memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(onlyConfirmPasswordDto))
                 );
 
         //then
@@ -926,8 +931,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                         requestHeaders(
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
-                        requestParameters(
-                                parameterWithName("password").description("회원 탈퇴 시 본인 확인을 위한 비밀번호")
+                        requestFields(
+                                fieldWithPath("password").description("회원 탈퇴 시 본인 확인을 위한 비밀번호")
                         ),
                         responseFields(
                                 fieldWithPath("data").description("회원 탈퇴는 별도의 data가 출력되지 않습니다."),
@@ -955,12 +960,14 @@ public class MemberApiControllerTest extends BaseControllerTest {
         LoginDto loginDto = getLoginDto(memberCreateDto);
         TokenDto tokenDto = memberService.login(loginDto);
 
+        OnlyConfirmPasswordDto onlyConfirmPasswordDto = new OnlyConfirmPasswordDto("fjdaklfjdasl");
         //when
         ResultActions perform = mockMvc
                 .perform(
                         delete("/api/members/secession/" + userMember.getId())
                                 .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password", "ㄹㅇㅁㄴㄹㅇㄴㅁ")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(onlyConfirmPasswordDto))
                 );
 
         //then
@@ -980,12 +987,15 @@ public class MemberApiControllerTest extends BaseControllerTest {
         LoginDto loginDto = getLoginDto(memberCreateDto);
         memberService.login(loginDto);
 
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(memberCreateDto.getPassword());
+
         //when
         ResultActions perform = mockMvc
                 .perform(
                         delete("/api/members/secession/" + userMember.getId())
 //                                .header(X_AUTH_TOKEN, tokenDto.getAccessToken())
-                                .param("password", memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(onlyTokenDto))
                 );
 
         //then
@@ -1011,12 +1021,14 @@ public class MemberApiControllerTest extends BaseControllerTest {
         memberCreateDto.setPassword("fdafdafdasf");
         Member userMember2 = memberService.userJoin(memberCreateDto);
 
+        OnlyTokenDto onlyTokenDto = new OnlyTokenDto(memberCreateDto.getPassword());
         //when
         ResultActions perform = mockMvc
                 .perform(
                         delete("/api/members/secession/" + userMember2.getId())
                                 .header(X_AUTH_TOKEN, userMember1TokenDto.getAccessToken())
-                                .param("password", memberCreateDto.getPassword())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(onlyTokenDto))
                 );
 
         //then

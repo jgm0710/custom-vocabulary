@@ -169,8 +169,13 @@ public class MemberApiController {
     @DeleteMapping("/secession/{memberId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity secession(@PathVariable("memberId") Long memberId,
-                                    @RequestParam String password,
+                                    @RequestBody OnlyConfirmPasswordDto onlyConfirmPasswordDto,
+                                    Errors errors,
                                     @CurrentUser Member member) {
+
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
 
         if (!memberId.equals(member.getId())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -178,7 +183,7 @@ public class MemberApiController {
         }
 
         try {
-            memberService.secession(memberId, password);
+            memberService.secession(memberId, onlyConfirmPasswordDto.getPassword());
 
         } catch (MemberNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

@@ -1,6 +1,5 @@
 package project.study.jgm.customvocabulary.members;
 
-import javassist.bytecode.DuplicateMemberException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +20,6 @@ import project.study.jgm.customvocabulary.security.exception.PasswordMismatchExc
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,6 +66,10 @@ public class MemberService {
         }
 
         Member loginMember = accountAdapter.getMember();
+        if (!loginMember.checkAuthorized()) {
+            throw new UnauthorizedMemberException();
+        }
+
         loginMember.login(securityProperties);
 
         return createToken(loginMember);

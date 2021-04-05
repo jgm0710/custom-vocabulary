@@ -30,6 +30,11 @@ ID : [틀린 로그인 ID]
 | 비밀번호가 일치하지 않습니다.
 비밀번호를 다시 확인해주세요.
 
+| <<resources-authentication-login>>
+| 탈퇴하거나 활동이 금지된 회원이 로그인을 시도하는 경우
+| 401
+| 해당 사이트에 대한 활동 권한을 가지고 있지 않은 회원입니다.
+
 | <<resources-authentication-refresh>>
 | Refresh Token 이 틀린 경우
 | 401

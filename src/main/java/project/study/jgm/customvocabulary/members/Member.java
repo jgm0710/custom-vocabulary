@@ -160,4 +160,8 @@ public class Member {
     public void deleteBbs() {
         this.bbsCount--;
     }
+
+    public boolean checkAuthorized() {
+        return !this.roles.contains(MemberRole.SECESSION) && !this.roles.contains(MemberRole.BAN);
+    }
 }

@@ -60,7 +60,7 @@ function getMemberInfo(memberId, accessToken, refreshToken, tokenLocation) {
                              <img class="img-profile rounded-circle" src="/img/undraw_profile.svg">
                             `
                         );
-                    }else if (gender == "FEMALE") {
+                    } else if (gender == "FEMALE") {
                         $('#userDropdown').append(
                             `
                              <img class="img-profile rounded-circle" src="/img/undraw_profile_1.svg">
@@ -95,6 +95,10 @@ function getMemberInfo(memberId, accessToken, refreshToken, tokenLocation) {
                     storageClear();
                 }
             }
+        }).fail(function () {
+            alert("예기치 못한 문제가 발생했습니다.");
+            storageClear();
+            $(location).attr('href', '/');
         });
     } else {
         console.log("Access token is null...");

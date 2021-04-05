@@ -179,6 +179,10 @@
                     400: function (response) {
                         let responseJson = JSON.parse(response.responseText);
                         alert(responseJson.message);
+                    },
+                    401: function (response) {
+                        let responseJson = JSON.parse(response.responseText);
+                        alert(responseJson.message);
                     }
                 }
             });

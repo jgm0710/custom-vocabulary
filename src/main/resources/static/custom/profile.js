@@ -17,7 +17,6 @@ function modifyProfile(memberId, accessToken, refreshToken, updateDto) {
                     location.reload();
                 },
                 400: function (response) { // JoinId 나 Nickname 중복, 본인확인 비밀번호 틀림, validation Error
-                    console.log(response);
                     let responseJson = JSON.parse(response.responseText);
                     if (responseJson.message != undefined) {
                         alert(responseJson.message);
@@ -60,20 +59,13 @@ function getUpdateDto() {
     const simpleAddress = $('#simpleAddress').val();
     const confirmPassword = $('#modifyConfirmPassword').val();
 
-    if (year == -1 || month == -1 || day == -1) {
-        alert("생년월일을 선택해주세요.");
-        $('#modifyConfirmationModal').modal('hide');
+    if (!checkExistDateOfBirth(year, month, day)) {
         return null;
     }
-
-    if (gender == -1) {
-        alert("셩별을 선택해주세요.");
-        $('#modifyConfirmationModal').modal('hide');
+    if (!checkExistGender(gender)) {
         return null;
     }
-
-    if (confirmPassword == "" || confirmPassword == " ") {
-        alert("본인확인을 위한 비밀번호를 입력해 주세요.");
+    if (!checkExistConfirmPassword(confirmPassword)) {
         return null;
     }
 
@@ -89,9 +81,39 @@ function getUpdateDto() {
     };
 }
 
+function checkExistDateOfBirth(year, month, day) {
+    if (year == -1 || month == -1 || day == -1) {
+        alert("생년월일을 선택해주세요.");
+        $('#modifyConfirmationModal').modal('hide');
+        return false;
+    }
+
+    return true;
+}
+
+function checkExistGender(gender) {
+    if (gender == -1) {
+        alert("셩별을 선택해주세요.");
+        $('#modifyConfirmationModal').modal('hide');
+        return false;
+    }
+
+    return true;
+}
+
+function checkExistConfirmPassword(confirmPassword) {
+    if (confirmPassword == "" || confirmPassword == " ") {
+        alert("본인확인을 위한 비밀번호를 입력해 주세요.");
+        return false;
+    }
+
+    return true;
+}
+
 function switchToNormalMode() {
     $('#modify-btn').prop("type", "button");
     $('#withdrawal-btn').prop("type", "button");
+    $('#update-password-btn').prop("type", "button");
     $('#cancel-btn').prop("type", "hidden");
     $('#confirm-btn').prop("type", "hidden");
 
@@ -111,6 +133,7 @@ function switchToNormalMode() {
 function switchToModifyMode() {
     $('#modify-btn').prop("type", "hidden");
     $('#withdrawal-btn').prop("type", "hidden");
+    $('#update-password-btn').prop("type", "hidden");
     $('#cancel-btn').prop("type", "button");
     $('#confirm-btn').prop("type", "button");
 

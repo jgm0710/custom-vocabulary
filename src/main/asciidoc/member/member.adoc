@@ -187,7 +187,7 @@ operation::update-password[snippets='request-headers,request-fields,response-fie
 - 회원탈퇴 리소스는 `/api/members/secession/{memberId}` 의 형태로 요청합니다.
 - 회원탈퇴의 경우 본인인증을 위한 비밀번호 확인을 필요로 합니다.
 
-operation::secession[snippets='request-headers,request-parameters,response-fields,curl-request,http-response']
+operation::secession[snippets='request-headers,request-fields,response-fields,curl-request,http-response']
 
 [[resources-member-admin]]
 == 관리자 리소스

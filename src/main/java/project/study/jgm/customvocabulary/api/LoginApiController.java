@@ -13,6 +13,7 @@ import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberService;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenExpirationException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
+import project.study.jgm.customvocabulary.members.exception.UnauthorizedMemberException;
 import project.study.jgm.customvocabulary.security.CurrentUser;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
@@ -49,6 +50,9 @@ public class LoginApiController {
         } catch (PasswordMismatchException e) {
             log.info("Password mismatch -> login fail...");
             return ResponseEntity.badRequest().body(new ResponseDto<>(e.getMessage()));
+        } catch (UnauthorizedMemberException e) {
+            log.info("A member who does not have activity rights attempts to log in.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseDto<>(e.getMessage()));
         }
 
     }

@@ -151,39 +151,15 @@
 </div>
 <div id="custom-button-group" style="margin-top: 10px">
     <input id="modify-btn" type="button" value="Modify" class="btn btn-outline-warning">
-    <input id="withdrawal-btn" type="button" value="Withdrawal" class="btn btn-outline-danger">
+    <input id="withdrawal-btn" type="button" value="Withdrawal" class="btn btn-outline-danger" data-bs-toggle="modal"
+           data-bs-target="#withdrawalConfirmationModal">
+    <input id="update-password-btn" type="button" class="btn btn-outline-secondary" value="Update Password">
     <input id="cancel-btn" type="hidden" value="Cancel" class="btn btn-outline-warning">
-    <!--    <input id="confirm-btn" type="hidden" value="Confirm" class="btn btn-outline-success" data-toggle="modal"-->
-    <!--           data-bs-target="#exampleModal">-->
     <input id="confirm-btn" type="hidden" class="btn btn-outline-success" value="Confirm" data-bs-toggle="modal"
            data-bs-target="#modifyConfirmationModal">
 </div>
 
-<!-- Modify confirmation modal-->
-<!--<div class="modal fade" id="modifyConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"-->
-<!--     aria-hidden="true">-->
-<!--    <div class="modal-dialog" role="document">-->
-<!--        <div class="modal-content">-->
-<!--            <div class="modal-header">-->
-<!--                <h5 class="modal-title" id="exampleModalLabel">프로필 수정 본인인증</h5>-->
-<!--                <button class="close" type="button" data-dismiss="modal" aria-label="Close">-->
-<!--                    <span aria-hidden="true">×</span>-->
-<!--                </button>-->
-<!--            </div>-->
-<!--            <div class="modal-body">본인 확인을 위한 비밀번호를 입력해주세요.</div>-->
-<!--            <div class="input-group input-group-sm mb-3">-->
-<!--                <input id="modifyConfirmPassword" type="password" class="form-control ml-3 mr-3"-->
-<!--                       aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">-->
-<!--            </div>-->
-<!--            <div class="modal-footer">-->
-<!--                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>-->
-<!--                <button id="modify-confirm-btn" class="btn btn-primary">Modify Confirm</button>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
-
-<!-- Modal -->
+<!-- Modify confirmation modal -->
 <div class="modal fade" id="modifyConfirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
     <div class="modal-dialog">
@@ -202,6 +178,30 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button id="modify-confirm-btn" type="button" class="btn btn-primary">Modify confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Withdrawal confirmation modal -->
+<div class="modal fade" id="withdrawalConfirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel2">회원탈퇴 본인인증</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                본인 확인을 위한 비밀번호를 입력해주세요.
+            </div>
+            <div class="input-group input-group-sm mb-3">
+                <input id="withdrawalConfirmPassword" type="password" class="form-control ml-3 mr-3"
+                       aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="withdrawal-confirm-btn" type="button" class="btn btn-primary">Withdrawal confirm</button>
             </div>
         </div>
     </div>
@@ -236,10 +236,65 @@
 
         $('#modify-confirm-btn').click(function () {
             let updateDto = getUpdateDto();
-            modifyProfile(tokenInfo.memberId, tokenInfo.accessToken+"i", tokenInfo.refreshToken, updateDto);
+            modifyProfile(tokenInfo.memberId, tokenInfo.accessToken + "i", tokenInfo.refreshToken, updateDto);
+        });
+
+        $('#withdrawal-confirm-btn').click(function () {
+            console.log("Click withdrawal confirm button.");
+            const confirmPassword = $('#withdrawalConfirmPassword').val();
+            if (checkExistConfirmPassword(confirmPassword)) {
+                withdrawal(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, confirmPassword);
+            }
         });
 
     });
+
+    function withdrawal(memberId, accessToken, refreshToken, confirmPassword) {
+        console.log(confirmPassword);
+        const onlyPasswordDto = {
+            password: confirmPassword
+        };
+
+        $.ajax({
+            method: "DELETE",
+            url: "/api/members/secession/" + memberId,
+            async: false,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Content-type", "application/json");
+                xhr.setRequestHeader("X-AUTH-TOKEN", accessToken);
+            },
+            contentType: "application/json",
+            data: JSON.stringify(onlyPasswordDto),
+            statusCode: {
+                200: function (response) { //회원탈퇴 성공
+                    console.log("Withdrawal success.");
+                    console.log("Delete tokens");
+                    storageClear();
+
+                    console.log("Go to home.");
+                    alert("회원 탈퇴가 정상적으로 완료되었습니다.");
+                    $(location).attr('href', '/');
+                },
+                403: function () { // Access 실패
+                    let refreshResult = refresh(refreshToken);
+                    if (refreshResult.state == 200) {
+                        withdrawal(refreshResult.memberId, refreshResult.accessToken, refreshResult.refreshToken);
+                    } else {
+                        ifRefreshFail();
+                    }
+                },
+                400: function (response) { // 본인확인 비밀번호 틀림
+                    let responseJson = JSON.parse(response.responseText);
+                    $('#withdrawalConfirmPassword').val("");
+                    alert(responseJson.message);
+                },
+                401: function (response) { // 다른 회원의 탈퇴를 요청하는 경우
+                    let responseJson = JSON.parse(response.responseText);
+                    alert(responseJson.message);
+                }
+            }
+        });
+    }
 </script>
 
 <style>

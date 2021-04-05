@@ -20,6 +20,7 @@ import project.study.jgm.customvocabulary.members.dto.search.MemberSortType;
 import project.study.jgm.customvocabulary.members.exception.ExistDuplicatedMemberException;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 import project.study.jgm.customvocabulary.members.exception.RefreshTokenNotFoundException;
+import project.study.jgm.customvocabulary.members.exception.UnauthorizedMemberException;
 import project.study.jgm.customvocabulary.security.dto.LoginDto;
 import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
@@ -728,6 +729,46 @@ class MemberServiceTest {
 
         //then
         assertThrows(ExistDuplicatedMemberException.class, () -> memberService.modifyMember(user2.getId(), memberCreateDto1.getPassword(), memberUpdateDto));
+
+    }
+
+    @Test
+    @DisplayName("탈퇴한 사용자가 로그인을 하는 경우")
+    public void login_By_SecessionMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        memberService.secession(user1.getId(), memberCreateDto.getPassword());
+
+        em.flush();
+
+        LoginDto loginDto = new LoginDto(memberCreateDto.getJoinId(), memberCreateDto.getPassword());
+
+        //when
+
+        //then
+        assertThrows(UnauthorizedMemberException.class, () -> memberService.login(loginDto));
+
+    }
+
+    @Test
+    @DisplayName("활동이 금지된 회원이 로그인을 하는 경우")
+    public void login_By_BanMember() throws Exception {
+        //given
+        MemberCreateDto memberCreateDto = getMemberCreateDto();
+        Member user1 = memberService.userJoin(memberCreateDto);
+
+        memberService.ban(user1.getId());
+
+        em.flush();
+
+        LoginDto loginDto = new LoginDto(memberCreateDto.getJoinId(), memberCreateDto.getPassword());
+
+        //when
+
+        //then
+        assertThrows(UnauthorizedMemberException.class, () -> memberService.login(loginDto));
 
     }
 }

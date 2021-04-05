@@ -145,6 +145,63 @@ class LoginApiControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @DisplayName("탈퇴한 회원이 로그인을 시도하는 경우")
+    public void login_By_SecessionMember() throws Exception {
+        //given
+        String joinId = "userHong";
+        String nickname = "userHong";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+
+        memberService.secession(userMember.getId(), memberCreateDto.getPassword());
+        em.flush();
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(loginDto))
+                )
+                .andDo(print());
+
+        //then
+        perform
+                .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    @DisplayName("활동이 금지된 회원이 로그인을 시도하는 경우")
+    public void login_By_BanMember() throws Exception {
+        //given
+        String joinId = "userHong";
+        String nickname = "userHong";
+        MemberCreateDto memberCreateDto = getMemberCreateDto(joinId, nickname);
+        Member userMember = memberService.userJoin(memberCreateDto);
+
+        LoginDto loginDto = getLoginDto(memberCreateDto);
+
+        memberService.ban(userMember.getId());
+
+        em.flush();
+
+        //when
+        ResultActions perform = mockMvc
+                .perform(
+                        post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(loginDto))
+                )
+                .andDo(print());
+        //then
+        perform.andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
     @DisplayName("refresh token 으로 로그인")
     public void refresh() throws Exception {
         //given
