@@ -243,14 +243,13 @@
             console.log("Click withdrawal confirm button.");
             const confirmPassword = $('#withdrawalConfirmPassword').val();
             if (checkExistConfirmPassword(confirmPassword)) {
-                withdrawal(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, confirmPassword);
+                withdrawal(tokenInfo.memberId, tokenInfo.accessToken+"i", tokenInfo.refreshToken, confirmPassword);
             }
         });
 
     });
 
     function withdrawal(memberId, accessToken, refreshToken, confirmPassword) {
-        console.log(confirmPassword);
         const onlyPasswordDto = {
             password: confirmPassword
         };
@@ -276,9 +275,11 @@
                     $(location).attr('href', '/');
                 },
                 403: function () { // Access 실패
+                    console.log("Withdrawal access fail.");
                     let refreshResult = refresh(refreshToken);
                     if (refreshResult.state == 200) {
-                        withdrawal(refreshResult.memberId, refreshResult.accessToken, refreshResult.refreshToken);
+                        console.log("Try again withdrawal.");
+                        withdrawal(refreshResult.memberId, refreshResult.accessToken, refreshResult.refreshToken, confirmPassword);
                     } else {
                         ifRefreshFail();
                     }
