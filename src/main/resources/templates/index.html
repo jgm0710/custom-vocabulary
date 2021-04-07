@@ -3,67 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <title>Shared Vocabulary</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cute+Font&display=swap" rel="stylesheet">
 </head>
 <body>
 <th:block th:include="fragments/header"/>
-<div class="card" style="width: 15rem;">
-    <img src="/custom/img/personal-vocabulary.svg" class="card-img-top" alt="...">
-    <div class="card-body">
-        <h5 class="card-title">Card title</h5>
-<!--        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
-    </div>
-    <ul class="list-group list-group-flush">
-        <li class="list-item-custom">An item</li>
-        <li class="list-item-custom">A second item</li>
-        <li class="list-item-custom">A third item</li>
-    </ul>
+<!--<div class="card" style="width: 15rem;">-->
+<!--    <img src="/custom/img/personal-vocabulary.svg" class="card-img-top" alt="...">-->
 <!--    <div class="card-body">-->
-<!--        <a href="#" class="card-link card-custom">Card link</a>-->
-<!--        <a href="#" class="card-link card-custom">Another link</a>-->
+<!--        <h5 class="card-title">Card title</h5>-->
+<!--&lt;!&ndash;        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>&ndash;&gt;-->
 <!--    </div>-->
-</div>
+<!--    <ul class="list-group list-group-flush">-->
+<!--        <li class="list-item-custom">An item</li>-->
+<!--        <li class="list-item-custom">A second item</li>-->
+<!--        <li class="list-item-custom">A third item</li>-->
+<!--    </ul>-->
+<!--&lt;!&ndash;    <div class="card-body">&ndash;&gt;-->
+<!--&lt;!&ndash;        <a href="#" class="card-link card-custom">Card link</a>&ndash;&gt;-->
+<!--&lt;!&ndash;        <a href="#" class="card-link card-custom">Another link</a>&ndash;&gt;-->
+<!--&lt;!&ndash;    </div>&ndash;&gt;-->
+<!--</div>-->
 
 
+<!--&lt;!&ndash; Button trigger modal &ndash;&gt;-->
+<!--<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">-->
+<!--    Launch demo modal-->
+<!--</button>-->
 
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Launch demo modal
-</button>
+<!--&lt;!&ndash; Modal &ndash;&gt;-->
+<!--<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">-->
+<!--    <div class="modal-dialog">-->
+<!--        <div class="modal-content">-->
+<!--            <div class="modal-header">-->
+<!--                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>-->
+<!--                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
+<!--            </div>-->
+<!--            <div class="modal-body">-->
+<!--                ...-->
+<!--            </div>-->
+<!--            <div class="modal-footer">-->
+<!--                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>-->
+<!--                <button id="save-btn" type="button" class="btn btn-primary">Save changes</button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
 
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                ...
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button id="save-btn" type="button" class="btn btn-primary">Save changes</button>
-            </div>
-        </div>
+<div class="row">
+    <div class="column middle">
+        <img src="/custom/img/flea-market-237460_1920.jpg" alt="홈 화면 사진" style="width: 100%;">
+        <!-- style="width: 57.60%; height: 35.25%;"-->
+    </div>
+    <div class="column side">
+        <p>
+        <ul class="content-list">
+            <li>Custom Vocabulary 는 자신만의 단어장을 만들어 학습할 수 있는 기능을 제공합니다.</li>
+            <li>자신이 생성한 단어장 중 잘 만들었다고 생각되는 단어장을 다른 사용자들이 학습할 수 있도록 공유해주세요.</li>
+            <li>추가로 학습하다가 어려운 부분이 있을 경우 의견을 나눌 수 있도록 간단한 커뮤니티 기능도 제공하고 있습니다.</li>
+            <li>모두 즐거운 공부되시길 바라겠습니다.</li>
+        </ul>
+        </p>
     </div>
 </div>
+
 
 <th:block th:include="fragments/footer"/>
 <style>
-    .list-group{
+    .list-group {
         padding: 0.1em;
     }
-    .list-item-custom{
+
+    .list-item-custom {
         font-size: 0.2em;
         padding: 2px;
         list-style: none;
     }
-    .card-body{
+
+    .card-body {
         padding: 2px;
     }
-    .card-title{
+
+    .card-title {
         font-size: 1em;
+    }
+
+    .content-list li {
+        font-family: 'Cute Font', cursive;
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #4e73df;
+    }
+
+    /* Create three unequal columns that floats next to each other */
+    .column {
+        float: left;
+        padding: 10px;
+    }
+
+    /* Left and right column */
+    .column.side {
+        width: 35%;
+    }
+
+    /* Middle column */
+    .column.middle {
+        width: 65%;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    /* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+    @media screen and (max-width: 600px) {
+        .column.side, .column.middle {
+            width: 100%;
+        }
     }
 </style>
 <script>
