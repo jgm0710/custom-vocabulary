@@ -1,3 +1,51 @@
+$(document).ready(function () {
+
+    let tokenInfo = getTokenInfo();
+
+    if (tokenInfo.accessToken == null) {
+        $(location).attr('href', '/');
+        localStorage.clear();
+        alert("인증되지 않은 회원은 프로필에 접근할 수 없습니다.");
+    }
+
+    let profile = getProfile(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken);
+
+    fillInProfile(profile);
+
+    $('#modify-btn').click(function () {
+        switchToModifyMode();
+    });
+
+    $('#cancel-btn').click(function () {
+        switchToNormalMode();
+        fillInProfile(profile);
+    });
+
+    $('#modify-confirm-btn').click(function () {
+        let updateDto = getUpdateDto();
+        modifyProfile(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, updateDto);
+    });
+
+    $('#withdrawal-confirm-btn').click(function () {
+        console.log("Click withdrawal confirm button.");
+        const confirmPassword = $('#withdrawalConfirmPassword').val();
+        if (checkExistConfirmPassword(confirmPassword)) {
+            withdrawal(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, confirmPassword);
+        }
+    });
+
+    $('#update-password-confirm-btn').click(function () {
+        console.log("Click update password confirm button.");
+        let passwordValues = getPasswordValues();
+        let possibleFlag = checkIfPasswordUpdateIsPossible(passwordValues.newPassword, passwordValues.newPasswordConfirm, passwordValues.updatePasswordConfirmPassword);
+
+        if (possibleFlag) {
+            console.log("Try update password!!");
+            updatePassword(tokenInfo.memberId, tokenInfo.accessToken, tokenInfo.refreshToken, passwordValues.newPassword, passwordValues.updatePasswordConfirmPassword);
+        }
+    });
+});
+
 function modifyProfile(memberId, accessToken, refreshToken, updateDto) {
     if (updateDto) {
         console.log(updateDto);

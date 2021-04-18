@@ -17,19 +17,19 @@ import java.util.List;
 public class MemberController {
 
     @GetMapping("/login")
-    public String login() {
+    public String getLoginPage() {
         return "/member/login";
     }
 
     @GetMapping("/join")
-    public String register(Model model) {
+    public String getRegisterPage(Model model) {
         addDateInfoToModel(model);
 
         return "/member/register";
     }
 
     @GetMapping("/profile")
-    public String profile(Model model) {
+    public String getProfilePage(Model model) {
         addDateInfoToModel(model);
 
         return "/member/profile";

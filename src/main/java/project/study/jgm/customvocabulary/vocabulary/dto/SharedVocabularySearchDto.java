@@ -14,8 +14,7 @@ import javax.validation.Valid;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SharedVocabularySearchDto {
-    private @Valid
-    CriteriaDto criteriaDto = new CriteriaDto();
+    private @Valid CriteriaDto criteria = new CriteriaDto();
     private Long categoryId = null;
     private String title = null;
     private VocabularySortCondition sortCondition = VocabularySortCondition.LATEST_DESC;
