@@ -31,8 +31,8 @@ public class MemberQueryRepository {
         return queryFactory
                 .selectFrom(member)
                 .where(whereFrom(searchDto))
-                .offset(searchDto.getCriteriaDto().getOffset())
-                .limit(searchDto.getCriteriaDto().getLimit())
+                .offset(searchDto.getCriteria().getOffset())
+                .limit(searchDto.getCriteria().getLimit())
                 .orderBy(sortFrom(searchDto).toArray(OrderSpecifier[]::new))
                 .fetch();
     }

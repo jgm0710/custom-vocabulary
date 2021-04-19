@@ -291,7 +291,7 @@ public class MemberApiController {
 
     private PaginationDto getPaginationDto(MemberSearchDto memberSearchDto) {
         Long totalCount = memberService.getTotalCount(memberSearchDto);
-        PaginationDto paginationDto = new PaginationDto(totalCount, memberSearchDto.getCriteriaDto());
+        PaginationDto paginationDto = new PaginationDto(totalCount, memberSearchDto.getCriteria());
         return paginationDto;
     }
 

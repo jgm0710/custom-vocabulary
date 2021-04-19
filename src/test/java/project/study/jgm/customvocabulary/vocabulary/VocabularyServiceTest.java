@@ -504,7 +504,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         em.clear();
 
         //when
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(new CriteriaDto(), user1.getId(), category1.getId(), VocabularyDivision.PERSONAL, VocabularyDivision.COPIED);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(new CriteriaDto(), user1.getId(), VocabularySearchBy.BY_CATEGORY, category1.getId(), VocabularyDivision.PERSONAL, VocabularyDivision.COPIED);
         List<Vocabulary> findVocabularyList = results.getResults();
 
 
@@ -544,7 +544,7 @@ class VocabularyServiceTest extends BaseServiceTest {
         }
 
         //when
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(new CriteriaDto(1, 30), sharedCategory2.getId(), null, null);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(new CriteriaDto(1, 30), VocabularySearchBy.BY_CATEGORY, sharedCategory2.getId(), null, null);
         List<Vocabulary> findSharedVocabularyList = results.getResults();
 
         //then

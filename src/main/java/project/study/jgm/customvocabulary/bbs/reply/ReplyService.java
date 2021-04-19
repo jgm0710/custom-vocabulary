@@ -1,6 +1,5 @@
 package project.study.jgm.customvocabulary.bbs.reply;
 
-import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,13 +8,11 @@ import project.study.jgm.customvocabulary.bbs.BbsRepository;
 import project.study.jgm.customvocabulary.bbs.BbsStatus;
 import project.study.jgm.customvocabulary.bbs.exception.BbsNotFoundException;
 import project.study.jgm.customvocabulary.bbs.exception.DeletedBbsException;
-import project.study.jgm.customvocabulary.bbs.reply.dto.ReplyCreateDto;
 import project.study.jgm.customvocabulary.bbs.reply.exception.DeletedReplyException;
 import project.study.jgm.customvocabulary.bbs.reply.exception.ReplyNotFoundException;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRepository;
-import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.exception.MemberNotFoundException;
 
 import java.util.List;
@@ -60,21 +57,21 @@ public class ReplyService {
         return replyRepository.findById(replyId).orElseThrow(ReplyNotFoundException::new);
     }
 
-    public List<Reply> getReplyParentList(Long bbsId, CriteriaDto criteriaDto, ReplySortType sortType) {
+    public List<Reply> getReplyParentList(Long bbsId, CriteriaDto criteria, ReplySortType sortType) {
         Bbs findBbs = bbsRepository.findById(bbsId).orElseThrow(BbsNotFoundException::new);
         if (findBbs.getStatus() == BbsStatus.DELETE) {
             throw new DeletedBbsException("삭제된 게시글의 댓글은 조회할 수 없습니다.");
         }
-        return replyQueryRepository.findParents(criteriaDto, bbsId, sortType);
+        return replyQueryRepository.findParents(criteria, bbsId, sortType);
     }
 
-    public List<Reply> getReplyChildList(Long parentId, CriteriaDto criteriaDto) {
+    public List<Reply> getReplyChildList(Long parentId, CriteriaDto criteria) {
         Reply parent = replyRepository.findById(parentId).orElseThrow(ReplyNotFoundException::new);
         if (parent.getStatus() == ReplyStatus.DELETE) {
             throw new DeletedReplyException("삭제된 댓글에 등록된 댓글은 조회가 불가능합니다.");
         }
 
-        return replyQueryRepository.findChildren(criteriaDto, parentId);
+        return replyQueryRepository.findChildren(criteria, parentId);
     }
 
     @Transactional

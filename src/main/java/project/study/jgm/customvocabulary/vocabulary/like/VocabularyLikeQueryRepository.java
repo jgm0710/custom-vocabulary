@@ -21,7 +21,7 @@ public class VocabularyLikeQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public List<Vocabulary> findVocabularyListByLikeByMember(Long memberId, CriteriaDto criteriaDto) {
+    public List<Vocabulary> findVocabularyListByLikeByMember(Long memberId, CriteriaDto criteria) {
         return queryFactory
                 .select(vocabulary)
                 .from(vocabularyLike)
@@ -31,8 +31,8 @@ public class VocabularyLikeQueryRepository {
                         vocabulary.division.eq(VocabularyDivision.SHARED)
                 )
                 .orderBy(vocabularyLike.registerDate.desc(), vocabulary.id.desc())
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .offset(criteria.getOffset())
+                .limit(criteria.getLimit())
                 .fetch();
     }
 

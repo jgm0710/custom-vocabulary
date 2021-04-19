@@ -27,18 +27,19 @@ public class VocabularyQueryRepository {
     /**
      * personal
      */
-    public QueryResults<Vocabulary> findAllByMember(CriteriaDto criteriaDto, Long memberId, Long categoryId, VocabularyDivision... divisions) {
+    public QueryResults<Vocabulary> findAllByMember(CriteriaDto criteria, Long memberId, VocabularySearchBy searchBy, Long categoryId, VocabularyDivision... divisions) {
+
         return queryFactory
                 .select(vocabulary)
                 .from(vocabulary)
                 .where(
                         divisionsEq(divisions),
                         proprietorIdEq(memberId),
-                        categoryIdEq(categoryId)
+                        categoryIdEq(searchBy, categoryId)
                 )
                 .orderBy(vocabulary.id.desc())
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .offset(criteria.getOffset())
+                .limit(criteria.getLimit())
                 .fetchResults();
     }
 
@@ -76,8 +77,16 @@ public class VocabularyQueryRepository {
                 .fetchCount();
     }
 
-    private BooleanExpression categoryIdEq(Long categoryId) {
-        return categoryId != null ? vocabulary.category.id.eq(categoryId) : null;
+    private BooleanExpression categoryIdEq(VocabularySearchBy searchBy, Long categoryId) {
+        if (searchBy == VocabularySearchBy.BY_CATEGORY) {
+            if (categoryId != null) {
+                return vocabulary.category.id.eq(categoryId);
+            } else {
+                return vocabulary.category.id.isNull();
+            }
+        } else {
+            return null;
+        }
     }
 
     private BooleanExpression proprietorIdEq(Long proprietorId) {
@@ -104,18 +113,18 @@ public class VocabularyQueryRepository {
     /**
      * shared
      */
-    public QueryResults<Vocabulary> findAllByShared(CriteriaDto criteriaDto, Long categoryId, String title, VocabularySortCondition sortCondition) {
+    public QueryResults<Vocabulary> findAllByShared(CriteriaDto criteria, VocabularySearchBy searchBy, Long categoryId, String title, VocabularySortCondition sortCondition) {
         return queryFactory
                 .select(vocabulary)
                 .from(vocabulary)
                 .where(
-                        categoryIdEq(categoryId),
+                        categoryIdEq(searchBy, categoryId),
                         vocabulary.division.eq(SHARED),
                         titleLike(title)
                 )
                 .orderBy(sortConditionEq(sortCondition).toArray(OrderSpecifier[]::new))
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .offset(criteria.getOffset())
+                .limit(criteria.getLimit())
                 .fetchResults();
     }
 

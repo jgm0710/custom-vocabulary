@@ -31,8 +31,8 @@ public class BbsQueryRepository {
                 .from(bbs)
                 .where(whereFrom(bbsSearchDto))
                 .orderBy(sortConditionEq(bbsSearchDto.getBbsSortType()).toArray(OrderSpecifier[]::new))
-                .offset(bbsSearchDto.getCriteriaDto().getOffset())
-                .limit(bbsSearchDto.getCriteriaDto().getLimit())
+                .offset(bbsSearchDto.getCriteria().getOffset())
+                .limit(bbsSearchDto.getCriteria().getLimit())
                 .fetchResults();
     }
 
@@ -88,7 +88,7 @@ public class BbsQueryRepository {
         return orderSpecifiers;
     }
 
-    public QueryResults<Bbs> findAllByMember(CriteriaDto criteriaDto, Long memberId) {
+    public QueryResults<Bbs> findAllByMember(CriteriaDto criteria, Long memberId) {
         return queryFactory
                 .select(bbs)
                 .from(bbs)
@@ -97,8 +97,8 @@ public class BbsQueryRepository {
                         bbs.status.eq(BbsStatus.REGISTER)
                 )
                 .orderBy(bbs.id.desc())
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .offset(criteria.getOffset())
+                .limit(criteria.getLimit())
                 .fetchResults();
     }
 }

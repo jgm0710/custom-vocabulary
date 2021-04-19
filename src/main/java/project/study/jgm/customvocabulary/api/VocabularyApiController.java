@@ -22,6 +22,7 @@ import project.study.jgm.customvocabulary.members.exception.MemberNotFoundExcept
 import project.study.jgm.customvocabulary.security.CurrentUser;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyDivision;
+import project.study.jgm.customvocabulary.vocabulary.VocabularySearchBy;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyService;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
 import project.study.jgm.customvocabulary.vocabulary.dto.*;
@@ -226,7 +227,7 @@ public class VocabularyApiController {
         }
 
         try {
-            QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(searchDto.getCriteriaDto(), memberId, searchDto.getCategoryId(), VocabularyDivision.PERSONAL, VocabularyDivision.COPIED);
+            QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(searchDto.getCriteria(), memberId, searchDto.getSearchBy(), searchDto.getCategoryId(), VocabularyDivision.PERSONAL, VocabularyDivision.COPIED);
             List<Vocabulary> findVocabularyList = results.getResults();
 
             List<PersonalVocabularySimpleDto> personalVocabularySimpleDtos = new ArrayList<>();
@@ -237,7 +238,7 @@ public class VocabularyApiController {
 
             long totalCount = results.getTotal();
 
-            PaginationDto paginationDto = new PaginationDto(totalCount, searchDto.getCriteriaDto());
+            PaginationDto paginationDto = new PaginationDto(totalCount, searchDto.getCriteria());
 
             ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
                     .list(personalVocabularySimpleDtos)
@@ -400,7 +401,7 @@ public class VocabularyApiController {
     @GetMapping("/shared/{memberId}")
     public ResponseEntity<?> getSharedVocabularyListOfMember(
             @PathVariable Long memberId,
-            @ModelAttribute @Valid CriteriaDto criteriaDto,
+            @ModelAttribute @Valid CriteriaDto criteria,
             BindingResult bindingResult
     ) {
 
@@ -408,7 +409,7 @@ public class VocabularyApiController {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, null, VocabularyDivision.SHARED);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteria, memberId, VocabularySearchBy.BY_TOTAL, null, VocabularyDivision.SHARED);
 
         List<Vocabulary> findVocabularyList = results.getResults();
         List<SharedVocabularySimpleDto> sharedVocabularySimpleDtos = new ArrayList<>();
@@ -418,7 +419,7 @@ public class VocabularyApiController {
         }
 
         long totalCount = results.getTotal();
-        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteria);
 
         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
                 .list(sharedVocabularySimpleDtos)
@@ -438,7 +439,7 @@ public class VocabularyApiController {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(searchDto.getCriteria(), searchDto.getCategoryId(), searchDto.getTitle(), searchDto.getSortCondition());
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByShared(searchDto.getCriteria(), searchDto.getSearchBy(), searchDto.getCategoryId(), searchDto.getTitle(), searchDto.getSortCondition());
         List<Vocabulary> sharedVocabularyList = results.getResults();
         long totalCount = results.getTotal();
 
@@ -548,7 +549,7 @@ public class VocabularyApiController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> getDeletedVocabularyListByMember(
             @PathVariable Long memberId,
-            @ModelAttribute @Valid CriteriaDto criteriaDto,
+            @ModelAttribute @Valid CriteriaDto criteria,
             BindingResult bindingResult
     ) {
 
@@ -556,7 +557,7 @@ public class VocabularyApiController {
             return ResponseEntity.badRequest().body(bindingResult);
         }
 
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, null, VocabularyDivision.DELETE);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteria, memberId, VocabularySearchBy.BY_TOTAL, null, VocabularyDivision.DELETE);
         List<Vocabulary> deletedVocabularyList = results.getResults();
         long totalCount = results.getTotal();
 
@@ -566,7 +567,7 @@ public class VocabularyApiController {
             personalVocabularySimpleDtos.add(personalVocabularySimpleDto);
         }
 
-        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteria);
         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
                 .list(personalVocabularySimpleDtos)
                 .paging(paginationDto)
@@ -580,7 +581,7 @@ public class VocabularyApiController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> getUnsharedVocabularyListByMember(
             @PathVariable Long memberId,
-            @ModelAttribute @Valid CriteriaDto criteriaDto,
+            @ModelAttribute @Valid CriteriaDto criteria,
             BindingResult bindingResult
     ) {
 
@@ -589,7 +590,7 @@ public class VocabularyApiController {
         }
 
 
-        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteriaDto, memberId, null, VocabularyDivision.UNSHARED);
+        QueryResults<Vocabulary> results = vocabularyService.getVocabularyListByMember(criteria, memberId, VocabularySearchBy.BY_TOTAL, null, VocabularyDivision.UNSHARED);
         List<Vocabulary> unsharedVocabularyList = results.getResults();
         long totalCount = results.getTotal();
 
@@ -599,7 +600,7 @@ public class VocabularyApiController {
             sharedVocabularySimpleDtos.add(sharedVocabularySimpleDto);
         }
 
-        PaginationDto paginationDto = new PaginationDto(totalCount, criteriaDto);
+        PaginationDto paginationDto = new PaginationDto(totalCount, criteria);
         ListResponseDto<Object> listResponseDto = ListResponseDto.builder()
                 .list(sharedVocabularySimpleDtos)
                 .paging(paginationDto)

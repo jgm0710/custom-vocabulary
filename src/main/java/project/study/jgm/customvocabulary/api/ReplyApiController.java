@@ -106,13 +106,13 @@ public class ReplyApiController {
     @GetMapping("/{bbsId}")
     public ResponseEntity<? extends ResponseDto<?>> getReplyParentList(
             @PathVariable("bbsId") Long bbsId,
-            @ModelAttribute CriteriaDto criteriaDto,
+            @ModelAttribute CriteriaDto criteria,
             @RequestParam ReplySortType sortType,
             @CurrentUser Member member
     ) {
 
         try {
-            List<Reply> replyParentList = replyService.getReplyParentList(bbsId, criteriaDto, sortType);
+            List<Reply> replyParentList = replyService.getReplyParentList(bbsId, criteria, sortType);
             List<ReplyParentResponseDto> replyParentResponseDtoList = ReplyParentResponseDto.replyListToParentListResponse(replyParentList, member, replyLikeService);
 
             return ResponseEntity.ok(new ResponseDto<>(replyParentResponseDtoList, GET_PARENT_REPLY_LIST_SUCCESSFULLY));
@@ -126,12 +126,12 @@ public class ReplyApiController {
     @GetMapping("/reply/{parentId}")
     public ResponseEntity<? extends ResponseDto<?>> getReplyChildList(
             @PathVariable("parentId") Long parentId,
-            @ModelAttribute CriteriaDto criteriaDto,
+            @ModelAttribute CriteriaDto criteria,
             @CurrentUser Member member
     ) {
 
         try {
-            List<Reply> replyChildList = replyService.getReplyChildList(parentId, criteriaDto);
+            List<Reply> replyChildList = replyService.getReplyChildList(parentId, criteria);
             List<ReplyChildResponseDto> replyChildResponseDtoList = ReplyChildResponseDto.replyListToChildList(replyChildList, member);
 
             return ResponseEntity.ok(new ResponseDto<>(replyChildResponseDtoList, GET_CHILD_REPLY_LIST_SUCCESSFULLY));

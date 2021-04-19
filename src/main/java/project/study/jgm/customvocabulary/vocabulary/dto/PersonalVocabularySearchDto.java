@@ -16,16 +16,10 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class PersonalVocabularySearchDto {
 
-    private int pageNum = 1;
-
-    private int limit = 15;
+    private @Valid CriteriaDto criteria = new CriteriaDto();
 
     private Long categoryId = null;
 
     @NotNull
     private VocabularySearchBy searchBy;
-
-    public CriteriaDto getCriteriaDto() {
-        return new @Valid CriteriaDto(this.pageNum, this.limit);
-    }
 }

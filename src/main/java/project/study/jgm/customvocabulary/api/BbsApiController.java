@@ -25,8 +25,6 @@ import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
-import project.study.jgm.customvocabulary.bbs.upload.BbsUploadFile;
-import project.study.jgm.customvocabulary.common.upload.UploadFileResponseDto;
 import project.study.jgm.customvocabulary.members.Member;
 import project.study.jgm.customvocabulary.members.MemberRole;
 import project.study.jgm.customvocabulary.members.MemberService;
@@ -34,7 +32,6 @@ import project.study.jgm.customvocabulary.security.CurrentUser;
 
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -97,7 +94,7 @@ public class BbsApiController {
         long total = results.getTotal();
         List<Bbs> findBbsList = results.getResults();
 
-        PaginationDto paginationDto = new PaginationDto(total, bbsSearchDto.getCriteriaDto());
+        PaginationDto paginationDto = new PaginationDto(total, bbsSearchDto.getCriteria());
 
         if (member != null) {
             if (member.getRoles().contains(MemberRole.ADMIN)) {

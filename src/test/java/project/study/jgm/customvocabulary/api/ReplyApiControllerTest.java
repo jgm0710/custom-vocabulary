@@ -19,7 +19,6 @@ import project.study.jgm.customvocabulary.bbs.reply.like.exception.AddLikeToChil
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageVo;
-import project.study.jgm.customvocabulary.common.dto.ResponseDto;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.SelfLikeException;
@@ -576,7 +575,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         replyLikeService.like(user3.getId(), replyList.get(3).getId());
         replyLikeService.like(user3.getId(), replyList.get(5).getId());
 
-        CriteriaDto criteriaDto = new CriteriaDto();
+        CriteriaDto criteria = new CriteriaDto();
 
         OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
         TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);
@@ -618,7 +617,7 @@ class ReplyApiControllerTest extends BaseControllerTest {
         replyLikeService.like(user3.getId(), replyList.get(3).getId());
         replyLikeService.like(user3.getId(), replyList.get(5).getId());
 
-        CriteriaDto criteriaDto = new CriteriaDto();
+        CriteriaDto criteria = new CriteriaDto();
 
         OnlyTokenDto onlyTokenDto = new OnlyTokenDto(user3.getLoginInfo().getRefreshToken());
         TokenDto user3TokenDto = memberService.refresh(onlyTokenDto);

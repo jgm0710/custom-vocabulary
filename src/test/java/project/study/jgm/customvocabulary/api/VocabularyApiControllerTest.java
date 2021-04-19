@@ -9,7 +9,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.ResultActions;
 import project.study.jgm.customvocabulary.common.BaseControllerTest;
-import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 import project.study.jgm.customvocabulary.common.dto.MessageVo;
 import project.study.jgm.customvocabulary.common.exception.ExistLikeException;
 import project.study.jgm.customvocabulary.common.exception.NoExistLikeException;
@@ -20,12 +19,11 @@ import project.study.jgm.customvocabulary.security.dto.OnlyTokenDto;
 import project.study.jgm.customvocabulary.security.dto.TokenDto;
 import project.study.jgm.customvocabulary.vocabulary.Vocabulary;
 import project.study.jgm.customvocabulary.vocabulary.VocabularyDivision;
+import project.study.jgm.customvocabulary.vocabulary.VocabularySearchBy;
 import project.study.jgm.customvocabulary.vocabulary.VocabularySortCondition;
 import project.study.jgm.customvocabulary.vocabulary.category.Category;
 import project.study.jgm.customvocabulary.vocabulary.category.CategoryDivision;
 import project.study.jgm.customvocabulary.vocabulary.category.exception.CategoryNotFoundException;
-import project.study.jgm.customvocabulary.vocabulary.dto.PersonalVocabularySimpleDto;
-import project.study.jgm.customvocabulary.vocabulary.dto.SharedVocabularySearchDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyCreateDto;
 import project.study.jgm.customvocabulary.vocabulary.dto.VocabularyUpdateDto;
 import project.study.jgm.customvocabulary.vocabulary.exception.*;
@@ -2180,9 +2178,10 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         final ResultActions perform = mockMvc.perform(
                 RestDocumentationRequestBuilders.get("/api/vocabulary/personal/" + user1.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
-                        .param("pageNum", 1 + "")
-                        .param("limit", 15 + "")
+                        .param("criteria.pageNum", 1 + "")
+                        .param("criteria.limit", 15 + "")
                         .param("categoryId", personalCategory1.getId().toString())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
         //then
@@ -2207,7 +2206,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto").exists())
+                .andExpect(jsonPath("data.paging.criteria").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -2219,9 +2218,10 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
                         requestParameters(
-                                parameterWithName("pageNum").description("조회할 페이지 (1보다 작을 수 없습니다.)"),
-                                parameterWithName("limit").description("조회할 개수 (1~100 사이의 값만 입력 가능합니다.)"),
-                                parameterWithName("categoryId").description("어떤 카테고리에 소속된 단어장을 조회할 것인지 기입 (기입하지 않으면 특정 카테고리에 소속되지 않은 단어장 목록이 조회됩니다.)")
+                                parameterWithName("criteria.pageNum").description("조회할 페이지 (1보다 작을 수 없습니다.)"),
+                                parameterWithName("criteria.limit").description("조회할 개수 (1~100 사이의 값만 입력 가능합니다.)"),
+                                parameterWithName("categoryId").description("어떤 카테고리에 소속된 단어장을 조회할 것인지 기입 (기입하지 않으면 특정 카테고리에 소속되지 않은 단어장 목록이 조회됩니다.)"),
+                                parameterWithName("searchBy").description("전체 단어장을 대상으로 조회할지, 특정 카테고리를 대상으로 조회할지 지정.")
                         ),
                         responseFields(
                                 fieldWithPath("data.list[0].id").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 식별 ID"),
@@ -2243,8 +2243,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].division").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 구분 [PERSONAL, COPIED]"),
                                 fieldWithPath("data.list[0].registerDate").description("인증된 회원의 개인 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
                                 fieldWithPath("data.paging.totalCount").description("해당 검색 조건에 만족하는 단어장의 총 개수 (카테고리만 지정이 가능하므로 해당 카테고리에 소속된 단어장의 총 개수)"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("단어장 목록의 조회된 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("단어장 목록의 조회된 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("단어장 목록의 조회된 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("단어장 목록의 조회된 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
                                 fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
@@ -2292,8 +2292,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         final ResultActions perform = mockMvc.perform(
                 RestDocumentationRequestBuilders.get("/api/vocabulary/personal/" + user1.getId())
 //                        .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
-                        .param("pageNum", 1 + "")
-                        .param("limit", 15 + "")
+                        .param("criteria.pageNum", 1 + "")
+                        .param("criteria.limit", 15 + "")
                         .param("categoryId", personalCategory1.getId().toString())
         ).andDo(print());
 
@@ -2338,9 +2338,10 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         final ResultActions perform = mockMvc.perform(
                 RestDocumentationRequestBuilders.get("/api/vocabulary/personal/" + user1.getId())
                         .header(X_AUTH_TOKEN, user2TokenDto.getAccessToken())
-                        .param("pageNum", 1 + "")
-                        .param("limit", 15 + "")
+                        .param("criteria.pageNum", 1 + "")
+                        .param("criteria.limit", 15 + "")
                         .param("categoryId", personalCategory1.getId().toString())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
 
@@ -2386,9 +2387,10 @@ class VocabularyApiControllerTest extends BaseControllerTest {
         final ResultActions perform = mockMvc.perform(
                 RestDocumentationRequestBuilders.get("/api/vocabulary/personal/" + user1.getId())
                         .header(X_AUTH_TOKEN, user1TokenDto.getAccessToken())
-                        .param("pageNum", -1 + "")
-                        .param("limit", 0 + "")
+                        .param("criteria.pageNum", -1 + "")
+                        .param("criteria.limit", 0 + "")
                         .param("categoryId", personalCategory1.getId().toString())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
 
@@ -2445,6 +2447,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                         .param("pageNum", 1 + "")
                         .param("limit", 15 + "")
                         .param("categoryId", personalCategory1.getId().toString())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
         //then
@@ -2469,7 +2472,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto").exists())
+                .andExpect(jsonPath("data.paging.criteria").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -2519,6 +2522,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                         .param("pageNum", 1 + "")
                         .param("limit", 15 + "")
                         .param("categoryId", sharedCategory.getId().toString())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
 
@@ -2568,6 +2572,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                         .param("pageNum", 1 + "")
                         .param("limit", 15 + "")
                         .param("categoryId", personalCategory3.getId().toString())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
 
@@ -2615,6 +2620,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                         .param("pageNum", 1 + "")
                         .param("limit", 15 + "")
                         .param("categoryId", 10000L + "")
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
         ).andDo(print());
 
 
@@ -4181,8 +4187,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").exists())
+                .andExpect(jsonPath("data.paging.criteria.pageNum").exists())
+                .andExpect(jsonPath("data.paging.criteria.limit").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -4248,8 +4254,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").exists())
+                .andExpect(jsonPath("data.paging.criteria.pageNum").exists())
+                .andExpect(jsonPath("data.paging.criteria.limit").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -4281,8 +4287,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].division").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 구분 (공유 단어장 목록 조회이므로 [SHARED] 가 나옴)"),
                                 fieldWithPath("data.list[0].registerDate").description("요청된 회원이 공유한 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
                                 fieldWithPath("data.paging.totalCount").description("요청된 회원이 공유한 단어장의 총 개수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("단어장 목록의 조회된 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("단어장 목록의 조회된 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("단어장 목록의 조회된 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("단어장 목록의 조회된 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
                                 fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
@@ -4382,9 +4388,10 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 get("/api/vocabulary/shared")
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("categoryId", sharedCategory1.getId().toString())
-                        .param("criteriaDto.pageNum", "1")
-                        .param("criteriaDto.limit", "20")
+                        .param("criteria.pageNum", "1")
+                        .param("criteria.limit", "20")
                         .param("sortCondition", VocabularySortCondition.LATEST_DESC.name())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
                         .param("title", "vocabulary")
         ).andDo(print());
 
@@ -4412,8 +4419,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").exists())
+                .andExpect(jsonPath("data.paging.criteria.pageNum").exists())
+                .andExpect(jsonPath("data.paging.criteria.limit").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -4425,8 +4432,9 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 headerWithName(HttpHeaders.CONTENT_TYPE).description("content type")
                         ),
                         requestParameters(
-                                parameterWithName("criteriaDto.pageNum").description("조회할 페이지 (1보다 작을 수 없습니다.)"),
-                                parameterWithName("criteriaDto.limit").description("조회할 개수 (1~100 사이의 값만 입력 가능합니다.)"),
+                                parameterWithName("criteria.pageNum").description("조회할 페이지 (1보다 작을 수 없습니다.)"),
+                                parameterWithName("criteria.limit").description("조회할 개수 (1~100 사이의 값만 입력 가능합니다.)"),
+                                parameterWithName("searchBy").description("전체 단어장을 대상으로 조회할지, 특정 카테고리를 대상으로 조회할지 지정."),
                                 parameterWithName("categoryId").description("어떤 카테고리에 소속된 단어장을 조회할 것인지 기입 (기입하지 않으면 특정 카테고리에 소속되지 않은 단어장 목록이 조회됩니다.)"),
                                 parameterWithName("title").description("해당 제목을 포함한 공유 단어장을 조회"),
                                 parameterWithName("sortCondition").description("정렬 조건 " + br +
@@ -4454,8 +4462,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].division").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 구분 (공유 단어장 목록 조회 이므로 [SHARED]만 응답)"),
                                 fieldWithPath("data.list[0].registerDate").description("조회된 공유 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
                                 fieldWithPath("data.paging.totalCount").description("요청의 검색 조건에 의해 조회된 공유 단어장의 총 개수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("공유 단어장 목록의 조회된 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("공유 단어장 목록의 조회된 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("공유 단어장 목록의 조회된 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("공유 단어장 목록의 조회된 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
                                 fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
@@ -4516,9 +4524,10 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 get("/api/vocabulary/shared")
                         .contentType(MediaType.APPLICATION_JSON)
 //                        .param("categoryId",sharedCategory1.getId().toString())
-                        .param("criteriaDto.pageNum", "-1")
-                        .param("criteriaDto.limit", "-1")
+                        .param("criteria.pageNum", "-1")
+                        .param("criteria.limit", "-1")
                         .param("sortCondition", VocabularySortCondition.LATEST_DESC.name())
+                        .param("searchBy", VocabularySearchBy.BY_CATEGORY.name())
 //                        .param("title","vocabulary")
         ).andDo(print());
 
@@ -5811,7 +5820,7 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto").exists())
+                .andExpect(jsonPath("data.paging.criteria").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -5846,8 +5855,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].division").description("삭제된 단어장 목록 중 첫 번째 단어장의 구분 [DELETED]"),
                                 fieldWithPath("data.list[0].registerDate").description("삭제된 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
                                 fieldWithPath("data.paging.totalCount").description("해당 회원의 삭제된 개인 단어장의 총 개수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청된 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("요청된 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("요청된 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("요청된 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
                                 fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),
@@ -6001,8 +6010,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].division").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").exists())
+                .andExpect(jsonPath("data.paging.criteria.pageNum").exists())
+                .andExpect(jsonPath("data.paging.criteria.limit").exists())
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
@@ -6035,8 +6044,8 @@ class VocabularyApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].division").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 구분 [UNSHARED]"),
                                 fieldWithPath("data.list[0].registerDate").description("특정 회원의 공유 해제된 단어장 목록 중 첫 번째 단어장의 생성 날짜"),
                                 fieldWithPath("data.paging.totalCount").description("특정 회원의 공유 해제된 단어장의 총 개수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청된 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("요청된 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("요청된 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("요청된 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청된 페이지 기준 시작 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청된 페이지 기준 마지막 페이지"),
                                 fieldWithPath("data.paging.prev").description("현재 요청된 페이지 기준 이전 페이지 목록이 있는지 여부"),

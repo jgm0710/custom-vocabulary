@@ -214,8 +214,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                 .param("searchType", BbsSearchType.TITLE.name())
                                 .param("keyword", "bbs7")
                                 .param("bbsSortType", BbsSortType.REPLY_COUNT_DESC.name())
-                                .param("criteriaDto.pageNum", "1")
-                                .param("criteriaDto.limit", "20")
+                                .param("criteria.pageNum", "1")
+                                .param("criteria.limit", "20")
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -227,8 +227,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].replyCount").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(20))
+                .andExpect(jsonPath("data.paging.criteria.pageNum").value(1))
+                .andExpect(jsonPath("data.paging.criteria.limit").value(20))
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
@@ -243,8 +243,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                         "[TITLE, CONTENT, TITLE_OR_CONTENT, WRITER]"),
                                 parameterWithName("keyword").description("게시글 목록 조회 시 검색 키워드"),
                                 parameterWithName("bbsSortType").description("게시글 목록 조회 시 정렬 조건"),
-                                parameterWithName("criteriaDto.pageNum").description("게시글 목록 조회 시 몇 페이지를 조회할 것인지 기입"),
-                                parameterWithName("criteriaDto.limit").description("게시글 목록 조회 시 몇 개의 결과를 조회할 것인지 기입")
+                                parameterWithName("criteria.pageNum").description("게시글 목록 조회 시 몇 페이지를 조회할 것인지 기입"),
+                                parameterWithName("criteria.limit").description("게시글 목록 조회 시 몇 개의 결과를 조회할 것인지 기입")
                         ),
                         responseFields(
                                 fieldWithPath("data.list[0].id").description("게시글 목록 중 첫 번째 게시글의 식별 ID"),
@@ -255,8 +255,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].replyCount").description("게시글 목록 중 첫 번째 게시글의 댓글 수"),
                                 fieldWithPath("data.list[0].registerDate").description("게시글 목록 중 첫 번째 게시글의 등록 날짜"),
                                 fieldWithPath("data.paging.totalCount").description("요청한 검색 조건에 의해 조회되는 게시글의 총 개수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청한 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("요청한 검색 결과의 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("요청한 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("요청한 검색 결과의 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청한 페이지 기준 첫 번째 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청한 페이지 기준 마지막 페이지 "),
                                 fieldWithPath("data.paging.prev").description("현재 요청한 페이지 기준 이전 페이지 목록이 있는지 여부"),
@@ -302,8 +302,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].replyCount").exists())
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(15))
+                .andExpect(jsonPath("data.paging.criteria.pageNum").value(1))
+                .andExpect(jsonPath("data.paging.criteria.limit").value(15))
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
@@ -334,8 +334,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
                                 .param("searchType", BbsSearchType.TITLE.name())
                                 .param("keyword", "s1")
-                                .param("criteriaDto.pageNum", "1")
-                                .param("criteriaDto.limit", "10")
+                                .param("criteria.pageNum", "1")
+                                .param("criteria.limit", "10")
                                 .param("bbsSortType", BbsSortType.REPLY_COUNT_ASC.name())
                                 .param("bbsStatus", BbsStatus.DELETE.name())
                 )
@@ -353,14 +353,15 @@ class BbsApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list.[0].registerDate").exists())
                 .andExpect(jsonPath("data.list.[0].status").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(1))
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(10))
+                .andExpect(jsonPath("data.paging.criteria.pageNum").value(1))
+                .andExpect(jsonPath("data.paging.criteria.limit").value(10))
                 .andExpect(jsonPath("data.paging.startPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.endPage").exists())
                 .andExpect(jsonPath("data.paging.prev").exists())
                 .andExpect(jsonPath("data.paging.next").exists())
                 .andExpect(jsonPath("data.paging.totalPage").exists())
+                .andExpect(jsonPath("data.paging.criteria.pageNum").exists())
                 .andDo(document("get-bbs-list-by-admin",
                         requestParameters(
                                 parameterWithName("searchType").description("게시글 목록 조회 시 검색 조건 :" + br +
@@ -368,8 +369,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                         "[TITLE, CONTENT, TITLE_OR_CONTENT, WRITER]"),
                                 parameterWithName("keyword").description("게시글 목록 조회 시 검색 키워드"),
                                 parameterWithName("bbsSortType").description("게시글 목록 조회 시 정렬 조건"),
-                                parameterWithName("criteriaDto.pageNum").description("게시글 목록 조회 시 몇 페이지를 조회할 것인지 기입"),
-                                parameterWithName("criteriaDto.limit").description("게시글 목록 조회 시 몇 개의 결과를 조회할 것인지 기입"),
+                                parameterWithName("criteria.pageNum").description("게시글 목록 조회 시 몇 페이지를 조회할 것인지 기입"),
+                                parameterWithName("criteria.limit").description("게시글 목록 조회 시 몇 개의 결과를 조회할 것인지 기입"),
                                 parameterWithName("bbsStatus").description("게시글 조회 시 조회할 게시글의 상태 : 등록, 삭제 [REGISTER, DELETE]")
                         ),
                         responseFields(
@@ -382,8 +383,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].registerDate").description("게시글 목록 중 첫 번째 게시글의 등록 날짜"),
                                 fieldWithPath("data.list[0].status").description("게시글의 상태 : 등록, 삭제 [REGISTER, DELETE]"),
                                 fieldWithPath("data.paging.totalCount").description("요청한 검색 조건에 의해 조회되는 게시글의 총 개수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("요청한 페이지"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("요청한 검색 결과의 개수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("요청한 페이지"),
+                                fieldWithPath("data.paging.criteria.limit").description("요청한 검색 결과의 개수"),
                                 fieldWithPath("data.paging.startPage").description("현재 요청한 페이지 기준 첫 번째 페이지"),
                                 fieldWithPath("data.paging.endPage").description("현재 요청한 페이지 기준 마지막 페이지 "),
                                 fieldWithPath("data.paging.prev").description("현재 요청한 페이지 기준 이전 페이지 목록이 있는지 여부"),
@@ -415,8 +416,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
 //                                .param("searchType",BbsSearchType.TITLE.name())
                                 .param("keyword", "1")
-                                .param("criteriaDto.pageNum", "1")
-                                .param("criteriaDto.limit", "10")
+                                .param("criteria.pageNum", "1")
+                                .param("criteria.limit", "10")
                                 .param("bbsSortType", BbsSortType.REPLY_COUNT_ASC.name())
                                 .param("bbsStatus", BbsStatus.REGISTER.name())
                 )
@@ -452,8 +453,8 @@ class BbsApiControllerTest extends BaseControllerTest {
                                 .header(X_AUTH_TOKEN, userTokenDto.getAccessToken())
                                 .param("searchType", BbsSearchType.TITLE.name())
                                 .param("keyword", "1")
-                                .param("criteriaDto.pageNum", "1")
-                                .param("criteriaDto.limit", "10")
+                                .param("criteria.pageNum", "1")
+                                .param("criteria.limit", "10")
                                 .param("bbsSortType", BbsSortType.REPLY_COUNT_ASC.name())
                                 .param("bbsStatus", BbsStatus.DELETE.name())
                 )

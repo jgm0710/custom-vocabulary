@@ -64,8 +64,8 @@ public class BbsService {
         return bbsQueryRepository.findAll(bbsSearchDto);
     }
 
-    public QueryResults<Bbs> getBbsListByMember(Long memberId, CriteriaDto criteriaDto) {
-        return bbsQueryRepository.findAllByMember(criteriaDto, memberId);
+    public QueryResults<Bbs> getBbsListByMember(Long memberId, CriteriaDto criteria) {
+        return bbsQueryRepository.findAllByMember(criteria, memberId);
     }
 
     public Bbs getBbs(Long bbsId) {

@@ -417,7 +417,7 @@ class MemberServiceTest {
 
 
         MemberSearchDto memberSearchDto = MemberSearchDto.builder()
-                .criteriaDto(new CriteriaDto(1, 40))
+                .criteria(new CriteriaDto(1, 40))
                 .keyword(content)
                 .searchType(searchType)
                 .sortType(sortType)

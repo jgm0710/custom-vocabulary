@@ -54,8 +54,8 @@ public class VocabularyLikeService {
         return vocabularyLikeRepository.save(vocabularyLike);
     }
 
-    public List<Vocabulary> getVocabularyListByLikeByMember(Long memberId, CriteriaDto criteriaDto) {
-        return vocabularyLikeQueryRepository.findVocabularyListByLikeByMember(memberId, criteriaDto);
+    public List<Vocabulary> getVocabularyListByLikeByMember(Long memberId, CriteriaDto criteria) {
+        return vocabularyLikeQueryRepository.findVocabularyListByLikeByMember(memberId, criteria);
     }
 
     public boolean getExistLike(Long memberId, Long vocabularyId) {

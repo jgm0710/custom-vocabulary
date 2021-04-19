@@ -1,6 +1,5 @@
 package project.study.jgm.customvocabulary.common;
 
-import com.sun.istack.Nullable;
 import org.springframework.hateoas.Link;
 import project.study.jgm.customvocabulary.api.IndexApiController;
 import project.study.jgm.customvocabulary.api.LoginApiController;
@@ -55,9 +54,9 @@ public class LinkToCreator {
 
         parameter += getParameterConnector(firstFlag);
         firstFlag = false;
-        parameter += "criteriaDto.pageNum=" + memberSearchDto.getCriteriaDto().getPageNum();
+        parameter += "criteriaDto.pageNum=" + memberSearchDto.getCriteria().getPageNum();
         parameter += getParameterConnector(firstFlag);
-        parameter += "criteriaDto.limit=" + memberSearchDto.getCriteriaDto().getLimit();
+        parameter += "criteriaDto.limit=" + memberSearchDto.getCriteria().getLimit();
         if (memberSearchDto.getSortType() != null) {
             parameter += getParameterConnector(firstFlag);
             parameter += "sortType=" + memberSearchDto.getSortType().name();

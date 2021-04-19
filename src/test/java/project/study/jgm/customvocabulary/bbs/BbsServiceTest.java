@@ -1,7 +1,6 @@
 package project.study.jgm.customvocabulary.bbs;
 
 import com.querydsl.core.QueryResults;
-import org.hibernate.sql.Delete;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -111,7 +110,7 @@ class BbsServiceTest {
         BbsSearchDto bbsSearchDto = BbsSearchDto.builder()
                 .searchType(bbsSearchType)
                 .keyword(keyword)
-                .criteriaDto(new CriteriaDto())
+                .criteria(new CriteriaDto())
                 .bbsSortType(bbsSortType)
                 .build();
 

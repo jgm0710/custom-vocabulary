@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
-import project.study.jgm.customvocabulary.common.dto.PaginationDto;
 
 import javax.validation.Valid;
 
@@ -23,9 +22,9 @@ public class MemberSearchDto {
 
     @Valid
     @Builder.Default
-    private CriteriaDto criteriaDto = new CriteriaDto();
+    private CriteriaDto criteria = new CriteriaDto();
 
     public void updatePage(int target) {
-        this.criteriaDto.setPageNum(target);
+        this.criteria.setPageNum(target);
     }
 }

@@ -1,16 +1,14 @@
 package project.study.jgm.customvocabulary.common.dto;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 public class PaginationDto {
 
     private long totalCount;
 
-    private CriteriaDto criteriaDto;
+    private CriteriaDto criteria;
 
     private int startPage;
 
@@ -24,29 +22,29 @@ public class PaginationDto {
 
     private final int NUMBER_OF_PAGES_TO_BE_DISPLAYED = 10;
 
-    public PaginationDto(long totalCount, CriteriaDto criteriaDto) {
+    public PaginationDto(long totalCount, CriteriaDto criteria) {
         this.totalCount = totalCount;
-        this.criteriaDto = criteriaDto;
+        this.criteria = criteria;
 
         init();
     }
 
     private void init() {
 
-        endPage = (int) (Math.ceil(criteriaDto.getPageNum() / (double) NUMBER_OF_PAGES_TO_BE_DISPLAYED) * NUMBER_OF_PAGES_TO_BE_DISPLAYED);
+        endPage = (int) (Math.ceil(criteria.getPageNum() / (double) NUMBER_OF_PAGES_TO_BE_DISPLAYED) * NUMBER_OF_PAGES_TO_BE_DISPLAYED);
 
         startPage = (endPage - NUMBER_OF_PAGES_TO_BE_DISPLAYED) + 1;
 
-        int realEndPage = (int) Math.ceil(totalCount / (double) criteriaDto.getLimit());
+        int realEndPage = (int) Math.ceil(totalCount / (double) criteria.getLimit());
         if (endPage > realEndPage) {
             endPage = realEndPage;
         }
 
         prev = startPage == 1 ? false : true;
 
-        next = endPage * criteriaDto.getLimit() >= totalCount ? false : true;
+        next = endPage * criteria.getLimit() >= totalCount ? false : true;
 
-        totalPage = (totalCount / criteriaDto.getLimit()) + 1;
+        totalPage = (totalCount / criteria.getLimit()) + 1;
     }
 
     @JsonIgnore

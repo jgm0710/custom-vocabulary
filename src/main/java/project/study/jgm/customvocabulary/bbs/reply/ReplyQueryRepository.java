@@ -1,12 +1,9 @@
 package project.study.jgm.customvocabulary.bbs.reply;
 
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import project.study.jgm.customvocabulary.bbs.BbsStatus;
 import project.study.jgm.customvocabulary.common.dto.CriteriaDto;
 
 import java.util.ArrayList;
@@ -20,7 +17,7 @@ public class ReplyQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public List<Reply> findParents(CriteriaDto criteriaDto, Long bbsId, ReplySortType sortType) {
+    public List<Reply> findParents(CriteriaDto criteria, Long bbsId, ReplySortType sortType) {
         return queryFactory
                 .select(reply)
                 .from(reply)
@@ -30,12 +27,12 @@ public class ReplyQueryRepository {
                         reply.parent.isNull()
                 )
                 .orderBy(sortConditionEq(sortType).toArray(OrderSpecifier[]::new))
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .offset(criteria.getOffset())
+                .limit(criteria.getLimit())
                 .fetch();
     }
 
-    public List<Reply> findChildren(CriteriaDto criteriaDto, Long parentId) {
+    public List<Reply> findChildren(CriteriaDto criteria, Long parentId) {
         return queryFactory
                 .selectFrom(reply)
                 .where(
@@ -44,8 +41,8 @@ public class ReplyQueryRepository {
                         reply.status.eq(ReplyStatus.REGISTER)
                 )
                 .orderBy(reply.id.desc())
-                .offset(criteriaDto.getOffset())
-                .limit(criteriaDto.getLimit())
+                .offset(criteria.getOffset())
+                .limit(criteria.getLimit())
                 .fetch();
     }
 

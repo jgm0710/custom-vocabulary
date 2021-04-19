@@ -1086,8 +1086,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/members")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", "12")
-                                .param("criteriaDto.limit", "4")
+                                .param("criteria.pageNum", "12")
+                                .param("criteria.limit", "4")
                                 .param("searchType", MemberSearchType.JOIN_ID.name())
                                 .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())
@@ -1110,8 +1110,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("data.list[0].registerDate").exists())
                 .andExpect(jsonPath("data.list[0].updateDate").exists())
                 .andExpect(jsonPath("data.paging.totalCount").exists())
-                .andExpect(jsonPath("data.paging.criteriaDto.pageNum").value(12))
-                .andExpect(jsonPath("data.paging.criteriaDto.limit").value(4))
+                .andExpect(jsonPath("data.paging.criteria.pageNum").value(12))
+                .andExpect(jsonPath("data.paging.criteria.limit").value(4))
                 .andExpect(jsonPath("data.paging.startPage").value(11))
                 .andExpect(jsonPath("data.paging.endPage").value(20))
                 .andExpect(jsonPath("data.paging.prev").value(true))
@@ -1123,8 +1123,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                                 headerWithName(X_AUTH_TOKEN).description(X_AUTH_TOKEN_DESCRIPTION)
                         ),
                         requestParameters(
-                                parameterWithName("criteriaDto.pageNum").description("조회할 Page 번호"),
-                                parameterWithName("criteriaDto.limit").description("조회할 개수"),
+                                parameterWithName("criteria.pageNum").description("조회할 Page 번호"),
+                                parameterWithName("criteria.limit").description("조회할 개수"),
                                 parameterWithName("searchType").description("검색 조건 : 회원 ID 로 검색, 회원 Email 로 검색, 회원 이름으로 검색, 회원 Nickname 으로 검색 " +
                                         " [JOIN_ID, EMAIL, NAME, NICKNAME]"),
                                 parameterWithName("keyword").description("검색 키워드 (검색 시 검색 조건에 해당 키워드를 포함하는 결과들을 반환해 줌.)"),
@@ -1146,8 +1146,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                                 fieldWithPath("data.list[0].registerDate").description("회원 목록 중 첫 번째 회원의 가입 일시"),
                                 fieldWithPath("data.list[0].updateDate").description("회원 목록 중 첫 번째 회원의 개인 정보 수정 일시"),
                                 fieldWithPath("data.paging.totalCount").description("요청 시 입력된 조건에 따라 조회되는 회원의 총 인원 수"),
-                                fieldWithPath("data.paging.criteriaDto.pageNum").description("조회된 Page"),
-                                fieldWithPath("data.paging.criteriaDto.limit").description("조회된 인원 수"),
+                                fieldWithPath("data.paging.criteria.pageNum").description("조회된 Page"),
+                                fieldWithPath("data.paging.criteria.limit").description("조회된 인원 수"),
                                 fieldWithPath("data.paging.startPage").description("요청의 pageNum 에 따른 시작 페이지 (12Page -> 11Page 가 startPage)"),
                                 fieldWithPath("data.paging.endPage").description("요청의 pageNum 과 조회 결과에 따라 변동되는 마지막 페이지 " +
                                         " (조회된 회원이 충분히 많을 경우 12Page -> 20Page 가 endPage)"),
@@ -1181,8 +1181,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/members")
 //                                .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", "12")
-                                .param("criteriaDto.limit", "4")
+                                .param("criteria.pageNum", "12")
+                                .param("criteria.limit", "4")
                                 .param("searchType", MemberSearchType.JOIN_ID.name())
                                 .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())
@@ -1211,8 +1211,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/members")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", "12")
-                                .param("criteriaDto.limit", "4")
+                                .param("criteria.pageNum", "12")
+                                .param("criteria.limit", "4")
                                 .param("searchType", MemberSearchType.JOIN_ID.name())
                                 .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())
@@ -1241,8 +1241,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/members")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", "12")
-                                .param("criteriaDto.limit", "4")
+                                .param("criteria.pageNum", "12")
+                                .param("criteria.limit", "4")
 //                                .param("searchType", MemberSearchType.JOIN_ID.name())
                                 .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())
@@ -1276,8 +1276,8 @@ public class MemberApiControllerTest extends BaseControllerTest {
                 .perform(
                         get("/api/members")
                                 .header(X_AUTH_TOKEN, adminTokenDto.getAccessToken())
-                                .param("criteriaDto.pageNum", "" + pageNum)
-                                .param("criteriaDto.limit", "" + limit)
+                                .param("criteria.pageNum", "" + pageNum)
+                                .param("criteria.limit", "" + limit)
                                 .param("searchType", MemberSearchType.JOIN_ID.name())
                                 .param("keyword", "joinId7")
                                 .param("sortType", MemberSortType.OLDEST.name())

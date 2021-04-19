@@ -253,7 +253,7 @@ public class VocabularyService {
         return vocabulary;
     }
 
-    public QueryResults<Vocabulary> getVocabularyListByMember(CriteriaDto criteriaDto, Long memberId, Long categoryId, VocabularyDivision... divisions) {
+    public QueryResults<Vocabulary> getVocabularyListByMember(CriteriaDto criteria, Long memberId, VocabularySearchBy searchBy, Long categoryId, VocabularyDivision... divisions) {
         if (categoryId != null) {
             final Category findCategory = categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
             if (findCategory.getDivision() != CategoryDivision.PERSONAL) {
@@ -263,15 +263,15 @@ public class VocabularyService {
                 throw new MemberAndCategoryMemberDifferentException();
             }
         }
-        return vocabularyQueryRepository.findAllByMember(criteriaDto, memberId, categoryId, divisions);
+        return vocabularyQueryRepository.findAllByMember(criteria, memberId, searchBy, categoryId, divisions);
     }
 
     /**
      * shared
      */
 
-    public QueryResults<Vocabulary> getVocabularyListByShared(CriteriaDto criteriaDto, Long categoryId, String title, VocabularySortCondition sortCondition) {
-        return vocabularyQueryRepository.findAllByShared(criteriaDto, categoryId, title, sortCondition);
+    public QueryResults<Vocabulary> getVocabularyListByShared(CriteriaDto criteria, VocabularySearchBy searchBy, Long categoryId, String title, VocabularySortCondition sortCondition) {
+        return vocabularyQueryRepository.findAllByShared(criteria, searchBy, categoryId, title, sortCondition);
     }
 
     public Vocabulary download(Long vocabularyId, Long memberId, Long categoryId) {
