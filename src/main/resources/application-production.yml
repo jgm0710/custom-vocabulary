@@ -22,5 +22,12 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: trace
     org.springframework.security: info #spring security에 대해 어떤 메세지가 출력이 되는지 확인
 
+server:
+  port: 8080
+  ssl:
+    enabled: true
+    key-store: /home/jgm0710/secure/custom-vocabulary.tk/custom-vocabulary.jks
+    key-store-password: jsyjos74
+    key-password: jsyjos74
 
 
