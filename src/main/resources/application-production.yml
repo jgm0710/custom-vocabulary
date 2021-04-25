@@ -11,9 +11,9 @@ spring:
 
 
 file:
-  bbs-upload-dir: /home/ubuntu/project/upload/bbs-file
-  word-image-dir: /home/ubuntu/project/upload/word-file
-  vocabulary-thumbnail-image-dir: /home/ubuntu/project/upload/vocabulary-file
+  bbs-upload-dir: /home/jgm0710/project/upload/bbs-file
+  word-image-dir: /home/jgm0710/project/upload/word-file
+  vocabulary-thumbnail-image-dir: /home/jgm0710/project/upload/vocabulary-file
 
 logging:
   level:
