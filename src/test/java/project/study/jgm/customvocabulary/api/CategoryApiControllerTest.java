@@ -165,7 +165,6 @@ class CategoryApiControllerTest extends BaseControllerTest {
                         )
                 ))
         ;
-
     }
 
     @Test

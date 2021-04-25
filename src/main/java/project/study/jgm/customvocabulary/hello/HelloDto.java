@@ -1,4 +1,4 @@
-package project.study.jgm.customvocabulary;
+package project.study.jgm.customvocabulary.hello;
 
 import lombok.Data;
 
