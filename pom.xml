@@ -131,6 +131,12 @@
             <version>0.4.8</version>
         </dependency>
 
+        <!-- flyway database 버전 관리 의존성 추가 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
 
     </dependencies>
 

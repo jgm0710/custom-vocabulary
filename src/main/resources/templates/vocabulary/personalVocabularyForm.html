@@ -10,7 +10,7 @@
 
 </head>
 <body>
-<th:block th:include="fragments/header"/>
+<th:block th:include="/fragments/header"/>
 <!-- Sidebar -->
 <div class="w3-sidebar w3-bar-block" style="display:none;z-index:5" id="mySidebar">
     <button class="w3-bar-item w3-button w3-xlarge" onclick="w3_close()">Close &times;</button>
@@ -62,7 +62,7 @@
         <p>Click on the "hamburger menu" to see the effect.</p>
     </div>
 </div>
-<th:block th:include="fragments/footer"/>
+<th:block th:include="/fragments/footer"/>
 <script>
     function w3_open() {
         document.getElementById("mySidebar").style.display = "block";

@@ -8,5 +8,10 @@ spring:
       jdbc-url: jdbc:h2:mem:testdb
 
   jpa:
+    hibernate:
+      ddl-auto: create-drop
     properties:
       hibernate.dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false

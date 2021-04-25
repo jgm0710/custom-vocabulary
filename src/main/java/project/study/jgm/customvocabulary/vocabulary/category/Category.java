@@ -27,6 +27,7 @@ public class Category {
     private String name;
 
     @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "member_id")
     private Member member;  //personal Category 의 경우 특정 Member 가 만든 카테고리이기 때문에 Member 에 대한 정보가 필요
     //null 이면 sharedCategory
 

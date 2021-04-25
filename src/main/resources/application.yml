@@ -7,11 +7,14 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 500
+
+  thymeleaf:
+    prefix: classpath:/templates
 
   servlet:
     multipart:
