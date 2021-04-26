@@ -4,7 +4,6 @@ spring:
     password: customvoca
     url: jdbc:mariadb://localhost:3306/customvoca?serverTimezone=UTC&characterEncoding=UTF-8
     driver-class-name: org.mariadb.jdbc.Driver
-
   jpa:
     hibernate:
       ddl-auto: validate
@@ -41,3 +40,5 @@ jwt-security:
   token-valid-second: 3000
   expiration-cycle-days: 14
 
+server:
+  port: 9090
