@@ -16,12 +16,10 @@
     - https://custom-vocabulary.tk/docs/index.html
     
 <h2>3. 기술 스택</h2>
+
 - Spring boot
-  
     - version : 2.4.2
-      
     - Spring framework 설정을 보다 편하게 하기 위한 의존성
-      
     - Spring Boot 를 활용한 실행 환경 profile 지정
       
         - application.yml
@@ -49,7 +47,6 @@
           - 해당 프로젝트 logging level info 로 설정
           - 443 port 에서 실행
           - ssl 설정
-
 
 - Spring Data Jpa
     - ORM(Object Relational Mapping)
