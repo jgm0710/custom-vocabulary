@@ -37,8 +37,5 @@ logging:
 
 jwt-security:
   secret-key: costomvocaSecretKey
-  token-valid-second: 3000
+  token-valid-second: 30000
   expiration-cycle-days: 14
-
-server:
-  port: 9090
