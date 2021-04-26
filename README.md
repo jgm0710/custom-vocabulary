@@ -17,10 +17,15 @@
     
 <h2>3. 기술 스택</h2>
 - Spring boot
+  
     - version : 2.4.2
+      
     - Spring framework 설정을 보다 편하게 하기 위한 의존성
+      
     - Spring Boot 를 활용한 실행 환경 profile 지정
+      
         - application.yml
+          
           - 기본적인 설정 등록
           - 로컬 컴퓨터의 MariaDB 와 커넥션 연결
           - 8080 port 에서 실행
@@ -28,11 +33,15 @@
           - file upload properties 설정
               - 로컬 컴퓨터에 파일 업로드 경로 설정
           - 해당 프로젝트 logging level debug 로 설정
+            
         - application-test.yml
+          
           - Test 설정 등록
           - inMemory h2 Database 와 커넥션 연결
           - flyway disable
+          
         - application-production.yml
+          
           - 배포 환경 설정 등록
           - AWS RDS 의 MariaDB 와 커넥션 연결
           - file upload properties 설정
