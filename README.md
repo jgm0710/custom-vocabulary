@@ -11,9 +11,9 @@
 <h2>2. 프로젝트 문서 관리</h2>
 - Rest Docs 를 사용하여 프로젝트 문서화 진행
   
-- [API 문서 열람 링크](https://custom-vocabulary.tk/docs/index.html)
+- [API 문서 열람 링크](https://34.123.255.2/docs/index.html)
   
-    - https://custom-vocabulary.tk/docs/index.html
+    - https://34.123.255.2/docs/index.html
     
 <h2>3. 기술 스택</h2>
 
