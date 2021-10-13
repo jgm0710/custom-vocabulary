@@ -2,7 +2,7 @@ spring:
   datasource:
     username: customvoca
     password: customvoca
-    url: jdbc:mariadb://customvoca.cqgsbyjoicbf.ap-northeast-2.rds.amazonaws.com:3306/customvoca?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mariadb://localhost:13306/customvoca?serverTimezone=UTC&characterEncoding=UTF-8
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
@@ -11,9 +11,9 @@ spring:
 
 
 file:
-  bbs-upload-dir: /home/jgm0710/project/upload/bbs-file
-  word-image-dir: /home/jgm0710/project/upload/word-file
-  vocabulary-thumbnail-image-dir: /home/jgm0710/project/upload/vocabulary-file
+  bbs-upload-dir: /home/gumin/Desktop/upload/customvoca/bbs-file
+  word-image-dir: /home/gumin/Desktop/upload/customvoca/word-file
+  vocabulary-thumbnail-image-dir: /home/gumin/Desktop/upload/customvoca/vocabulary-file
 
 logging:
   level:
@@ -21,13 +21,4 @@ logging:
     org.hibernate.SQL: info
     org.hibernate.type.descriptor.sql.BasicBinder: trace
     org.springframework.security: info #spring security에 대해 어떤 메세지가 출력이 되는지 확인
-
-server:
-  port: 443
-  ssl:
-    enabled: true
-    key-store: /home/jgm0710/secure/custom-vocabulary.tk/custom-vocabulary.jks
-    key-store-password: jsyjos74
-    key-password: jsyjos74
-
 
