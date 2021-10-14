@@ -1,6 +1,6 @@
-<h1>Custom Vocabulary Server Api</h1>
+#Custom Vocabulary Server Api
 
-<h2>1. 프로젝트 설명</h2>
+## 1. 프로젝트 설명
 
 - 자신이 원하는 단어장을 생성하여 보관하고 언제 어디서나 학습할 수 있도록 하기 위한 Custom 단어장 앱 구현에 필요한 API 를 제공
 - 회원가입 이후 자신이 생성한 단어장은 자신의 계정에 귀속되어 개인 단어장 보관함에서 학습하기 위한 기능 제공
@@ -8,14 +8,14 @@
 - 자신의 단어장을 다른 사용자와 공유할 수 있도록 공유 기능 제공
 - 여러 사용자가 간단하게 의견을 주고 받을 수 있도록 게시판 기능 제공
 
-<h2>2. 프로젝트 문서 관리</h2>
-- Rest Docs 를 사용하여 프로젝트 문서화 진행
+## 2. 프로젝트 문서 관리
+
+Rest Docs 를 사용하여 프로젝트 문서화 진행
   
-- [API 문서 열람 링크](https://34.123.255.2/docs/index.html)
-  
-    - https://34.123.255.2/docs/index.html
+**[API 문서 열람 링크](https://34.123.255.2/docs/index.html)**
+ 
     
-<h2>3. 기술 스택</h2>
+## 3. 기술 스택
 
 - Spring boot
     - version : 2.4.2
@@ -73,13 +73,4 @@
 
     
 - JWT Token
-    - JWT Token 을 활용한 회원 식별
-    
-    
-    
-<h2>4. 배포</h2>
-- Google Cloud Platform 을 사용하여 프로젝트 배포
-    - freenom 을 통한 도메인 구매
-    - GCP Clould DNS 를 통한 DNS 설정
-- AWS RDS 를 사용하여 Database 관리
-    
+    - JWT Token 을 활용한 회원 식별    
