@@ -12,7 +12,7 @@
 
 Rest Docs 를 사용하여 프로젝트 문서화 진행
   
-**[API 문서 열람 링크](https://34.123.255.2/docs/index.html)**
+**[API 문서 열람 링크](http://211.226.230.172:8080/docs/index.html)**
  
     
 ## 3. 기술 스택
